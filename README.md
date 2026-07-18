@@ -16,11 +16,11 @@ Two existing auto-configurers — `golangci-lint-auto-configure` and `oxlint-aut
 
 What they reinvent identically is the surrounding plumbing:
 
-| Concern | Before (per tool) | After (this SDK) |
-|---|---|---|
-| Read/write config files | Each tool hand-wraps `os.ReadFile` + parse + error handling | `ReadConfig(path)` / `LoadJSON[T](path)` / `SaveJSON(path, v)` |
-| Emit findings for config issues | Each tool maps priority → Severity, fix → Suggestion, by hand | `FindingFromIssue(tool, ConfigIssue{...})` |
-| Wire into BuildFlow as Detector + Repairer | Each tool writes its own adapter | `ProviderSpec` shape (analyze + repair closures) |
+| Concern                                    | Before (per tool)                                             | After (this SDK)                                               |
+| ------------------------------------------ | ------------------------------------------------------------- | -------------------------------------------------------------- |
+| Read/write config files                    | Each tool hand-wraps `os.ReadFile` + parse + error handling   | `ReadConfig(path)` / `LoadJSON[T](path)` / `SaveJSON(path, v)` |
+| Emit findings for config issues            | Each tool maps priority → Severity, fix → Suggestion, by hand | `FindingFromIssue(tool, ConfigIssue{...})`                     |
+| Wire into BuildFlow as Detector + Repairer | Each tool writes its own adapter                              | `ProviderSpec` shape (analyze + repair closures)               |
 
 `linter-autoconfigure-sdk` owns that plumbing once. Adding a third auto-configurer (e.g. `biome-auto-configure`) becomes a config-schema exercise, not a from-scratch build.
 
@@ -99,26 +99,33 @@ A future `ProviderFromSpec(spec)` helper will wrap this as a `toolsdk.Spec` (Bui
 
 ### Config I/O
 
-| Function | Signature | Purpose |
-|---|---|---|
-| `ReadConfig(path)` | `([]byte, error)` | Read raw bytes; YAML parsing stays tool-specific |
-| `LoadJSON[T](path)` | `(*T, error)` | Read + unmarshal a JSON config |
-| `SaveJSON(path, v)` | `error` | Marshal + write JSON, creating parent dirs |
+| Function            | Signature                | Purpose                                          |
+| ------------------- | ------------------------ | ------------------------------------------------ |
+| `ReadConfig(path)`  | `([]byte, *ConfigError)` | Read raw bytes; YAML parsing stays tool-specific |
+| `LoadJSON[T](path)` | `(*T, *ConfigError)`     | Read + unmarshal a JSON config                   |
+| `SaveJSON(path, v)` | `*ConfigError`           | Marshal + write JSON, creating parent dirs       |
+
+All three return a `*ConfigError` (implements `error`) whose `Op`, `Path`, and
+`Err` fields describe the failure. The wrapped cause is reachable via
+`errors.Is` / `errors.As` against a `*ConfigError` (e.g.
+`errors.Is(err, fs.ErrNotExist)`), so callers can distinguish missing files
+from parse or I/O failures without parsing error strings.
 
 ### Finding emission
 
-| Function | Signature | Purpose |
-|---|---|---|
-| `FindingFromIssue(tool, issue)` | `finding.Finding` | Convert one `ConfigIssue` to a `finding.Finding` (suggest-strategy auto-attached when `Suggestion != ""`) |
-| `FindingsFromIssues(tool, issues)` | `[]finding.Finding` | Slice version |
+| Function                           | Signature           | Purpose                                                                                                   |
+| ---------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------- |
+| `FindingFromIssue(tool, issue)`    | `finding.Finding`   | Convert one `ConfigIssue` to a `finding.Finding` (suggest-strategy auto-attached when `Suggestion != ""`) |
+| `FindingsFromIssues(tool, issues)` | `[]finding.Finding` | Slice version                                                                                             |
 
 ### Types
 
-| Type | Purpose |
-|---|---|
-| `ConfigIssue` | `{Rule, Message, Severity, File, Line, Suggestion}` — describes one config problem |
-| `ProviderSpec` | `{Name, Description, ConfigFile, Analyze, Repair}` — BuildFlow provider shape |
-| `ErrNoRepair` | Sentinel: tool does not support auto-repair (suggest-only) |
+| Type           | Purpose                                                                                                               |
+| -------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `ConfigError`  | `{Op, Path, Err}` — typed failure for read/unmarshal/marshal/mkdir/write operations; supports `errors.Is`/`errors.As` |
+| `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — describes one config problem                                    |
+| `ProviderSpec` | `{Name, Description, ConfigFile, Analyze, Repair}` — BuildFlow provider shape                                         |
+| `ErrNoRepair`  | Sentinel: tool does not support auto-repair (suggest-only)                                                            |
 
 ---
 
@@ -134,6 +141,7 @@ A future `ProviderFromSpec(spec)` helper will wrap this as a `toolsdk.Spec` (Bui
 ## Consumers
 
 Planned:
+
 - [`golangci-lint-auto-configure`](https://github.com/LarsArtmann/golangci-lint-auto-configure)
 - [`oxlint-auto-configure`](https://github.com/LarsArtmann/oxlint-auto-configure)
 - Future: `biome-auto-configure`, etc.
