@@ -12,7 +12,11 @@ provider spec. YAML parsing is intentionally NOT here (each tool uses a
 different YAML library). Early-stage; no active consumers yet.
 
 Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.26+ and
-`github.com/larsartmann/go-finding` v1.2+.
+`github.com/larsartmann/go-finding` v1.1+.
+
+**Do NOT upgrade to go-finding v1.2+.** v1.2.0 switched to `encoding/json/v2` and
+`encoding/json/jsontext`, which are excluded by build constraints in this NixOS
+environment. The entire package fails to compile. Stick with v1.1.x.
 
 ## Build, test, lint
 
