@@ -40,15 +40,15 @@ licenseforge detects license issues → emits findings → `linter-autoconfigure
 
 ### What's blocking it (and the fix)
 
-| Blocker | Severity | Fix |
-|---|---|---|
-| Package doc hardcodes "linter" (`autoconfigure.go:1`) | Naming — fatal | Broaden to "project file" / "project artifact" |
-| `ConfigIssue` godoc hardcodes "linter config file" (`autoconfigure.go:139`) | Naming — fatal | Broaden to "project file" |
-| `SaveJSON` is JSON-only — license files are plain text | Functional gap | Add `SaveText(path, content) *ConfigError` with same atomic + idempotent semantics |
+| Blocker                                                                         | Severity       | Fix                                                                                                                   |
+| ------------------------------------------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Package doc hardcodes "linter" (`autoconfigure.go:1`)                           | Naming — fatal | Broaden to "project file" / "project artifact"                                                                        |
+| `ConfigIssue` godoc hardcodes "linter config file" (`autoconfigure.go:139`)     | Naming — fatal | Broaden to "project file"                                                                                             |
+| `SaveJSON` is JSON-only — license files are plain text                          | Functional gap | Add `SaveText(path, content) *ConfigError` with same atomic + idempotent semantics                                    |
 | No template substitution (license templates use `{{AUTHOR}}`, `{{YEAR}}`, etc.) | Functional gap | Add `ApplyTemplate(dst, tmpl string, vars map[string]string) (*ConfigError, []string)` returning substituted warnings |
-| No copyright-year update helper | Functional gap | Add `UpdateCopyrightYear(path string, year int) *ConfigError` |
-| Module name `linter-autoconfigure-sdk` lies if scope broadens | Naming — fatal | Rename or rebrand (see "Rename decision" below) |
-| `ConfigFile` field godoc hardcodes ".golangci.yml" (`autoconfigure.go:223`) | Naming — minor | Broaden example to "LICENSE", "README.md", etc. |
+| No copyright-year update helper                                                 | Functional gap | Add `UpdateCopyrightYear(path string, year int) *ConfigError`                                                         |
+| Module name `linter-autoconfigure-sdk` lies if scope broadens                   | Naming — fatal | Rename or rebrand (see "Rename decision" below)                                                                       |
+| `ConfigFile` field godoc hardcodes ".golangci.yml" (`autoconfigure.go:223`)     | Naming — minor | Broaden example to "LICENSE", "README.md", etc.                                                                       |
 
 ### What does NOT need to change
 
@@ -56,11 +56,11 @@ The Go types are already domain-agnostic. `ConfigIssue{Rule, Message, Severity, 
 
 ### Rename decision (your call)
 
-| Option | Pros | Cons |
-|---|---|---|
-| **Keep `linter-autoconfigure-sdk`** + broaden godoc | Zero churn, no module-redirect needed | Name lies; pkg.go.dev badge will mislead |
-| **Rename to `project-autofix-sdk`** | Honest scope; communicates generality | Forces go.mod redirect; breaks any planned consumer URLs |
-| **Rename to `autoconfigure-sdk`** (drop "linter") | Short, honest, lets linter + license both fit | Less discoverable for the original use case |
+| Option                                              | Pros                                          | Cons                                                     |
+| --------------------------------------------------- | --------------------------------------------- | -------------------------------------------------------- |
+| **Keep `linter-autoconfigure-sdk`** + broaden godoc | Zero churn, no module-redirect needed         | Name lies; pkg.go.dev badge will mislead                 |
+| **Rename to `project-autofix-sdk`**                 | Honest scope; communicates generality         | Forces go.mod redirect; breaks any planned consumer URLs |
+| **Rename to `autoconfigure-sdk`** (drop "linter")   | Short, honest, lets linter + license both fit | Less discoverable for the original use case              |
 
 My recommendation: rename. A module named after one domain shouldn't host another.
 
@@ -68,19 +68,19 @@ My recommendation: rename. A module named after one domain shouldn't host anothe
 
 ## Hardcoded-ness audit (where the lies live)
 
-| Location | Current text | Issue |
-|---|---|---|
-| `autoconfigure.go:1` | `// Package autoconfigure provides the shared foundation for linter auto-configuration tools` | Hardcoded to linters |
-| `autoconfigure.go:2-3` | `// (golangci-lint-auto-configure, oxlint-auto-configure, and future additions like biome-auto-configure)` | Examples — fine |
-| `autoconfigure.go:47` | `// ConfigError describes a failure while reading, parsing, or writing a linter config file` | Hardcoded |
-| `autoconfigure.go:81-83` | `// left to each tool (different YAML libraries: golangci uses yaml.v3 / v4, oxlint may use go-yaml)` | Tool-specific prose — fine for context |
-| `autoconfigure.go:118` | `// Indented output is used because linter configs are typically human-edited` | Hardcoded + lying for license files |
-| `autoconfigure.go:139` | `// ConfigIssue describes a single problem found in a linter config file` | Hardcoded |
-| `autoconfigure.go:143` | `// Rule is the issue's rule identifier (e.g. "missing-linter", "wrong-priority")` | Examples — fine |
-| `autoconfigure.go:223` | `ConfigFile string // the config file path the tool manages (e.g. ".golangci.yml")` | Example too narrow — fine but improvable |
-| `README.md` throughout | `linter auto-configuration`, linter examples only | Domain-locked marketing copy |
-| `go.mod:1` | `module github.com/larsartmann/linter-autoconfigure-sdk` | Hardcoded name |
-| `LICENSE` vs `README.md:7` | PROPRIETARY file, MIT badge | Unrelated split-brain — separate fix |
+| Location                   | Current text                                                                                               | Issue                                    |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `autoconfigure.go:1`       | `// Package autoconfigure provides the shared foundation for linter auto-configuration tools`              | Hardcoded to linters                     |
+| `autoconfigure.go:2-3`     | `// (golangci-lint-auto-configure, oxlint-auto-configure, and future additions like biome-auto-configure)` | Examples — fine                          |
+| `autoconfigure.go:47`      | `// ConfigError describes a failure while reading, parsing, or writing a linter config file`               | Hardcoded                                |
+| `autoconfigure.go:81-83`   | `// left to each tool (different YAML libraries: golangci uses yaml.v3 / v4, oxlint may use go-yaml)`      | Tool-specific prose — fine for context   |
+| `autoconfigure.go:118`     | `// Indented output is used because linter configs are typically human-edited`                             | Hardcoded + lying for license files      |
+| `autoconfigure.go:139`     | `// ConfigIssue describes a single problem found in a linter config file`                                  | Hardcoded                                |
+| `autoconfigure.go:143`     | `// Rule is the issue's rule identifier (e.g. "missing-linter", "wrong-priority")`                         | Examples — fine                          |
+| `autoconfigure.go:223`     | `ConfigFile string // the config file path the tool manages (e.g. ".golangci.yml")`                        | Example too narrow — fine but improvable |
+| `README.md` throughout     | `linter auto-configuration`, linter examples only                                                          | Domain-locked marketing copy             |
+| `go.mod:1`                 | `module github.com/larsartmann/linter-autoconfigure-sdk`                                                   | Hardcoded name                           |
+| `LICENSE` vs `README.md:7` | PROPRIETARY file, MIT badge                                                                                | Unrelated split-brain — separate fix     |
 
 ---
 
@@ -109,12 +109,12 @@ This is **not** in this SDK's scope. licenseforge (or a new `licenseforge-fix` t
 
 ## Risks
 
-| Risk | Mitigation |
-|---|---|
-| Rename breaks planned consumers (none exist yet per README:151) | Greenfield — no migration cost |
-| Template engine re-invents text/template | Use `text/template` from stdlib; document the choice |
-| Copyright-year regex is locale-fragile (e.g. `©` vs `(c)` vs `(C)`) | Document supported forms; refuse + report otherwise |
-| `SaveText` could shadow licenseforge's `pkg/fileops` capabilities | Document that this SDK is plain-text-only; no transactions, no rollback. Multi-step repairs belong in licenseforge. |
+| Risk                                                                | Mitigation                                                                                                          |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Rename breaks planned consumers (none exist yet per README:151)     | Greenfield — no migration cost                                                                                      |
+| Template engine re-invents text/template                            | Use `text/template` from stdlib; document the choice                                                                |
+| Copyright-year regex is locale-fragile (e.g. `©` vs `(c)` vs `(C)`) | Document supported forms; refuse + report otherwise                                                                 |
+| `SaveText` could shadow licenseforge's `pkg/fileops` capabilities   | Document that this SDK is plain-text-only; no transactions, no rollback. Multi-step repairs belong in licenseforge. |
 
 ---
 
