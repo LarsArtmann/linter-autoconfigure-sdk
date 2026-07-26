@@ -228,6 +228,10 @@ func FindingsFromIssues(toolName finding.ToolName, issues []ConfigIssue) ([]find
 // ProviderSpec is the minimal shape an auto-configurer supplies to wire into
 // BuildFlow via the tool-sdk. This avoids each tool reimplementing the
 // Detector/Repairer adapter ceremony.
+//
+// Provisional: no consumer has migrated to this shape yet. The fields may
+// evolve when the first auto-configurer adopts the SDK. The Analyze and Repair
+// closures are usable standalone today.
 type ProviderSpec struct {
 	Name        string
 	Description string
@@ -236,10 +240,15 @@ type ProviderSpec struct {
 	// is available via finding.WorkingDirFromContext(ctx).
 	Analyze func(ctx context.Context) ([]ConfigIssue, error)
 	// Repair, if non-nil, rewrites the config to fix the issues. Returns a
-	// human-readable description of what changed.
+	// human-readable description of what changed. When nil, the spec is
+	// suggest-only and callers should return ErrNoRepair from repair attempts.
 	Repair func(ctx context.Context) (string, error)
 }
 
-// ErrNoRepair signals that an auto-configurer does not support auto-repair.
-// BuildFlow treats this as a suggest-only tool.
+// HasRepair reports whether this spec supports auto-repair.
+func (s ProviderSpec) HasRepair() bool { return s.Repair != nil }
+
+// ErrNoRepair is returned by a ProviderSpec whose Repair function is nil,
+// signalling that the auto-configurer does not support auto-repair. BuildFlow
+// treats this as a suggest-only tool.
 var ErrNoRepair = errors.New("autoconfigure: tool does not support auto-repair")

@@ -210,3 +210,86 @@ func TestConfigError_ErrorFormat(t *testing.T) {
 		t.Errorf("unexpected Error(): %q, want %q", got, want)
 	}
 }
+
+func TestConfigError_Unwrap(t *testing.T) {
+	cause := errors.New("root cause")
+	ce := &ConfigError{Op: OpRead, Path: "x.yml", Err: cause}
+
+	if unwrapped := errors.Unwrap(ce); unwrapped != cause {
+		t.Errorf("expected Unwrap to return the cause, got %v", unwrapped)
+	}
+}
+
+func TestFindingFromIssue_LineZero_ProducesFileLevelPosition(t *testing.T) {
+	issue := ConfigIssue{
+		Rule:     finding.RuleName("deprecated-linter"),
+		Message:  "golint is deprecated",
+		Severity: finding.SeverityInfo,
+		File:     finding.FilePath(".golangci.yml"),
+		Line:     0,
+	}
+
+	f, err := FindingFromIssue(finding.ToolName("tool"), issue)
+	if err != nil {
+		t.Fatalf("FindingFromIssue failed: %v", err)
+	}
+
+	if f.Position.Line != 0 {
+		t.Errorf("expected file-level finding (Line=0), got Line=%d", f.Position.Line)
+	}
+}
+
+func TestFindingFromIssue_EmptyRule_ReturnsError(t *testing.T) {
+	issue := ConfigIssue{
+		Rule:     finding.RuleName(""),
+		Message:  "missing rule",
+		Severity: finding.SeverityWarning,
+		File:     finding.FilePath(".golangci.yml"),
+	}
+
+	if _, err := FindingFromIssue(finding.ToolName("tool"), issue); err == nil {
+		t.Error("expected error for empty rule, got nil")
+	}
+}
+
+func TestFindingsFromIssues_InvalidIssue_ReturnsError(t *testing.T) {
+	issues := []ConfigIssue{
+		{Rule: finding.RuleName(""), Message: "bad", Severity: finding.SeverityInfo, File: finding.FilePath("f")},
+	}
+
+	if _, err := FindingsFromIssues(finding.ToolName("tool"), issues); err == nil {
+		t.Error("expected error for invalid issue, got nil")
+	}
+}
+
+func TestSaveJSON_MarshalError_ReturnsConfigError(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "bad.json")
+
+	err := SaveJSON(path, func() {})
+	if err == nil {
+		t.Fatal("expected marshal error, got nil")
+	}
+
+	if err.Op != OpMarshal {
+		t.Errorf("expected Op=marshal, got %q", err.Op)
+	}
+}
+
+func TestSaveJSON_MkdirFails_WhenParentIsAFile(t *testing.T) {
+	dir := t.TempDir()
+	blocker := filepath.Join(dir, "blocker")
+	if err := os.WriteFile(blocker, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	path := filepath.Join(blocker, "sub", "config.json")
+	err := SaveJSON(path, map[string]string{"k": "v"})
+	if err == nil {
+		t.Fatal("expected mkdir error, got nil")
+	}
+
+	if err.Op != OpMkdir {
+		t.Errorf("expected Op=mkdir, got %q", err.Op)
+	}
+}

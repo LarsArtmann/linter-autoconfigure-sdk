@@ -104,37 +104,38 @@ A future `ProviderFromSpec(spec)` helper will wrap this as a `toolsdk.Spec` (Bui
 | ------------------- | ------------------------ | ------------------------------------------------ |
 | `ReadConfig(path)`  | `([]byte, *ConfigError)` | Read raw bytes; YAML parsing stays tool-specific |
 | `LoadJSON[T](path)` | `(*T, *ConfigError)`     | Read + unmarshal a JSON config                   |
-| `SaveJSON(path, v)` | `*ConfigError`           | Marshal + write JSON, creating parent dirs       |
+| `SaveJSON(path, v)` | `*ConfigError`           | Atomic write (temp+rename) of indented JSON, creating parent dirs       |
 
-All three return a `*ConfigError` (implements `error`) whose `Op`, `Path`, and
+All three return a `*ConfigError` (implements `error`) whose `Op` (typed:
+`OpRead`, `OpUnmarshal`, `OpMarshal`, `OpMkdir`, `OpWrite`), `Path`, and
 `Err` fields describe the failure. The wrapped cause is reachable via
-`errors.Is` / `errors.As` against a `*ConfigError` (e.g.
+`errors.Is` / `errors.AsType` / `errors.Unwrap` against a `*ConfigError` (e.g.
 `errors.Is(err, fs.ErrNotExist)`), so callers can distinguish missing files
 from parse or I/O failures without parsing error strings.
 
 ### Finding emission
 
-| Function                           | Signature           | Purpose                                                                                                   |
-| ---------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------- |
-| `FindingFromIssue(tool, issue)`    | `finding.Finding`   | Convert one `ConfigIssue` to a `finding.Finding` (suggest-strategy auto-attached when `Suggestion != ""`) |
-| `FindingsFromIssues(tool, issues)` | `[]finding.Finding` | Slice version                                                                                             |
+| Function                           | Signature                          | Purpose                                                                                                   |
+| ---------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `FindingFromIssue(tool, issue)`    | `(finding.Finding, error)`         | Convert one `ConfigIssue` to a `finding.Finding` (suggest-strategy auto-attached when `Suggestion != ""`) |
+| `FindingsFromIssues(tool, issues)` | `([]finding.Finding, error)`       | Slice version; propagates conversion errors                                                               |
 
 ### Types
 
-| Type           | Purpose                                                                                                               |
-| -------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `ConfigError`  | `{Op, Path, Err}` — typed failure for read/unmarshal/marshal/mkdir/write operations; supports `errors.Is`/`errors.As` |
-| `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — describes one config problem                                    |
-| `ProviderSpec` | `{Name, Description, ConfigFile, Analyze, Repair}` — BuildFlow provider shape                                         |
-| `ErrNoRepair`  | Sentinel: tool does not support auto-repair (suggest-only)                                                            |
+| Type           | Purpose                                                                                                                                  |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `ConfigError`  | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal       |
+| `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                          |
+| `ProviderSpec` | `{Name, Description, ConfigFile, Analyze, Repair}` — BuildFlow provider shape (provisional); `HasRepair()` reports repair support          |
+| `ErrNoRepair`  | Sentinel: tool does not support auto-repair (suggest-only)                                                                               |
 
 ---
 
 ## Design notes
 
 - **YAML parsing is NOT in this SDK.** The two existing tools use different YAML libraries (yaml.v3 vs go-yaml) with different semantics. Forcing one would create friction. The SDK covers the shared byte-level read; YAML unmarshaling stays in each tool.
-- **`ConfigIssue.File` is a plain string, not a branded `FilePath`.** Keeps the SDK decoupled from finding's branded types; consumers wrap at the boundary.
-- **`FindingFromIssue` auto-attaches `FixStrategySuggest` when `Suggestion != ""`.** Matches the ecosystem convention that suggestions surface as fixable findings.
+- **Branded types are adopted consistently.** `ConfigIssue.Rule` is `finding.RuleName`, `File` is `finding.FilePath`, and `FindingFromIssue` takes `finding.ToolName`. The SDK is coupled to go-finding; taking the branded types buys compile-time safety at no extra cost.
+- **`FindingFromIssue` auto-attaches `FixStrategySuggest` when `Suggestion != ""`; otherwise sets `FixStrategyNone` explicitly** to avoid the empty-string zero-value split brain. When `Line == 0`, a file-level position (`finding.FilePos`) is used instead of fabricating a line number.
 - **No `ProjectType` enum.** The two existing tools have incompatible concepts (Go shape vs JS framework); sharing one enum would force false convergence. Each tool keeps its own detection layer.
 
 ---
@@ -151,7 +152,7 @@ No active consumers yet. The weakest of the 5 SDKs — value over stdlib is mode
 
 ## Status
 
-Early. The config round-trip and finding-emission helpers are stable. The `ProviderSpec` shape is provisional and may evolve when the first consumer migrates.
+Early (pre-v1). The config round-trip and finding-emission helpers have breaking signatures (typed `Op` enum, branded types, `(Finding, error)` returns) — no consumers exist yet, so breaking changes are acceptable. The `ProviderSpec` shape is provisional and may evolve when the first consumer migrates. Requires `GOEXPERIMENT=jsonv2` (see [AGENTS.md](AGENTS.md)).
 
 ## License
 
