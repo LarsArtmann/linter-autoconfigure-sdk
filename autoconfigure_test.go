@@ -2,7 +2,7 @@ package autoconfigure
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"io/fs"
 	"os"

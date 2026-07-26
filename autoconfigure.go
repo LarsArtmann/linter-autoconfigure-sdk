@@ -18,13 +18,15 @@ package autoconfigure
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/larsartmann/go-atomic-write"
+	"encoding/json/jsontext"
+
+	atomicwrite "github.com/larsartmann/go-atomic-write"
 	"github.com/larsartmann/go-finding"
 )
 
@@ -68,7 +70,7 @@ func (e *ConfigError) Error() string {
 // Unwrap, Is, and As expose the wrapped cause for standard error-chain
 // traversal. Callers can use errors.Is(err, fs.ErrNotExist),
 // errors.As(err, &json.SyntaxError{}), or errors.Unwrap(err) interchangeably.
-func (e *ConfigError) Unwrap() error { return e.Err }
+func (e *ConfigError) Unwrap() error        { return e.Err }
 func (e *ConfigError) Is(target error) bool { return errors.Is(e.Err, target) }
 func (e *ConfigError) As(target any) bool   { return errors.As(e.Err, target) }
 
@@ -117,7 +119,7 @@ func SaveJSON(path string, v any) *ConfigError {
 		return &ConfigError{Op: OpMkdir, Path: dir, Err: err}
 	}
 
-	data, err := json.MarshalIndent(v, "", "  ")
+	data, err := json.Marshal(v, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		return &ConfigError{Op: OpMarshal, Path: path, Err: err}
 	}

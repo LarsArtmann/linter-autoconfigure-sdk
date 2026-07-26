@@ -100,10 +100,10 @@ A future `ProviderFromSpec(spec)` helper will wrap this as a `toolsdk.Spec` (Bui
 
 ### Config I/O
 
-| Function            | Signature                | Purpose                                          |
-| ------------------- | ------------------------ | ------------------------------------------------ |
-| `ReadConfig(path)`  | `([]byte, *ConfigError)` | Read raw bytes; YAML parsing stays tool-specific |
-| `LoadJSON[T](path)` | `(*T, *ConfigError)`     | Read + unmarshal a JSON config                   |
+| Function            | Signature                | Purpose                                                                                                                     |
+| ------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `ReadConfig(path)`  | `([]byte, *ConfigError)` | Read raw bytes; YAML parsing stays tool-specific                                                                            |
+| `LoadJSON[T](path)` | `(*T, *ConfigError)`     | Read + unmarshal a JSON config                                                                                              |
 | `SaveJSON(path, v)` | `*ConfigError`           | Idempotent + crash-durable atomic write of indented JSON; creates parent dirs and skips the write when content is unchanged |
 
 All three return a `*ConfigError` (implements `error`) whose `Op` (typed:
@@ -115,19 +115,19 @@ from parse or I/O failures without parsing error strings.
 
 ### Finding emission
 
-| Function                           | Signature                          | Purpose                                                                                                   |
-| ---------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `FindingFromIssue(tool, issue)`    | `(finding.Finding, error)`         | Convert one `ConfigIssue` to a `finding.Finding` (suggest-strategy auto-attached when `Suggestion != ""`) |
-| `FindingsFromIssues(tool, issues)` | `([]finding.Finding, error)`       | Slice version; propagates conversion errors                                                               |
+| Function                           | Signature                    | Purpose                                                                                                   |
+| ---------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `FindingFromIssue(tool, issue)`    | `(finding.Finding, error)`   | Convert one `ConfigIssue` to a `finding.Finding` (suggest-strategy auto-attached when `Suggestion != ""`) |
+| `FindingsFromIssues(tool, issues)` | `([]finding.Finding, error)` | Slice version; propagates conversion errors                                                               |
 
 ### Types
 
-| Type           | Purpose                                                                                                                                  |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `ConfigError`  | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal       |
-| `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                          |
-| `ProviderSpec` | `{Name, Description, ConfigFile, Analyze, Repair}` — BuildFlow provider shape (provisional); `HasRepair()` reports repair support          |
-| `ErrNoRepair`  | Sentinel: tool does not support auto-repair (suggest-only)                                                                               |
+| Type           | Purpose                                                                                                                            |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `ConfigError`  | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal |
+| `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                   |
+| `ProviderSpec` | `{Name, Description, ConfigFile, Analyze, Repair}` — BuildFlow provider shape (provisional); `HasRepair()` reports repair support  |
+| `ErrNoRepair`  | Sentinel: tool does not support auto-repair (suggest-only)                                                                         |
 
 ---
 

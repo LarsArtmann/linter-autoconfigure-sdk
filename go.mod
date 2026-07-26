@@ -1,6 +1,6 @@
 module github.com/larsartmann/linter-autoconfigure-sdk
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/larsartmann/go-atomic-write v0.3.1-0.20260726080503-13b34c5e2f66
