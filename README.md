@@ -104,7 +104,7 @@ A future `ProviderFromSpec(spec)` helper will wrap this as a `toolsdk.Spec` (Bui
 | ------------------- | ------------------------ | ------------------------------------------------ |
 | `ReadConfig(path)`  | `([]byte, *ConfigError)` | Read raw bytes; YAML parsing stays tool-specific |
 | `LoadJSON[T](path)` | `(*T, *ConfigError)`     | Read + unmarshal a JSON config                   |
-| `SaveJSON(path, v)` | `*ConfigError`           | Atomic write (temp+rename) of indented JSON, creating parent dirs       |
+| `SaveJSON(path, v)` | `*ConfigError`           | Idempotent + crash-durable atomic write of indented JSON; creates parent dirs and skips the write when content is unchanged |
 
 All three return a `*ConfigError` (implements `error`) whose `Op` (typed:
 `OpRead`, `OpUnmarshal`, `OpMarshal`, `OpMkdir`, `OpWrite`), `Path`, and

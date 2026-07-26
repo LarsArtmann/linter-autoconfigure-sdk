@@ -19,7 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (latest) imports `encoding/json/v2`, gated behind `goexperiment.jsonv2`
 - Tests for `FindingFromIssue` error path, `Line==0` file-level position,
   `FindingsFromIssues` error propagation, `SaveJSON` marshal/mkdir errors,
-  and `ConfigError.Unwrap`
+  `SaveJSON` idempotency (no mtime bump on identical content), and
+  `ConfigError.Unwrap`
 
 ### Changed
 
@@ -33,8 +34,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `(finding.ToolName, []ConfigIssue) ([]finding.Finding, error)` — was
   `(string, []ConfigIssue) []finding.Finding`
 - **BREAKING:** `ConfigError.Op` is now typed `Op` (was `string`)
-- `SaveJSON` now writes atomically (temp file + `os.Rename`) with indented
-  output (`json.MarshalIndent`), preventing config corruption on crash
+- `SaveJSON` now writes via `go-atomic-write.WriteIfChanged`: idempotent (skips
+  the write entirely if the marshalled content is byte-identical to the
+  existing file — no mtime bump, no spurious diff) and crash-durable
+  (fsync'd temp file + atomic rename). Race-safe: a concurrent modification
+  surfaces as `*ConfigError` wrapping `atomicwrite.ErrConcurrentModification`
 - `FindingFromIssue` uses `finding.FilePos` for `Line==0` instead of
   fabricating line 1; normalizes fix strategy with `FixStrategyNone` when no
   suggestion is present
@@ -47,6 +51,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Stale `ConfigError` design-decision note claiming `Unwrap` was omitted due to
   a `hierarchical-errors` analyzer false positive — empirically verified the
   analyzer does NOT flag `Unwrap() error`; the method is now implemented
+
+### Dependencies
+
+- Added `github.com/larsartmann/go-atomic-write` (direct) — provides the
+  idempotent, crash-durable atomic write primitive used by `SaveJSON`.
+  Transitive: `cespare/xxhash/v2` (fingerprinting), `gofrs/flock` (locking)
 
 ## [0.1.0] - 2026-01-01
 

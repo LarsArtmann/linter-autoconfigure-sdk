@@ -11,8 +11,10 @@ config file round-trip, finding emission for config issues, and a BuildFlow
 provider spec. YAML parsing is intentionally NOT here (each tool uses a
 different YAML library). Early-stage; no active consumers yet.
 
-Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.26+ and
-`github.com/larsartmann/go-finding` (always latest).
+Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.26+,
+`github.com/larsartmann/go-finding` (always latest), and
+`github.com/larsartmann/go-atomic-write` (always latest — used by `SaveJSON`
+for idempotent, crash-durable writes).
 
 **Always stay on the latest go-finding version.** go-finding v1.2+ imports
 `encoding/json/v2` and `encoding/json/jsontext`, which are gated behind the
