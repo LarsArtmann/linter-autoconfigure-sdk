@@ -117,7 +117,7 @@ func SaveJSON(path string, v any) *ConfigError {
 // to a finding.Finding that BuildFlow can aggregate and gate repairs on.
 type ConfigIssue struct {
 	// Rule is the issue's rule identifier (e.g. "missing-linter", "wrong-priority").
-	Rule string
+	Rule finding.RuleName
 
 	// Message describes the problem for the user.
 	Message string
@@ -126,7 +126,7 @@ type ConfigIssue struct {
 	Severity finding.Severity
 
 	// File is the config file path (for Position).
-	File string
+	File finding.FilePath
 
 	// Line is the 1-based line number in the config file (0 if unknown).
 	Line int
@@ -138,18 +138,18 @@ type ConfigIssue struct {
 // FindingFromIssue converts a ConfigIssue to a finding.Finding with the given
 // tool name. When Suggestion is non-empty, the finding carries a FixStrategySuggest
 // so BuildFlow's repair loop can surface it.
-func FindingFromIssue(toolName string, issue ConfigIssue) finding.Finding {
+func FindingFromIssue(toolName finding.ToolName, issue ConfigIssue) finding.Finding {
 	line := issue.Line
 	if line <= 0 {
 		line = 1
 	}
 
 	builder := finding.NewBuilder(
-		finding.RuleName(issue.Rule),
-		finding.ToolName(toolName),
+		issue.Rule,
+		toolName,
 		issue.Message,
 		issue.Severity,
-		finding.Pos(finding.FilePath(issue.File), line, 1),
+		finding.Pos(issue.File, line, 1),
 	).WithCategory(finding.CategoryConfiguration)
 
 	if issue.Suggestion != "" {
@@ -166,7 +166,7 @@ func FindingFromIssue(toolName string, issue ConfigIssue) finding.Finding {
 }
 
 // FindingsFromIssues converts a slice of ConfigIssues to findings.
-func FindingsFromIssues(toolName string, issues []ConfigIssue) []finding.Finding {
+func FindingsFromIssues(toolName finding.ToolName, issues []ConfigIssue) []finding.Finding {
 	findings := make([]finding.Finding, 0, len(issues))
 
 	for _, issue := range issues {

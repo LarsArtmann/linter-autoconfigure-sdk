@@ -12,11 +12,14 @@ provider spec. YAML parsing is intentionally NOT here (each tool uses a
 different YAML library). Early-stage; no active consumers yet.
 
 Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.26+ and
-`github.com/larsartmann/go-finding` v1.1+.
+`github.com/larsartmann/go-finding` (always latest).
 
-**Do NOT upgrade to go-finding v1.2+.** v1.2.0 switched to `encoding/json/v2` and
-`encoding/json/jsontext`, which are excluded by build constraints in this NixOS
-environment. The entire package fails to compile. Stick with v1.1.x.
+**Always stay on the latest go-finding version.** go-finding v1.2+ imports
+`encoding/json/v2` and `encoding/json/jsontext`, which are gated behind the
+`//go:build goexperiment.jsonv2` build tag in Go 1.26.x. This is NOT a
+permanent incompatibility — it just requires `GOEXPERIMENT=jsonv2` to be set in
+the environment. The repo ships a `.envrc` (direnv) that sets this automatically;
+`direnv allow` on first clone. See "GOEXPERIMENT=jsonv2" below for details.
 
 ## Build, test, lint
 
@@ -44,43 +47,28 @@ so a normal tracked file cannot keep it alive.
 fresh clone and `test-coverage` can write into it. It is the one tracked file
 inside the otherwise-ignored `reports/` tree. Leave it in place.
 
-## Known environmental warnings (not code issues)
+## GOEXPERIMENT=jsonv2 (required)
 
-### `go-auto-upgrade`: encoding/json v1 -> v2 migration skipped
+go-finding (latest) imports `encoding/json/v2`, which is gated behind
+`//go:build goexperiment.jsonv2` in Go 1.26.x. The repo's `.envrc` sets
+`export GOEXPERIMENT=jsonv2` and direnv loads it automatically on `cd`.
 
-BuildFlow suggests migrating `encoding/json` to `encoding/json/v2`. In this
-NixOS environment the Go toolchain lives in a read-only Nix store and
-`encoding/json/v2` is excluded by build constraints (`build constraints exclude
-all Go files in .../encoding/json/v2`), so the migration would produce
-non-compiling code. The tool detects this and skips the migration, but still
-emits a warning finding.
+If direnv is unavailable (CI, containers), set the env var explicitly:
+`GOEXPERIMENT=jsonv2 go build ./...` or `GOEXPERIMENT=jsonv2 buildflow`.
 
-This is expected and unactionable here. It surfaces as a "warning" finding; it
-does not fail `buildflow` or `buildflow --fix` (both exit 0). It only affects
-`--fail-on-findings`. If a CI gate needs to pass on warnings, use
-`buildflow --fix --fail-on=error` instead. Do NOT migrate to `encoding/json/v2`
-to silence this: it breaks compilation in this environment.
+`go env -w GOEXPERIMENT=jsonv2` does NOT work on this NixOS host (read-only
+`~/.config/go/env`). The `.envrc` is the durable mechanism. Do not rely on
+`go env -w`.
 
 ## Design decisions
 
-### `ConfigError` uses `Is`/`As`, not `Unwrap`
+### `ConfigError` error-chain traversal
 
-`ConfigError` wraps an underlying cause (`Err error`) and exposes it to
-`errors.Is` / `errors.As` via custom `Is`/`As` methods that delegate to the
-wrapped error. It deliberately does **not** implement `Unwrap() error`.
-
-Reason: the `hierarchical-errors` analyzer flags any function/method returning
-the bare `error` interface. `Unwrap() error` is mandated by the `errors`
-package contract and cannot be narrowed, so it is a permanent false positive.
-Importantly, BuildFlow runs the analyzer in **pipeline mode**, which does not
-apply `//nolint` source suppression (the standalone `hierarchical-errors` tool
-does, but the buildflow integration does not). The `Is`/`As` methods return
-`bool`, so they are not flagged, while still providing full chain traversal for
-the standard `errors.Is(err, fs.ErrNotExist)` / `errors.As(err, &json.SyntaxError{})`
-entry points.
-
-If you ever change `ConfigError`'s shape, keep `Is`/`As` (or reintroduce a
-suppression strategy) or the `hierarchical-errors` finding will return.
+`ConfigError` wraps an underlying cause (`Err error`) and exposes it via custom
+`Is`/`As` methods that delegate to the wrapped error. The full rationale
+(`hierarchical-errors` analyzer constraint, pipeline-mode `//nolint` limitation)
+lives in the godoc comment on `ConfigError` itself — that is the canonical source
+of truth. This section points to it to avoid duplication.
 
 ## Conventions
 

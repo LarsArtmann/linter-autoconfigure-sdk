@@ -32,7 +32,8 @@ What they reinvent identically is the surrounding plumbing:
 go get github.com/larsartmann/linter-autoconfigure-sdk
 ```
 
-Requires Go 1.26+ and [`go-finding`](https://github.com/larsartmann/go-finding) v1.2+.
+Requires Go 1.26+ and [`go-finding`](https://github.com/larsartmann/go-finding) (latest).
+Set `GOEXPERIMENT=jsonv2` in your environment (see [AGENTS.md](AGENTS.md#goexperimentjsonv2-required)).
 
 ---
 
