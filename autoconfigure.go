@@ -24,6 +24,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/larsartmann/go-atomic-write"
 	"github.com/larsartmann/go-finding"
 )
 
@@ -101,10 +102,15 @@ func LoadJSON[T any](path string) (*T, *ConfigError) {
 }
 
 // SaveJSON marshals v to indented JSON and writes it to path atomically,
-// creating parent directories. The write goes to a temp file in the same
-// directory, then is renamed into place, so a crash cannot truncate an existing
-// config. Indented output is used because linter configs are typically
-// human-edited.
+// creating parent directories. The write is idempotent: if the marshalled
+// content is byte-identical to the existing file, the write is skipped entirely
+// (no mtime bump, no spurious diff). Otherwise the file is replaced via an
+// fsync'd temp-file + atomic rename, so a crash cannot truncate the config.
+// Race-safe: a concurrent modification between the content check and the
+// rename surfaces as a non-nil *ConfigError wrapping
+// atomicwrite.ErrConcurrentModification.
+//
+// Indented output is used because linter configs are typically human-edited.
 func SaveJSON(path string, v any) *ConfigError {
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -116,36 +122,10 @@ func SaveJSON(path string, v any) *ConfigError {
 		return &ConfigError{Op: OpMarshal, Path: path, Err: err}
 	}
 
-	tmp, err := os.CreateTemp(dir, ".tmp-*")
-	if err != nil {
-		return &ConfigError{Op: OpWrite, Path: path, Err: err}
-	}
-	tmpName := tmp.Name()
-	success := false
-	defer func() {
-		if !success {
-			_ = os.Remove(tmpName)
-		}
-	}()
-
-	if _, err := tmp.Write(data); err != nil {
-		tmp.Close()
+	if _, err := atomicwrite.WriteIfChanged(path, data); err != nil {
 		return &ConfigError{Op: OpWrite, Path: path, Err: err}
 	}
 
-	if err := tmp.Close(); err != nil {
-		return &ConfigError{Op: OpWrite, Path: path, Err: err}
-	}
-
-	if err := os.Chmod(tmpName, 0o644); err != nil {
-		return &ConfigError{Op: OpWrite, Path: path, Err: err}
-	}
-
-	if err := os.Rename(tmpName, path); err != nil {
-		return &ConfigError{Op: OpWrite, Path: path, Err: err}
-	}
-
-	success = true
 	return nil
 }
 

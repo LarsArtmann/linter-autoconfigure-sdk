@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-finding"
 )
@@ -187,6 +188,67 @@ func TestSaveJSON_CreatesParentDirsAndRoundTrips(t *testing.T) {
 
 	if got.Name != "errcheck" {
 		t.Errorf("unexpected name: %q", got.Name)
+	}
+}
+
+func TestSaveJSON_Idempotent_NoRewriteOnSameContent(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	type cfg struct {
+		Name string `json:"name"`
+	}
+
+	if err := SaveJSON(path, cfg{Name: "errcheck"}); err != nil {
+		t.Fatalf("first SaveJSON: %v", err)
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("stat after first write: %v", err)
+	}
+	firstMtime := info.ModTime()
+
+	// Force the clock forward so an actual rewrite would be detectable.
+	time.Sleep(20 * time.Millisecond)
+
+	if err := SaveJSON(path, cfg{Name: "errcheck"}); err != nil {
+		t.Fatalf("second SaveJSON: %v", err)
+	}
+
+	info, err = os.Stat(path)
+	if err != nil {
+		t.Fatalf("stat after second write: %v", err)
+	}
+
+	if !info.ModTime().Equal(firstMtime) {
+		t.Errorf("mtime changed despite identical content (idempotency broken)")
+	}
+}
+
+func TestSaveJSON_Idempotent_RewritesOnDifferentContent(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	type cfg struct {
+		Name string `json:"name"`
+	}
+
+	if err := SaveJSON(path, cfg{Name: "first"}); err != nil {
+		t.Fatalf("first SaveJSON: %v", err)
+	}
+
+	if err := SaveJSON(path, cfg{Name: "second"}); err != nil {
+		t.Fatalf("second SaveJSON: %v", err)
+	}
+
+	got, err := LoadJSON[cfg](path)
+	if err != nil {
+		t.Fatalf("LoadJSON: %v", err)
+	}
+
+	if got.Name != "second" {
+		t.Errorf("expected rewritten content 'second', got %q", got.Name)
 	}
 }
 
