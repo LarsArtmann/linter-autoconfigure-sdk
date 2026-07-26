@@ -1,6 +1,7 @@
 package autoconfigure
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io/fs"
@@ -291,5 +292,17 @@ func TestSaveJSON_MkdirFails_WhenParentIsAFile(t *testing.T) {
 
 	if err.Op != OpMkdir {
 		t.Errorf("expected Op=mkdir, got %q", err.Op)
+	}
+}
+
+func TestProviderSpec_HasRepair(t *testing.T) {
+	withRepair := ProviderSpec{Repair: func(ctx context.Context) (string, error) { return "", nil }}
+	if !withRepair.HasRepair() {
+		t.Error("expected HasRepair=true when Repair is set")
+	}
+
+	withoutRepair := ProviderSpec{}
+	if withoutRepair.HasRepair() {
+		t.Error("expected HasRepair=false when Repair is nil")
 	}
 }
