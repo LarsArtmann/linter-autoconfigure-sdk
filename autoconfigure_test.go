@@ -70,7 +70,10 @@ func TestFindingFromIssue_WithSuggestion(t *testing.T) {
 		Suggestion: "add errcheck to enabled linters",
 	}
 
-	f := FindingFromIssue(finding.ToolName("golangci-autoconfigure"), issue)
+	f, err := FindingFromIssue(finding.ToolName("golangci-autoconfigure"), issue)
+	if err != nil {
+		t.Fatalf("FindingFromIssue failed: %v", err)
+	}
 
 	if f.Rule != finding.RuleName("missing-linter") {
 		t.Errorf("unexpected rule: %s", f.Rule)
@@ -93,7 +96,10 @@ func TestFindingFromIssue_NoSuggestion(t *testing.T) {
 		File:     finding.FilePath(".golangci.yml"),
 	}
 
-	f := FindingFromIssue(finding.ToolName("golangci-autoconfigure"), issue)
+	f, err := FindingFromIssue(finding.ToolName("golangci-autoconfigure"), issue)
+	if err != nil {
+		t.Fatalf("FindingFromIssue failed: %v", err)
+	}
 
 	if f.FixStrategy == finding.FixStrategySuggest {
 		t.Error("did not expect suggest fix strategy without suggestion")
@@ -106,7 +112,10 @@ func TestFindingsFromIssues(t *testing.T) {
 		{Rule: finding.RuleName("b"), Message: "b", Severity: finding.SeverityWarning, File: finding.FilePath("f")},
 	}
 
-	findings := FindingsFromIssues(finding.ToolName("tool"), issues)
+	findings, err := FindingsFromIssues(finding.ToolName("tool"), issues)
+	if err != nil {
+		t.Fatalf("FindingsFromIssues failed: %v", err)
+	}
 	if len(findings) != 2 {
 		t.Fatalf("expected 2 findings, got %d", len(findings))
 	}

@@ -71,6 +71,10 @@ func (e *ConfigError) Error() string {
 // Unwrap is intentionally omitted: its mandated Unwrap() error signature is a
 // false positive in the hierarchical-errors analyzer ("generic return"), and
 // Is/As provide the same chain traversal for the standard entry points.
+// Unwrap exposes the wrapped cause for errors.Is / errors.As / errors.Unwrap
+// chain traversal. Is and As are retained as explicit delegation shortcuts so
+// callers can branch without a full Unwrap walk.
+func (e *ConfigError) Unwrap() error { return e.Err }
 func (e *ConfigError) Is(target error) bool { return errors.Is(e.Err, target) }
 func (e *ConfigError) As(target any) bool   { return errors.As(e.Err, target) }
 
@@ -103,22 +107,52 @@ func LoadJSON[T any](path string) (*T, *ConfigError) {
 	return v, nil
 }
 
-// SaveJSON marshals v and writes it to path, creating parent directories.
-// Used by auto-configurers that emit JSON configs (oxlint).
+// SaveJSON marshals v to indented JSON and writes it to path atomically,
+// creating parent directories. The write goes to a temp file in the same
+// directory, then is renamed into place, so a crash cannot truncate an existing
+// config. Indented output is used because linter configs are typically
+// human-edited.
 func SaveJSON(path string, v any) *ConfigError {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return &ConfigError{Op: OpMkdir, Path: filepath.Dir(path), Err: err}
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return &ConfigError{Op: OpMkdir, Path: dir, Err: err}
 	}
 
-	data, err := json.Marshal(v)
+	data, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return &ConfigError{Op: OpMarshal, Path: path, Err: err}
 	}
 
-	if err := os.WriteFile(path, data, 0o644); err != nil {
+	tmp, err := os.CreateTemp(dir, ".tmp-*")
+	if err != nil {
+		return &ConfigError{Op: OpWrite, Path: path, Err: err}
+	}
+	tmpName := tmp.Name()
+	success := false
+	defer func() {
+		if !success {
+			_ = os.Remove(tmpName)
+		}
+	}()
+
+	if _, err := tmp.Write(data); err != nil {
+		tmp.Close()
 		return &ConfigError{Op: OpWrite, Path: path, Err: err}
 	}
 
+	if err := tmp.Close(); err != nil {
+		return &ConfigError{Op: OpWrite, Path: path, Err: err}
+	}
+
+	if err := os.Chmod(tmpName, 0o644); err != nil {
+		return &ConfigError{Op: OpWrite, Path: path, Err: err}
+	}
+
+	if err := os.Rename(tmpName, path); err != nil {
+		return &ConfigError{Op: OpWrite, Path: path, Err: err}
+	}
+
+	success = true
 	return nil
 }
 
@@ -149,11 +183,17 @@ type ConfigIssue struct {
 
 // FindingFromIssue converts a ConfigIssue to a finding.Finding with the given
 // tool name. When Suggestion is non-empty, the finding carries a FixStrategySuggest
-// so BuildFlow's repair loop can surface it.
-func FindingFromIssue(toolName finding.ToolName, issue ConfigIssue) finding.Finding {
-	line := issue.Line
-	if line <= 0 {
-		line = 1
+// so BuildFlow's repair loop can surface it; otherwise FixStrategyNone is set
+// explicitly to avoid the empty-string zero-value split brain.
+//
+// When issue.Line is 0 (unknown), the finding receives a file-level Position via
+// finding.FilePos rather than a fabricated line number.
+func FindingFromIssue(toolName finding.ToolName, issue ConfigIssue) (finding.Finding, error) {
+	var pos finding.Position
+	if issue.Line > 0 {
+		pos = finding.Pos(issue.File, issue.Line, 1)
+	} else {
+		pos = finding.FilePos(issue.File)
 	}
 
 	builder := finding.NewBuilder(
@@ -161,31 +201,33 @@ func FindingFromIssue(toolName finding.ToolName, issue ConfigIssue) finding.Find
 		toolName,
 		issue.Message,
 		issue.Severity,
-		finding.Pos(issue.File, line, 1),
+		pos,
 	).WithCategory(finding.CategoryConfiguration)
 
 	if issue.Suggestion != "" {
 		builder = builder.WithFixStrategy(finding.FixStrategySuggest).
 			WithSuggestion(issue.Suggestion)
+	} else {
+		builder = builder.WithFixStrategy(finding.FixStrategyNone)
 	}
 
-	f, err := builder.Build()
-	if err != nil {
-		return finding.Finding{}
-	}
-
-	return f
+	return builder.Build()
 }
 
-// FindingsFromIssues converts a slice of ConfigIssues to findings.
-func FindingsFromIssues(toolName finding.ToolName, issues []ConfigIssue) []finding.Finding {
+// FindingsFromIssues converts a slice of ConfigIssues to findings. If any
+// issue fails to convert, the entire batch fails and the cause is wrapped.
+func FindingsFromIssues(toolName finding.ToolName, issues []ConfigIssue) ([]finding.Finding, error) {
 	findings := make([]finding.Finding, 0, len(issues))
 
 	for _, issue := range issues {
-		findings = append(findings, FindingFromIssue(toolName, issue))
+		f, err := FindingFromIssue(toolName, issue)
+		if err != nil {
+			return nil, fmt.Errorf("convert issue %q: %w", issue.Rule, err)
+		}
+		findings = append(findings, f)
 	}
 
-	return findings
+	return findings, nil
 }
 
 // --- Provider wiring (via BuildFlow tool-sdk, optional) ---
