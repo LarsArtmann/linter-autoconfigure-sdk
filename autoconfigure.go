@@ -64,16 +64,9 @@ func (e *ConfigError) Error() string {
 	return fmt.Sprintf("autoconfigure: %s %s: %s", e.Op, e.Path, e.Err)
 }
 
-// Is and As expose the wrapped cause to errors.Is / errors.As, so callers can
-// match against the underlying error (e.g. errors.Is(err, fs.ErrNotExist)) and
-// pull out typed causes (e.g. errors.As(err, &json.SyntaxError{})).
-//
-// Unwrap is intentionally omitted: its mandated Unwrap() error signature is a
-// false positive in the hierarchical-errors analyzer ("generic return"), and
-// Is/As provide the same chain traversal for the standard entry points.
-// Unwrap exposes the wrapped cause for errors.Is / errors.As / errors.Unwrap
-// chain traversal. Is and As are retained as explicit delegation shortcuts so
-// callers can branch without a full Unwrap walk.
+// Unwrap, Is, and As expose the wrapped cause for standard error-chain
+// traversal. Callers can use errors.Is(err, fs.ErrNotExist),
+// errors.As(err, &json.SyntaxError{}), or errors.Unwrap(err) interchangeably.
 func (e *ConfigError) Unwrap() error { return e.Err }
 func (e *ConfigError) Is(target error) bool { return errors.Is(e.Err, target) }
 func (e *ConfigError) As(target any) bool   { return errors.As(e.Err, target) }

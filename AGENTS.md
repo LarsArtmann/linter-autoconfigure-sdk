@@ -64,11 +64,11 @@ If direnv is unavailable (CI, containers), set the env var explicitly:
 
 ### `ConfigError` error-chain traversal
 
-`ConfigError` wraps an underlying cause (`Err error`) and exposes it via custom
-`Is`/`As` methods that delegate to the wrapped error. The full rationale
-(`hierarchical-errors` analyzer constraint, pipeline-mode `//nolint` limitation)
-lives in the godoc comment on `ConfigError` itself — that is the canonical source
-of truth. This section points to it to avoid duplication.
+`ConfigError` wraps an underlying cause (`Err error`) and exposes it through the
+standard `Unwrap() error`, `Is(error) bool`, and `As(any) bool` methods. All
+three delegate to the wrapped error, so `errors.Is`, `errors.AsType`, and
+`errors.Unwrap` all traverse the chain. Tests verify sentinel matching
+(`fs.ErrNotExist`) and typed-cause extraction (`*json.SyntaxError`).
 
 ## Conventions
 

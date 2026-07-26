@@ -124,8 +124,8 @@ func TestFindingsFromIssues(t *testing.T) {
 func TestReadConfig_MissingFile_ReturnsConfigErrorWrappingErrNotExist(t *testing.T) {
 	_, err := ReadConfig(filepath.Join(t.TempDir(), "does-not-exist.yml"))
 
-	var ce *ConfigError
-	if !errors.As(err, &ce) {
+	ce, ok := errors.AsType[*ConfigError](err)
+	if !ok {
 		t.Fatalf("expected *ConfigError, got %T (%v)", err, err)
 	}
 
@@ -152,8 +152,8 @@ func TestLoadJSON_MalformedJSON_ReturnsConfigErrorWrappingUnmarshalTypeError(t *
 
 	_, err := LoadJSON[map[string]any](path)
 
-	var ce *ConfigError
-	if !errors.As(err, &ce) {
+	ce, ok := errors.AsType[*ConfigError](err)
+	if !ok {
 		t.Fatalf("expected *ConfigError, got %T (%v)", err, err)
 	}
 
@@ -162,9 +162,8 @@ func TestLoadJSON_MalformedJSON_ReturnsConfigErrorWrappingUnmarshalTypeError(t *
 	}
 
 	// The underlying cause must still be reachable for callers that want it.
-	var syntaxErr *json.SyntaxError
-	if !errors.As(err, &syntaxErr) {
-		t.Errorf("expected underlying *json.SyntaxError to be reachable via errors.As, got %v", err)
+	if _, ok := errors.AsType[*json.SyntaxError](err); !ok {
+		t.Errorf("expected underlying *json.SyntaxError to be reachable via errors.AsType, got %v", err)
 	}
 }
 
