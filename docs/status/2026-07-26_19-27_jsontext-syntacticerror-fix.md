@@ -41,7 +41,7 @@ Nothing — task was scoped tight and shipped end-to-end.
   **pre-existing environmental warnings**, not introduced by this session. Left alone
   per "don't fix unrelated bugs" rule. Listed in section (e).
 - Stale LSP diagnostics in the tool output showing `jsontext.SyntacticError requires
-  go1.27` warnings — these are LSP cache artifacts. The actual `go test` / `buildflow`
+go1.27` warnings — these are LSP cache artifacts. The actual `go test` / `buildflow`
   runs were clean.
 
 ## d) TOTALLY FUCKED UP
@@ -132,6 +132,7 @@ These are project-level improvements visible from this session. Not all are mine
 pick up — flagging for triage.
 
 ### Immediate (this would have been in-scope if asked)
+
 1. Fix the unchecked `os.RemoveAll` in `example_test.go:17` and `:33` — trivial, 2-line.
 2. Mark F35 in `docs/planning/2026-07-26_06-05_make-architecture-and-data-model-superb.md`
    as done (or remove) — done by this session's fix.
@@ -145,6 +146,7 @@ pick up — flagging for triage.
    missing-config finding.
 
 ### Short-term (next session or two)
+
 7. Decide on the error-type strategy for `FindingsFromIssues`: introduce a typed
    error (e.g. `ConversionError`), or document the exception in the function godoc
    and silence the `erraudit` finding per-line.
@@ -165,6 +167,7 @@ pick up — flagging for triage.
     produces the expected `*ConfigError` chain end-to-end.
 
 ### Mid-term (next quarter)
+
 16. Build out a first real consumer (`golangci-lint-auto-configure` or
     `oxlint-auto-configure`) that exercises `ConfigError`, `ConfigIssue`,
     `FindingFromIssue`, and `ProviderSpec.HasRepair` together.
@@ -223,6 +226,7 @@ pick up — flagging for triage.
     setup (per the `website-launch` skill pattern).
 
 ### Long-term / strategic
+
 41. Make the SDK the canonical foundation for ALL linter auto-configurers
     (golangci, oxlint, biome, eslint, ruff, etc.). The package doc comments state
     this intent; needs at least one downstream consumer to validate the abstraction.
