@@ -19,6 +19,14 @@
 
 ---
 
+## 0.1 Known issue surfaced during implementation (NOT fixed in this pass)
+
+`WriteVerified(path, data, Fingerprint{})` — the documented first-write path — is **broken**. `commitVerified` acquires `flock.New(path).Lock()`, which creates the file, *before* the zero-fingerprint `os.Stat` check. The stat then always sees the file as existing and returns a false `ErrConcurrentModification ("was created concurrently")`.
+
+`WriteIfChanged` is unaffected: its first-write branch routes to plain `Write`, not `WriteVerified`. Fixing `commitVerified` means reordering lock-vs-stat (or using a non-creating lock probe) and is a behavioral change to a public error path. Out of scope here — tracked for a separate, deliberate fix.
+
+---
+
 ## 1. Design
 
 ```go
