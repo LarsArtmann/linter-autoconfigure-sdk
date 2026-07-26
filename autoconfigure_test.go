@@ -62,15 +62,15 @@ func TestReadConfig(t *testing.T) {
 
 func TestFindingFromIssue_WithSuggestion(t *testing.T) {
 	issue := ConfigIssue{
-		Rule:       "missing-linter",
+		Rule:       finding.RuleName("missing-linter"),
 		Message:    "errcheck is not enabled",
 		Severity:   finding.SeverityWarning,
-		File:       ".golangci.yml",
+		File:       finding.FilePath(".golangci.yml"),
 		Line:       5,
 		Suggestion: "add errcheck to enabled linters",
 	}
 
-	f := FindingFromIssue("golangci-autoconfigure", issue)
+	f := FindingFromIssue(finding.ToolName("golangci-autoconfigure"), issue)
 
 	if f.Rule != finding.RuleName("missing-linter") {
 		t.Errorf("unexpected rule: %s", f.Rule)
@@ -87,13 +87,13 @@ func TestFindingFromIssue_WithSuggestion(t *testing.T) {
 
 func TestFindingFromIssue_NoSuggestion(t *testing.T) {
 	issue := ConfigIssue{
-		Rule:     "deprecated-linter",
+		Rule:     finding.RuleName("deprecated-linter"),
 		Message:  "golint is deprecated",
 		Severity: finding.SeverityInfo,
-		File:     ".golangci.yml",
+		File:     finding.FilePath(".golangci.yml"),
 	}
 
-	f := FindingFromIssue("golangci-autoconfigure", issue)
+	f := FindingFromIssue(finding.ToolName("golangci-autoconfigure"), issue)
 
 	if f.FixStrategy == finding.FixStrategySuggest {
 		t.Error("did not expect suggest fix strategy without suggestion")
@@ -102,11 +102,11 @@ func TestFindingFromIssue_NoSuggestion(t *testing.T) {
 
 func TestFindingsFromIssues(t *testing.T) {
 	issues := []ConfigIssue{
-		{Rule: "a", Message: "a", Severity: finding.SeverityInfo, File: "f"},
-		{Rule: "b", Message: "b", Severity: finding.SeverityWarning, File: "f"},
+		{Rule: finding.RuleName("a"), Message: "a", Severity: finding.SeverityInfo, File: finding.FilePath("f")},
+		{Rule: finding.RuleName("b"), Message: "b", Severity: finding.SeverityWarning, File: finding.FilePath("f")},
 	}
 
-	findings := FindingsFromIssues("tool", issues)
+	findings := FindingsFromIssues(finding.ToolName("tool"), issues)
 	if len(findings) != 2 {
 		t.Fatalf("expected 2 findings, got %d", len(findings))
 	}
@@ -120,7 +120,7 @@ func TestReadConfig_MissingFile_ReturnsConfigErrorWrappingErrNotExist(t *testing
 		t.Fatalf("expected *ConfigError, got %T (%v)", err, err)
 	}
 
-	if ce.Op != "read" {
+	if ce.Op != OpRead {
 		t.Errorf("expected Op=read, got %q", ce.Op)
 	}
 
@@ -148,7 +148,7 @@ func TestLoadJSON_MalformedJSON_ReturnsConfigErrorWrappingUnmarshalTypeError(t *
 		t.Fatalf("expected *ConfigError, got %T (%v)", err, err)
 	}
 
-	if ce.Op != "unmarshal" {
+	if ce.Op != OpUnmarshal {
 		t.Errorf("expected Op=unmarshal, got %q", ce.Op)
 	}
 
@@ -196,7 +196,7 @@ func TestConfigError_SuccessReturnsNilTypedError(t *testing.T) {
 }
 
 func TestConfigError_ErrorFormat(t *testing.T) {
-	ce := &ConfigError{Op: "read", Path: "x.yml", Err: errors.New("boom")}
+	ce := &ConfigError{Op: OpRead, Path: "x.yml", Err: errors.New("boom")}
 	want := "autoconfigure: read x.yml: boom"
 	if got := ce.Error(); got != want {
 		t.Errorf("unexpected Error(): %q, want %q", got, want)

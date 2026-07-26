@@ -29,6 +29,18 @@ import (
 
 // --- Config round-trip (YAML / JSON) ---
 
+// Op identifies the operation that failed during config I/O. It mirrors
+// the convention from os.PathError: a short, lowercase verb.
+type Op string
+
+const (
+	OpRead      Op = "read"
+	OpUnmarshal Op = "unmarshal"
+	OpMarshal   Op = "marshal"
+	OpMkdir     Op = "mkdir"
+	OpWrite     Op = "write"
+)
+
 // ConfigError describes a failure while reading, parsing, or writing a linter
 // config file. It wraps the underlying cause with the operation attempted and
 // the file path, so callers can produce precise diagnostics or branch with
@@ -41,7 +53,7 @@ import (
 // work against a *ConfigError.
 type ConfigError struct {
 	// Op is the operation that failed.
-	Op string
+	Op Op
 	// Path is the config file path involved.
 	Path string
 	// Err is the underlying cause, never nil for a returned ConfigError.
@@ -69,7 +81,7 @@ func (e *ConfigError) As(target any) bool   { return errors.As(e.Err, target) }
 func ReadConfig(path string) ([]byte, *ConfigError) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, &ConfigError{Op: "read", Path: path, Err: err}
+		return nil, &ConfigError{Op: OpRead, Path: path, Err: err}
 	}
 
 	return data, nil
@@ -79,13 +91,13 @@ func ReadConfig(path string) ([]byte, *ConfigError) {
 func LoadJSON[T any](path string) (*T, *ConfigError) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, &ConfigError{Op: "read", Path: path, Err: err}
+		return nil, &ConfigError{Op: OpRead, Path: path, Err: err}
 	}
 
 	v := new(T)
 
 	if err := json.Unmarshal(data, v); err != nil {
-		return nil, &ConfigError{Op: "unmarshal", Path: path, Err: err}
+		return nil, &ConfigError{Op: OpUnmarshal, Path: path, Err: err}
 	}
 
 	return v, nil
@@ -95,16 +107,16 @@ func LoadJSON[T any](path string) (*T, *ConfigError) {
 // Used by auto-configurers that emit JSON configs (oxlint).
 func SaveJSON(path string, v any) *ConfigError {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return &ConfigError{Op: "mkdir", Path: filepath.Dir(path), Err: err}
+		return &ConfigError{Op: OpMkdir, Path: filepath.Dir(path), Err: err}
 	}
 
 	data, err := json.Marshal(v)
 	if err != nil {
-		return &ConfigError{Op: "marshal", Path: path, Err: err}
+		return &ConfigError{Op: OpMarshal, Path: path, Err: err}
 	}
 
 	if err := os.WriteFile(path, data, 0o644); err != nil {
-		return &ConfigError{Op: "write", Path: path, Err: err}
+		return &ConfigError{Op: OpWrite, Path: path, Err: err}
 	}
 
 	return nil
