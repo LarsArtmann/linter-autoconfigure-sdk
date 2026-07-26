@@ -70,7 +70,8 @@ If direnv is unavailable (CI, containers), set the env var explicitly:
 standard `Unwrap() error`, `Is(error) bool`, and `As(any) bool` methods. All
 three delegate to the wrapped error, so `errors.Is`, `errors.AsType`, and
 `errors.Unwrap` all traverse the chain. Tests verify sentinel matching
-(`fs.ErrNotExist`) and typed-cause extraction (`*json.SyntaxError`).
+(`fs.ErrNotExist`) and typed-cause extraction (`*jsontext.SyntacticError`, the
+jsonv2 equivalent of v1's `json.SyntaxError`).
 
 ## Conventions
 

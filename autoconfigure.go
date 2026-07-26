@@ -52,8 +52,10 @@ const (
 // Op follows os.PathError's convention: "read", "unmarshal", "marshal",
 // "mkdir", or "write". The underlying cause is reachable via the exported Err
 // field and through the Is / As methods (see below), so both
-// errors.Is(err, fs.ErrNotExist) and errors.As(err, &json.SyntaxError{}) still
-// work against a *ConfigError.
+// errors.Is(err, fs.ErrNotExist) and errors.AsType[*jsontext.SyntacticError](err)
+// still work against a *ConfigError. (The jsonv2 unmarshaler emits
+// *jsontext.SyntacticError for malformed input; v1's json.SyntaxError is the
+// legacy equivalent.)
 type ConfigError struct {
 	// Op is the operation that failed.
 	Op Op
@@ -69,7 +71,8 @@ func (e *ConfigError) Error() string {
 
 // Unwrap, Is, and As expose the wrapped cause for standard error-chain
 // traversal. Callers can use errors.Is(err, fs.ErrNotExist),
-// errors.As(err, &json.SyntaxError{}), or errors.Unwrap(err) interchangeably.
+// errors.AsType[*jsontext.SyntacticError](err), or errors.Unwrap(err)
+// interchangeably.
 func (e *ConfigError) Unwrap() error        { return e.Err }
 func (e *ConfigError) Is(target error) bool { return errors.Is(e.Err, target) }
 func (e *ConfigError) As(target any) bool   { return errors.As(e.Err, target) }

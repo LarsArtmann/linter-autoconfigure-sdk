@@ -2,7 +2,7 @@ package autoconfigure
 
 import (
 	"context"
-	"encoding/json/v2"
+	"encoding/json/jsontext"
 	"errors"
 	"io/fs"
 	"os"
@@ -164,8 +164,8 @@ func TestLoadJSON_MalformedJSON_ReturnsConfigErrorWrappingUnmarshalTypeError(t *
 	}
 
 	// The underlying cause must still be reachable for callers that want it.
-	if _, ok := errors.AsType[*json.SyntaxError](err); !ok {
-		t.Errorf("expected underlying *json.SyntaxError to be reachable via errors.AsType, got %v", err)
+	if _, ok := errors.AsType[*jsontext.SyntacticError](err); !ok {
+		t.Errorf("expected underlying *jsontext.SyntacticError to be reachable via errors.AsType, got %v", err)
 	}
 }
 
