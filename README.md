@@ -148,7 +148,7 @@ Planned:
 - [`oxlint-auto-configure`](https://github.com/LarsArtmann/oxlint-auto-configure)
 - Future: `biome-auto-configure`, etc.
 
-No active consumers yet. The weakest of the 5 SDKs — value over stdlib is modest until a second auto-configurer lands.
+No active consumers yet. The SDK provides atomic, crash-durable config writes (via go-atomic-write), branded finding types, and structured ConfigError wrapping — but value over stdlib remains modest until a consumer migrates.
 
 ## Status
 
