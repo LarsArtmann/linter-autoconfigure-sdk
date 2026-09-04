@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Architecture &amp; Data Model Review — linter-autoconfigure-sdk</title>
+    <title>
+      Architecture &amp; Data Model Review — linter-autoconfigure-sdk
+    </title>
     <style>
       /* =========================================================================
          BAUHAUS LIGHT — Editorial template (html-report-kit)
@@ -32,116 +34,651 @@
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
         --radius: 0px;
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      section[id], [id] { scroll-margin-top: 60px; }
-      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-      a:focus-visible { outline-offset: -1px; }
-      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
-      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
-      .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
-      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
-      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--text); }
-      .sidebar a { font-size: 0.86rem; color: var(--text); text-decoration: none; padding: 0.5rem 0.75rem; border-left: 4px solid transparent; font-weight: 600; transition: all 0.15s ease; line-height: 1.4; }
-      .sidebar a:hover, .sidebar a.active { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); color: var(--accent); }
-      .main { flex: 1; min-width: 0; }
-      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 900; letter-spacing: -0.02em; color: var(--text); }
-      h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); line-height: 1.05; margin: 0 0 0.6rem; }
-      h2 { font-size: 1.5rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 3px solid var(--text); display: flex; align-items: baseline; gap: 0.7rem; }
-      h2 .num { font-family: var(--font-mono); font-size: 0.82rem; color: var(--accent); font-weight: 700; letter-spacing: 0.04em; }
-      h3 { font-size: 1.15rem; margin: 0 0 0.4rem; font-weight: 700; }
-      h4 { font-size: 1rem; margin: 0 0 0.3rem; font-weight: 700; }
-      p { margin: 0 0 1rem; }
-      .hero { padding: 1.5rem 0 2rem; margin-bottom: 1.5rem; border-bottom: 3px solid var(--text); }
-      .eyebrow { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); margin-bottom: 0.9rem; }
-      .subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 70ch; margin: 0 0 1rem; }
-      .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-      .tag { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; padding: 0.25rem 0.6rem; background: var(--surface-sunken); color: var(--text); border: 1px solid var(--border-strong); }
-      .tag.amber { background: var(--warning); border-color: var(--warning); color: var(--text); }
-      .tag.teal { background: var(--solution); border-color: var(--solution); color: var(--surface); }
-      .hero-shapes { position: relative; height: 90px; margin-bottom: 1.2rem; }
-      .hero-shapes .circle { position: absolute; top: 0; right: 180px; width: 64px; height: 64px; background: var(--problem); border-radius: 50%; }
-      .hero-shapes .square { position: absolute; top: 26px; right: 90px; width: 56px; height: 56px; background: var(--solution); }
-      .hero-shapes .tri { position: absolute; top: 8px; right: 0; width: 0; height: 0; border-left: 32px solid transparent; border-right: 32px solid transparent; border-bottom: 56px solid var(--warning); }
-      .hero-shapes .bar { position: absolute; bottom: 0; right: 230px; width: 100px; height: 14px; background: var(--text); }
-      .scorecard, .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; margin: 1.5rem 0 2rem; border: 3px solid var(--text); }
-      .score-card, .stat-card { padding: 1.3rem 1rem; text-align: center; border-right: 3px solid var(--text); background: var(--surface-raised); }
-      .score-card:last-child, .stat-card:last-child { border-right: none; }
-      .score, .stat-value { font-family: var(--font-heading); font-size: 2.6rem; font-weight: 900; line-height: 1; letter-spacing: -0.04em; }
-      .score-card .label, .stat-label { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.5rem; }
-      .score-good, .stat-good { background: var(--solution); color: var(--surface); }
-      .score-warn, .stat-warn { background: var(--warning); color: var(--text); }
-      .score-bad, .stat-bad { background: var(--problem); color: var(--surface); }
-      .card { background: var(--surface-raised); border: 2px solid var(--text); padding: 1.2rem 1.4rem; margin-bottom: 1rem; border-left: 8px solid var(--border-strong); }
-      .card-problem { border-left-color: var(--problem); }
-      .card-solution { border-left-color: var(--solution); }
-      .card-warning { border-left-color: var(--warning); }
-      .issue { background: var(--surface-raised); border: 2px solid var(--text); padding: 1.2rem 1.4rem; margin-bottom: 1rem; border-left: 8px solid var(--border-strong); }
-      .issue-critical { border-left-color: var(--problem); }
-      .issue-important { border-left-color: var(--warning); }
-      .issue-nice { border-left-color: var(--solution); }
-      .issue h3 { margin-bottom: 0.3rem; }
-      .issue .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.6rem; }
-      .issue p:last-child { margin-bottom: 0; }
-      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.22rem 0.6rem; margin-bottom: 0.6rem; color: var(--surface); }
-      .severity-critical { background: var(--problem); }
-      .severity-important { background: var(--warning); color: var(--text); }
-      .severity-nice { background: var(--solution); }
-      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.2rem 0.55rem; border: 1px solid var(--text); color: var(--text); }
-      .callout { margin: 0.8rem 0 0; padding: 0.8rem 1rem; border: 1px solid var(--border-strong); border-left: 4px solid var(--border-strong); background: var(--surface-sunken); font-size: 0.92rem; }
-      .callout strong { display: inline-block; margin-right: 0.4rem; }
-      .callout-teal, .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised)); }
-      .callout-amber, .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised)); }
-      .callout-rose { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 10%, var(--surface-raised)); }
-      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
-      .strength { display: grid; grid-template-columns: auto 1fr; gap: 0.9rem; padding: 0.75rem 0; border-bottom: 2px solid var(--border); }
-      .strength .check { font-family: var(--font-mono); font-weight: 900; color: var(--solution); font-size: 1.3rem; line-height: 1.3; }
-      .strength .text strong { display: block; margin-bottom: 0.15rem; }
-      .strength .text span { color: var(--text-muted); font-size: 0.92rem; }
-      .table-wrap { overflow-x: auto; }
-      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.92rem; border: 2px solid var(--text); }
-      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--text); color: var(--surface); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-right: 1px solid var(--border-strong); }
-      th:last-child { border-right: none; }
-      td { padding: 0.6rem 0.9rem; border-top: 1px solid var(--border); border-right: 1px solid var(--border); vertical-align: top; }
-      td:last-child { border-right: none; }
-      tr:nth-child(even) td { background: var(--surface-sunken); }
-      table.compare td.yes { color: var(--solution); font-weight: 700; }
-      table.compare td.no { color: var(--problem); font-weight: 700; }
-      pre { background: var(--text); color: var(--surface); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; overflow-x: auto; border: 2px solid var(--text); }
-      code { font-family: var(--font-mono); }
-      p code, li code, td code { font-size: 0.88em; background: var(--surface-sunken); padding: 0.1rem 0.35rem; }
-      .tok-keyword { color: var(--warning); }
-      .tok-type { color: var(--warning); }
-      .tok-string { color: #95e1d3; }
-      .tok-comment { color: rgba(244, 244, 240, 0.45); font-style: italic; }
-      .tok-func { color: #6eb5ff; }
-      .tok-number { color: var(--warning); }
-      .tok-generic { color: var(--problem); }
-      .tok-builtin { color: #6eb5ff; }
-      .tok-punct { color: rgba(244, 244, 240, 0.7); }
-      .tok-attr { color: var(--warning); }
-      .dep-tree { background: var(--surface-sunken); border: 2px solid var(--text); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.7; white-space: pre; overflow-x: auto; }
-      .dep-tree .root { color: var(--accent); font-weight: 700; }
-      .dep-tree .ok { color: var(--solution); }
-      .dep-tree .unwanted { color: var(--problem); }
-      .migration-step { display: grid; grid-template-columns: 56px 1fr; gap: 1rem; margin: 1rem 0; padding: 1.1rem; background: var(--surface-raised); border: 2px solid var(--text); border-left: 6px solid var(--accent); }
-      .migration-num { font-family: var(--font-mono); font-weight: 900; font-size: 1.8rem; color: var(--accent); line-height: 1; }
-      .migration-content h4 { margin-bottom: 0.2rem; }
-      .migration-content p { margin-bottom: 0; color: var(--text-muted); font-size: 0.94rem; }
-      .compare-header { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0 0.5rem; }
-      .compare-before, .compare-after { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.4rem 0.7rem; color: var(--surface); }
-      .compare-before { background: var(--problem); }
-      .compare-after { background: var(--solution); }
-      .compare-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
-      .compare-row pre { margin: 0; }
-      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 3px solid var(--text); font-size: 0.82rem; color: var(--text-muted); font-family: var(--font-mono); }
-      @media (min-width: 1024px) { .sidebar { display: block; } }
-      @media (max-width: 768px) { .layout { flex-direction: column; padding: 1rem; } .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; } .compare-header, .compare-row { grid-template-columns: 1fr; } .scorecard, .stat-grid { grid-template-columns: repeat(2, 1fr); } .score-card:nth-child(2), .stat-card:nth-child(2) { border-right: none; } .score-card:nth-child(1), .stat-card:nth-child(1), .score-card:nth-child(2), .stat-card:nth-child(2) { border-bottom: 3px solid var(--text); } .migration-step { grid-template-columns: 1fr; } .hero-shapes { display: none; } }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+      .callout-rose {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 10%,
+          var(--surface-raised)
+        );
+      }
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+        vertical-align: top;
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -175,19 +712,39 @@
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="eyebrow">Architecture &amp; Data Model Review &middot; 2026-07-26</div>
+          <div class="eyebrow">
+            Architecture &amp; Data Model Review &middot; 2026-07-26
+          </div>
           <h1>No. Not yet superb.</h1>
           <p class="subtitle">
-            A first-principles review of <code>linter-autoconfigure-sdk</code> against its own stated
-            bar. The instinct behind the package is right; the execution has one show-stopper and a
-            handful of data-model inconsistencies that a top-tier engineer would refactor on sight.
-            The whole thing is small (one source file, ~200 lines), so none of this is expensive to fix.
+            A first-principles review of
+            <code>linter-autoconfigure-sdk</code> against its own stated bar.
+            The instinct behind the package is right; the execution has one
+            show-stopper and a handful of data-model inconsistencies that a
+            top-tier engineer would refactor on sight. The whole thing is small
+            (one source file, ~200 lines), so none of this is expensive to fix.
           </p>
           <div class="meta">
             <span class="tag amber">Scope: whole package</span>
             <span class="tag">go.mod: go-finding v1.3.0</span>
-            <span class="tag" style="background:var(--problem);color:var(--surface);border-color:var(--problem)">Builds: NO</span>
-            <span class="tag" style="background:var(--problem);color:var(--surface);border-color:var(--problem)">Tests run: NO</span>
+            <span
+              class="tag"
+              style="
+                background: var(--problem);
+                color: var(--surface);
+                border-color: var(--problem);
+              "
+              >Builds: NO</span
+            >
+            <span
+              class="tag"
+              style="
+                background: var(--problem);
+                color: var(--surface);
+                border-color: var(--problem);
+              "
+              >Tests run: NO</span
+            >
             <span class="tag">Consumers: 0</span>
           </div>
         </header>
@@ -216,74 +773,112 @@
         <section id="summary">
           <h2><span class="num">00</span>Verdict</h2>
           <p>
-            The architecture and data model are <strong>not superb</strong>. They rest on a correct
-            idea — extract the plumbing two auto-configurers duplicate — and several individual
-            decisions are good. But the package as committed <strong>does not compile in its own
-            documented environment</strong>, and the data model mixes three different typing policies
-            inside a single 6-field struct while a flagship helper silently fabricates line numbers
-            and swallows errors.
+            The architecture and data model are <strong>not superb</strong>.
+            They rest on a correct idea — extract the plumbing two
+            auto-configurers duplicate — and several individual decisions are
+            good. But the package as committed
+            <strong>does not compile in its own documented environment</strong>,
+            and the data model mixes three different typing policies inside a
+            single 6-field struct while a flagship helper silently fabricates
+            line numbers and swallows errors.
           </p>
           <div class="callout callout-rose">
             <strong>The bottom line.</strong>
-            One fatal issue (broken build from a dependency the project's own AGENTS.md forbids) plus
-            a cluster of type-safety gaps on the core types. Fix the dependency pin first — nothing
-            else can be verified until the package builds. Then unify the typing policy and make
+            One fatal issue (broken build from a dependency the project's own
+            AGENTS.md forbids) plus a cluster of type-safety gaps on the core
+            types. Fix the dependency pin first — nothing else can be verified
+            until the package builds. Then unify the typing policy and make
             <code>FindingFromIssue</code> honest. Everything else is polish.
           </div>
           <p>
-            This is an early-stage library with zero consumers, so the cost of fixing everything is
-            low and the cost of leaving it is that the first real consumer inherits a broken,
-            inconsistent foundation. The right time to harden the model is now, before
-            <code>golangci-lint-auto-configure</code> or <code>oxlint-auto-configure</code> depends on it.
+            This is an early-stage library with zero consumers, so the cost of
+            fixing everything is low and the cost of leaving it is that the
+            first real consumer inherits a broken, inconsistent foundation. The
+            right time to harden the model is now, before
+            <code>golangci-lint-auto-configure</code> or
+            <code>oxlint-auto-configure</code> depends on it.
           </p>
         </section>
 
         <!-- Strengths -->
         <section id="strengths">
           <h2><span class="num">&#9670;</span>What is already excellent</h2>
-          <p>Before the criticism: these decisions are sound and should be preserved through any refactor.</p>
+          <p>
+            Before the criticism: these decisions are sound and should be
+            preserved through any refactor.
+          </p>
 
           <div class="strengths">
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Correct extraction instinct</strong>
-                <span>Config round-trip + finding emission + provider shape is exactly the plumbing that does not belong in each tool. The &quot;why&quot; is right; only the &quot;how&quot> is broken.</span>
+                <span
+                  >Config round-trip + finding emission + provider shape is
+                  exactly the plumbing that does not belong in each tool. The
+                  &quot;why&quot; is right; only the &quot;how&quot> is
+                  broken.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong><code>ConfigError</code> mirrors <code>os.PathError</code></strong>
-                <span>The <code>{Op, Path, Err}</code> shape is a familiar, well-understood error contract. Callers already know how to read it.</span>
+                <strong
+                  ><code>ConfigError</code> mirrors
+                  <code>os.PathError</code></strong
+                >
+                <span
+                  >The <code>{Op, Path, Err}</code> shape is a familiar,
+                  well-understood error contract. Callers already know how to
+                  read it.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Error-chain traversal is tested</strong>
-                <span><code>errors.Is(err, fs.ErrNotExist)</code> and <code>errors.As(err, &amp;json.SyntaxError{})</code> both work through <code>*ConfigError</code>. The contract is proven, not assumed.</span>
+                <span
+                  ><code>errors.Is(err, fs.ErrNotExist)</code> and
+                  <code>errors.As(err, &amp;json.SyntaxError{})</code> both work
+                  through <code>*ConfigError</code>. The contract is proven, not
+                  assumed.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Generic <code>LoadJSON[T]</code></strong>
-                <span>Idiomatic Go generics; one helper instead of per-config-type loaders.</span>
+                <span
+                  >Idiomatic Go generics; one helper instead of per-config-type
+                  loaders.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Refuses false convergence</strong>
-                <span>No shared YAML library (tools use incompatible libs) and no shared <code>ProjectType</code> enum (Go shape vs JS framework). Both omissions are deliberate and correct — forcing either would couple tools that should stay independent.</span>
+                <span
+                  >No shared YAML library (tools use incompatible libs) and no
+                  shared <code>ProjectType</code> enum (Go shape vs JS
+                  framework). Both omissions are deliberate and correct —
+                  forcing either would couple tools that should stay
+                  independent.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Honest self-assessment in the README</strong>
-                <span>&quot;The weakest of the 5 SDKs — value over stdlib is modest until a second auto-configurer lands.&quot; That honesty is a strength. Keep it.</span>
+                <span
+                  >&quot;The weakest of the 5 SDKs — value over stdlib is modest
+                  until a second auto-configurer lands.&quot; That honesty is a
+                  strength. Keep it.</span
+                >
               </div>
             </div>
           </div>
@@ -295,15 +890,23 @@
           <p>Blockers. The package cannot ship until these are resolved.</p>
 
           <div class="issue issue-critical" id="issue-build">
-            <span class="severity severity-critical">Blocking &middot; Fatal</span>
+            <span class="severity severity-critical"
+              >Blocking &middot; Fatal</span
+            >
             <h3>The SDK does not compile</h3>
-            <div class="where">go.mod: go-finding v1.3.0 &middot; autoconfigure.go:27 import</div>
+            <div class="where">
+              go.mod: go-finding v1.3.0 &middot; autoconfigure.go:27 import
+            </div>
             <p>
-              <code>go build ./...</code>, <code>go vet ./...</code>, and <code>go test ./...</code> all
-              fail. <code>go-finding</code> v1.3.0 transitively imports <code>encoding/json/v2</code> and
-              <code>encoding/json/jsontext</code>, both excluded by build constraints in this NixOS
-              toolchain. The package's only non-stdlib dependency — the one that gives it a reason to
-              exist (<code>finding.Finding</code>) — cannot be imported. The SDK is, today, dead code.
+              <code>go build ./...</code>, <code>go vet ./...</code>, and
+              <code>go test ./...</code> all fail.
+              <code>go-finding</code> v1.3.0 transitively imports
+              <code>encoding/json/v2</code> and
+              <code>encoding/json/jsontext</code>, both excluded by build
+              constraints in this NixOS toolchain. The package's only non-stdlib
+              dependency — the one that gives it a reason to exist
+              (<code>finding.Finding</code>) — cannot be imported. The SDK is,
+              today, dead code.
             </p>
             <pre><code><span class="tok-comment">$ go build ./...</span>
 package github.com/larsartmann/linter-autoconfigure-sdk
@@ -312,33 +915,58 @@ package github.com/larsartmann/linter-autoconfigure-sdk
 <span class="tok-comment">BUILD_EXIT=1   VET_EXIT=1   go test: [setup failed]</span></code></pre>
             <div class="callout callout-rose">
               <strong>Fix.</strong>
-              Revert the dependency to v1.1.x. The project's own AGENTS.md already says
-              <em>&quot;Do NOT upgrade to go-finding v1.2+. v1.2.0 switched to encoding/json/v2 ...
-              The entire package fails to compile.&quot;</em> — and then go.mod moved to v1.3.0 anyway.
-              <code>go get github.com/larsartmann/go-finding@v1.1.x</code>, confirm
-              <code>go build ./...</code> is green, and gate the version in CI.
+              Revert the dependency to v1.1.x. The project's own AGENTS.md
+              already says
+              <em
+                >&quot;Do NOT upgrade to go-finding v1.2+. v1.2.0 switched to
+                encoding/json/v2 ... The entire package fails to
+                compile.&quot;</em
+              >
+              — and then go.mod moved to v1.3.0 anyway.
+              <code>go get github.com/larsartmann/go-finding@v1.1.x</code>,
+              confirm <code>go build ./...</code> is green, and gate the version
+              in CI.
             </div>
           </div>
 
           <div class="issue issue-critical" id="issue-splitbrain">
-            <span class="severity severity-critical">Blocking &middot; Source-of-truth split brain</span>
+            <span class="severity severity-critical"
+              >Blocking &middot; Source-of-truth split brain</span
+            >
             <h3>Three files disagree about the dependency version</h3>
             <div class="where">go.mod vs README.md:35 vs AGENTS.md</div>
-            <p>
-              One fact, three claims:
-            </p>
+            <p>One fact, three claims:</p>
             <table class="compare">
-              <thead><tr><th>Source</th><th>Claimed version</th><th>Matches reality</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Source</th>
+                  <th>Claimed version</th>
+                  <th>Matches reality</th>
+                </tr>
+              </thead>
               <tbody>
-                <tr><td><code>go.mod</code></td><td>v1.3.0</td><td class="yes">yes (and it breaks the build)</td></tr>
-                <tr><td><code>README.md</code></td><td>&quot;v1.2+&quot;</td><td class="no">no</td></tr>
-                <tr><td><code>AGENTS.md</code></td><td>&quot;v1.1.x, do NOT go v1.2+&quot;</td><td class="no">no (correct intent, stale)</td></tr>
+                <tr>
+                  <td><code>go.mod</code></td>
+                  <td>v1.3.0</td>
+                  <td class="yes">yes (and it breaks the build)</td>
+                </tr>
+                <tr>
+                  <td><code>README.md</code></td>
+                  <td>&quot;v1.2+&quot;</td>
+                  <td class="no">no</td>
+                </tr>
+                <tr>
+                  <td><code>AGENTS.md</code></td>
+                  <td>&quot;v1.1.x, do NOT go v1.2+&quot;</td>
+                  <td class="no">no (correct intent, stale)</td>
+                </tr>
               </tbody>
             </table>
             <p>
-              The README also calls the helpers &quot;stable&quot; while the package does not build.
-              Pick one source of truth (go.mod is the fact; AGENTS.md carries the constraint and the
-              reason) and make the others point to it.
+              The README also calls the helpers &quot;stable&quot; while the
+              package does not build. Pick one source of truth (go.mod is the
+              fact; AGENTS.md carries the constraint and the reason) and make
+              the others point to it.
             </p>
           </div>
         </section>
@@ -347,42 +975,75 @@ package github.com/larsartmann/linter-autoconfigure-sdk
         <section id="data-model">
           <h2><span class="num">02</span>Data model findings</h2>
           <p>
-            The data model is four types: <code>ConfigError</code>, <code>ConfigIssue</code>,
-            <code>ProviderSpec</code>, and the <code>ErrNoRepair</code> sentinel. Each has at least one
-            flaw a strong type system would have prevented.
+            The data model is four types: <code>ConfigError</code>,
+            <code>ConfigIssue</code>, <code>ProviderSpec</code>, and the
+            <code>ErrNoRepair</code> sentinel. Each has at least one flaw a
+            strong type system would have prevented.
           </p>
 
           <div class="issue issue-important" id="issue-coupling">
-            <span class="severity severity-important">High &middot; Type safety</span>
+            <span class="severity severity-important"
+              >High &middot; Type safety</span
+            >
             <h3>Inconsistent coupling to go-finding's branded types</h3>
-            <div class="where">autoconfigure.go:118-136 (ConfigIssue) &middot; :141 (FindingFromIssue)</div>
+            <div class="where">
+              autoconfigure.go:118-136 (ConfigIssue) &middot; :141
+              (FindingFromIssue)
+            </div>
             <p>
-              Inside one 6-field struct, three string-ish fields use three different typing policies:
+              Inside one 6-field struct, three string-ish fields use three
+              different typing policies:
             </p>
             <table>
-              <thead><tr><th>Field</th><th>Type used</th><th>go-finding offers</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type used</th>
+                  <th>go-finding offers</th>
+                </tr>
+              </thead>
               <tbody>
-                <tr><td><code>ConfigIssue.Severity</code></td><td><code>finding.Severity</code> (typed)</td><td>—</td></tr>
-                <tr><td><code>ConfigIssue.File</code></td><td>raw <code>string</code></td><td><code>finding.FilePath</code></td></tr>
-                <tr><td><code>ConfigIssue.Rule</code></td><td>raw <code>string</code></td><td><code>finding.RuleName</code></td></tr>
-                <tr><td><code>FindingFromIssue(toolName …)</code></td><td>raw <code>string</code></td><td><code>finding.ToolName</code></td></tr>
+                <tr>
+                  <td><code>ConfigIssue.Severity</code></td>
+                  <td><code>finding.Severity</code> (typed)</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><code>ConfigIssue.File</code></td>
+                  <td>raw <code>string</code></td>
+                  <td><code>finding.FilePath</code></td>
+                </tr>
+                <tr>
+                  <td><code>ConfigIssue.Rule</code></td>
+                  <td>raw <code>string</code></td>
+                  <td><code>finding.RuleName</code></td>
+                </tr>
+                <tr>
+                  <td><code>FindingFromIssue(toolName …)</code></td>
+                  <td>raw <code>string</code></td>
+                  <td><code>finding.ToolName</code></td>
+                </tr>
               </tbody>
             </table>
             <p>
-              The README justifies the raw <code>File</code> as &quot;keeps the SDK decoupled from
-              finding's branded types.&quot; That justification is <strong>false</strong>: the package is
-              already fully coupled — it imports <code>finding.Severity</code>, <code>finding.Finding</code>,
-              <code>finding.Builder</code>, <code>finding.Pos</code>, <code>finding.CategoryConfiguration</code>,
-              and <code>finding.FixStrategySuggest</code>. Decoupling one field while coupling six others
-              is not a boundary; it is an arbitrary gap that forces consumers to convert at the call site
-              for zero benefit.
+              The README justifies the raw <code>File</code> as &quot;keeps the
+              SDK decoupled from finding's branded types.&quot; That
+              justification is <strong>false</strong>: the package is already
+              fully coupled — it imports <code>finding.Severity</code>,
+              <code>finding.Finding</code>, <code>finding.Builder</code>,
+              <code>finding.Pos</code>,
+              <code>finding.CategoryConfiguration</code>, and
+              <code>finding.FixStrategySuggest</code>. Decoupling one field
+              while coupling six others is not a boundary; it is an arbitrary
+              gap that forces consumers to convert at the call site for zero
+              benefit.
             </p>
             <div class="compare-header">
               <div class="compare-before">Current — mixed policy</div>
               <div class="compare-after">Consistent — adopt the brands</div>
             </div>
             <div class="compare-row">
-<pre><code><span class="tok-keyword">type</span> <span class="tok-type">ConfigIssue</span> <span class="tok-keyword">struct</span> {
+              <pre><code><span class="tok-keyword">type</span> <span class="tok-type">ConfigIssue</span> <span class="tok-keyword">struct</span> {
     Rule       <span class="tok-type">string</span>            <span class="tok-comment">// raw</span>
     Message    <span class="tok-type">string</span>
     Severity   finding.<span class="tok-type">Severity</span>  <span class="tok-comment">// typed</span>
@@ -390,7 +1051,7 @@ package github.com/larsartmann/linter-autoconfigure-sdk
     Line       <span class="tok-type">int</span>
     Suggestion <span class="tok-type">string</span>
 }</code></pre>
-<pre><code><span class="tok-keyword">type</span> <span class="tok-type">ConfigIssue</span> <span class="tok-keyword">struct</span> {
+              <pre><code><span class="tok-keyword">type</span> <span class="tok-type">ConfigIssue</span> <span class="tok-keyword">struct</span> {
     Rule       finding.<span class="tok-type">RuleName</span>
     Message    <span class="tok-type">string</span>
     Severity   finding.<span class="tok-type">Severity</span>
@@ -402,22 +1063,29 @@ package github.com/larsartmann/linter-autoconfigure-sdk
             </div>
             <div class="callout callout-teal">
               <strong>Decision.</strong>
-              Either adopt the branded types everywhere (preferred — the coupling already exists, so
-              take the safety it buys) or reject them everywhere and wrap at a single boundary. The
-              current half-and-half is the worst of both options.
+              Either adopt the branded types everywhere (preferred — the
+              coupling already exists, so take the safety it buys) or reject
+              them everywhere and wrap at a single boundary. The current
+              half-and-half is the worst of both options.
             </div>
           </div>
 
           <div class="issue issue-important" id="issue-op">
-            <span class="severity severity-important">High &middot; Stringly-typed</span>
+            <span class="severity severity-important"
+              >High &middot; Stringly-typed</span
+            >
             <h3><code>ConfigError.Op</code> is a stringly-typed operation</h3>
             <div class="where">autoconfigure.go:42-49</div>
             <p>
-              <code>Op string</code> carries an informal prose vocabulary
-              (<code>"read"</code> / <code>"unmarshal"</code> / <code>"marshal"</code> / <code>"mkdir"</code> / <code>"write"</code>)
-              with no compile-time guarantees. Typos like <code>"wrtie"</code> are silently legal. A
-              consumer's <code>switch ce.Op</code> cannot be exhaustiveness-checked. This is the textbook
-              P1 anti-pattern, and it sits on the package's flagship error type.
+              <code>Op string</code> carries an informal prose vocabulary (<code
+                >"read"</code
+              >
+              / <code>"unmarshal"</code> / <code>"marshal"</code> /
+              <code>"mkdir"</code> / <code>"write"</code>) with no compile-time
+              guarantees. Typos like <code>"wrtie"</code> are silently legal. A
+              consumer's <code>switch ce.Op</code> cannot be
+              exhaustiveness-checked. This is the textbook P1 anti-pattern, and
+              it sits on the package's flagship error type.
             </p>
             <pre><code><span class="tok-comment">// Closed, exhaustive, typo-proof:</span>
 <span class="tok-keyword">type</span> <span class="tok-type">Op</span> <span class="tok-type">string</span>
@@ -432,34 +1100,45 @@ package github.com/larsartmann/linter-autoconfigure-sdk
           </div>
 
           <div class="issue issue-important" id="issue-line">
-            <span class="severity severity-important">High &middot; Dishonest output</span>
-            <h3><code>FindingFromIssue</code> fabricates line numbers and swallows errors</h3>
+            <span class="severity severity-important"
+              >High &middot; Dishonest output</span
+            >
+            <h3>
+              <code>FindingFromIssue</code> fabricates line numbers and swallows
+              errors
+            </h3>
             <div class="where">autoconfigure.go:141-166</div>
             <p>
-              Two related defects in the package's most important conversion function:
+              Two related defects in the package's most important conversion
+              function:
             </p>
             <p>
-              <strong>1. Invented positions.</strong> <code>ConfigIssue.Line</code> is documented as
-              &quot;0 if unknown,&quot; but <code>FindingFromIssue</code> silently rewrites
-              <code>line &lt;= 0</code> to <code>1</code>. The emitted finding then points at line 1 — a
-              specific, authoritative-looking location that is very probably wrong. go-finding ships
-              <code>finding.FilePos(file)</code> precisely for line-less, file-level findings; the SDK
-              ignores it and lies instead.
+              <strong>1. Invented positions.</strong>
+              <code>ConfigIssue.Line</code> is documented as &quot;0 if
+              unknown,&quot; but <code>FindingFromIssue</code> silently rewrites
+              <code>line &lt;= 0</code> to <code>1</code>. The emitted finding
+              then points at line 1 — a specific, authoritative-looking location
+              that is very probably wrong. go-finding ships
+              <code>finding.FilePos(file)</code> precisely for line-less,
+              file-level findings; the SDK ignores it and lies instead.
             </p>
             <p>
-              <strong>2. Silent failure.</strong> When <code>builder.Build()</code> returns an error,
-              <code>FindingFromIssue</code> discards it and returns <code>finding.Finding{}</code> (the
-              zero value). A caller iterating a slice of issues receives valid findings interleaved with
-              an invisible invalid one, with no signal that a finding was dropped. go-finding even
-              provides <code>MustBuild()</code> for the &quot;inputs are caller-controlled, failure is a
-              programmer error&quot; case — the SDK picks the third, worst option.
+              <strong>2. Silent failure.</strong> When
+              <code>builder.Build()</code> returns an error,
+              <code>FindingFromIssue</code> discards it and returns
+              <code>finding.Finding{}</code> (the zero value). A caller
+              iterating a slice of issues receives valid findings interleaved
+              with an invisible invalid one, with no signal that a finding was
+              dropped. go-finding even provides <code>MustBuild()</code> for the
+              &quot;inputs are caller-controlled, failure is a programmer
+              error&quot; case — the SDK picks the third, worst option.
             </p>
             <div class="compare-header">
               <div class="compare-before">Current — silent + dishonest</div>
               <div class="compare-after">Honest</div>
             </div>
             <div class="compare-row">
-<pre><code><span class="tok-keyword">func</span> <span class="tok-func">FindingFromIssue</span>(tool <span class="tok-type">string</span>, issue ConfigIssue) finding.<span class="tok-type">Finding</span> {
+              <pre><code><span class="tok-keyword">func</span> <span class="tok-func">FindingFromIssue</span>(tool <span class="tok-type">string</span>, issue ConfigIssue) finding.<span class="tok-type">Finding</span> {
     line := issue.Line
     <span class="tok-keyword">if</span> line &lt;= <span class="tok-number">0</span> { line = <span class="tok-number">1</span> }       <span class="tok-comment">// lie</span>
     ...
@@ -469,7 +1148,7 @@ package github.com/larsartmann/linter-autoconfigure-sdk
     }
     <span class="tok-keyword">return</span> f
 }</code></pre>
-<pre><code><span class="tok-keyword">func</span> <span class="tok-func">FindingFromIssue</span>(tool finding.<span class="tok-type">ToolName</span>, issue ConfigIssue) (finding.<span class="tok-type">Finding</span>, <span class="tok-type">error</span>) {
+              <pre><code><span class="tok-keyword">func</span> <span class="tok-func">FindingFromIssue</span>(tool finding.<span class="tok-type">ToolName</span>, issue ConfigIssue) (finding.<span class="tok-type">Finding</span>, <span class="tok-type">error</span>) {
     pos := finding.<span class="tok-type">Pos</span>(issue.File, issue.Line, <span class="tok-number">1</span>)
     <span class="tok-keyword">if</span> issue.Line == <span class="tok-number">0</span> {
         pos = finding.<span class="tok-func">FilePos</span>(issue.File) <span class="tok-comment">// honest</span>
@@ -480,36 +1159,49 @@ package github.com/larsartmann/linter-autoconfigure-sdk
             </div>
             <div class="callout callout-amber">
               <strong>Note on the signature change.</strong>
-              Returning <code>(Finding, error)</code> is a breaking change. There are zero consumers
-              today, so the cost is zero. After the first consumer lands, this becomes expensive —
-              another reason to fix it now.
+              Returning <code>(Finding, error)</code> is a breaking change.
+              There are zero consumers today, so the cost is zero. After the
+              first consumer lands, this becomes expensive — another reason to
+              fix it now.
             </div>
           </div>
 
           <div class="issue issue-important" id="issue-normalize">
-            <span class="severity severity-important">High &middot; Reintroduced split brain</span>
-            <h3>Fix-strategy zero value reopens a bug go-finding deliberately fixed</h3>
+            <span class="severity severity-important"
+              >High &middot; Reintroduced split brain</span
+            >
+            <h3>
+              Fix-strategy zero value reopens a bug go-finding deliberately
+              fixed
+            </h3>
             <div class="where">autoconfigure.go:155-158</div>
             <p>
-              When <code>Suggestion == ""</code>, the SDK never sets a fix strategy, leaving
-              <code>FixStrategy</code> at its zero value <code>""</code>. go-finding's own
-              <code>NormalizeFixStrategy</code> exists because <code>""</code> and
-              <code>FixStrategyNone</code> both meant &quot;no fix&quot; but compared unequal — a split brain
-              the upstream package explicitly killed. This SDK reintroduces it at the boundary. Call
-              <code>finding.NormalizeFixStrategy</code> or explicitly set <code>FixStrategyNone</code>.
+              When <code>Suggestion == ""</code>, the SDK never sets a fix
+              strategy, leaving <code>FixStrategy</code> at its zero value
+              <code>""</code>. go-finding's own
+              <code>NormalizeFixStrategy</code> exists because
+              <code>""</code> and <code>FixStrategyNone</code> both meant
+              &quot;no fix&quot; but compared unequal — a split brain the
+              upstream package explicitly killed. This SDK reintroduces it at
+              the boundary. Call <code>finding.NormalizeFixStrategy</code> or
+              explicitly set <code>FixStrategyNone</code>.
             </p>
           </div>
 
           <div class="issue issue-important" id="issue-fields">
-            <span class="severity severity-important">Medium &middot; Mutability</span>
+            <span class="severity severity-important"
+              >Medium &middot; Mutability</span
+            >
             <h3><code>ConfigError</code> fields are exported and mutable</h3>
             <div class="where">autoconfigure.go:42-49</div>
             <p>
-              <code>Op</code>, <code>Path</code>, and <code>Err</code> are all exported, inviting
-              post-construction mutation of an error value after it has been observed and possibly
-              cached by a caller. Errors should be immutable after creation. Export the values via
-              methods (<code>Op()</code>, <code>Path()</code>, <code>Unwrap()</code>) or keep the fields
-              exported but document immutability — and stop short of returning <code>*ConfigError</code>
+              <code>Op</code>, <code>Path</code>, and <code>Err</code> are all
+              exported, inviting post-construction mutation of an error value
+              after it has been observed and possibly cached by a caller. Errors
+              should be immutable after creation. Export the values via methods
+              (<code>Op()</code>, <code>Path()</code>, <code>Unwrap()</code>) or
+              keep the fields exported but document immutability — and stop
+              short of returning <code>*ConfigError</code>
               aliases that callers can mutate.
             </p>
           </div>
@@ -520,64 +1212,95 @@ package github.com/larsartmann/linter-autoconfigure-sdk
           <h2><span class="num">03</span>Architecture findings</h2>
 
           <div class="issue issue-important" id="issue-yagni">
-            <span class="severity severity-important">High &middot; Speculative abstraction</span>
+            <span class="severity severity-important"
+              >High &middot; Speculative abstraction</span
+            >
             <h3>Extracted before the second consumer existed</h3>
-            <div class="where">README.md:149 (&quot;No active consumers yet&quot;)</div>
+            <div class="where">
+              README.md:149 (&quot;No active consumers yet&quot;)
+            </div>
             <p>
-              The README's own words: <em>&quot;value over stdlib is modest until a second auto-configurer
-              lands.&quot;</em> There are zero consumers. Shared plumbing should be extracted when
-              duplication is <em>proven</em> by two callers — not pre-emptively modeled from one. The
-              <code>ProviderSpec</code> shape, in particular, is designed against an imagined consumer
-              and carries no behavior to validate the design. Build the second auto-configurer first;
-              let the real duplication tell you what this SDK's surface should be.
+              The README's own words:
+              <em
+                >&quot;value over stdlib is modest until a second
+                auto-configurer lands.&quot;</em
+              >
+              There are zero consumers. Shared plumbing should be extracted when
+              duplication is <em>proven</em> by two callers — not pre-emptively
+              modeled from one. The <code>ProviderSpec</code> shape, in
+              particular, is designed against an imagined consumer and carries
+              no behavior to validate the design. Build the second
+              auto-configurer first; let the real duplication tell you what this
+              SDK's surface should be.
             </p>
             <div class="callout callout-amber">
               <strong>Not &quot;delete the SDK.&quot;</strong>
-              The config round-trip + typed-error helpers are modest but legitimate. The point is the
-              <em>shape</em> — especially <code>ProviderSpec</code> — should be derived from a real
-              second consumer, not asserted ahead of time. Mark the package
-              <code>v0</code> / experimental until that consumer exists.
+              The config round-trip + typed-error helpers are modest but
+              legitimate. The point is the
+              <em>shape</em> — especially <code>ProviderSpec</code> — should be
+              derived from a real second consumer, not asserted ahead of time.
+              Mark the package <code>v0</code> / experimental until that
+              consumer exists.
             </div>
           </div>
 
           <div class="issue issue-important" id="issue-providerspec">
-            <span class="severity severity-important">Medium &middot; No behavior</span>
-            <h3><code>ProviderSpec</code> is a struct of function pointers with no methods</h3>
+            <span class="severity severity-important"
+              >Medium &middot; No behavior</span
+            >
+            <h3>
+              <code>ProviderSpec</code> is a struct of function pointers with no
+              methods
+            </h3>
             <div class="where">autoconfigure.go:184-194</div>
             <p>
-              It carries <code>Analyze</code> and <code>Repair</code> closures returning bare
-              <code>error</code> — a different error policy from the typed <code>*ConfigError</code>
-              helpers sitting next to it, in the package whose entire purpose is a typed-error
-              discipline. There is no <code>ProviderFromSpec(spec)</code> adapter (promised in the
-              README, never started), no validation, and zero in-repo consumers (grep confirms). Either
-              build the adapter and prove the shape, or remove the type until a consumer forces its
-              design.
+              It carries <code>Analyze</code> and <code>Repair</code> closures
+              returning bare <code>error</code> — a different error policy from
+              the typed <code>*ConfigError</code> helpers sitting next to it, in
+              the package whose entire purpose is a typed-error discipline.
+              There is no <code>ProviderFromSpec(spec)</code> adapter (promised
+              in the README, never started), no validation, and zero in-repo
+              consumers (grep confirms). Either build the adapter and prove the
+              shape, or remove the type until a consumer forces its design.
             </p>
           </div>
 
           <div class="issue issue-nice" id="issue-errnorepair">
-            <span class="severity severity-nice">Low &middot; Dead public API</span>
+            <span class="severity severity-nice"
+              >Low &middot; Dead public API</span
+            >
             <h3><code>ErrNoRepair</code> is exported, untested, and unused</h3>
             <div class="where">autoconfigure.go:196-198</div>
             <p>
-              A package-wide exported sentinel with no test, no example, and no reference anywhere in
-              the codebase (confirmed by repo-wide grep — only its own definition and the README table
-              mention it). It is a public contract nobody holds. Either wire it into
-              <code>ProviderSpec</code> (e.g. a nil <code>Repair</code> returns <code>ErrNoRepair</code>
+              A package-wide exported sentinel with no test, no example, and no
+              reference anywhere in the codebase (confirmed by repo-wide grep —
+              only its own definition and the README table mention it). It is a
+              public contract nobody holds. Either wire it into
+              <code>ProviderSpec</code> (e.g. a nil <code>Repair</code> returns
+              <code>ErrNoRepair</code>
               from the adapter) or remove it.
             </p>
           </div>
 
           <div class="issue issue-nice" id="issue-readconfig">
-            <span class="severity severity-nice">Low &middot; Questionable surface</span>
-            <h3><code>ReadConfig</code> is now <code>os.ReadFile</code> + a one-line wrap</h3>
+            <span class="severity severity-nice"
+              >Low &middot; Questionable surface</span
+            >
+            <h3>
+              <code>ReadConfig</code> is now <code>os.ReadFile</code> + a
+              one-line wrap
+            </h3>
             <div class="where">autoconfigure.go:69-76</div>
             <p>
-              After the typed-error refactor, <code>ReadConfig</code>'s entire value over stdlib is the
-              <code>*ConfigError</code>. A smaller, more composable surface would be
-              <code>func WrapError(op Op, path string, err error) *ConfigError</code>, letting consumers
-              call <code>os.ReadFile</code> directly and wrap at the boundary. Worth deciding before the
-              first consumer locks the shape in.
+              After the typed-error refactor, <code>ReadConfig</code>'s entire
+              value over stdlib is the <code>*ConfigError</code>. A smaller,
+              more composable surface would be
+              <code
+                >func WrapError(op Op, path string, err error)
+                *ConfigError</code
+              >, letting consumers call <code>os.ReadFile</code> directly and
+              wrap at the boundary. Worth deciding before the first consumer
+              locks the shape in.
             </p>
           </div>
 
@@ -586,11 +1309,13 @@ package github.com/larsartmann/linter-autoconfigure-sdk
             <h3><code>SaveJSON</code> can corrupt a user's linter config</h3>
             <div class="where">autoconfigure.go:96-111</div>
             <p>
-              It hardcodes <code>0o644</code> and uses <code>json.Marshal</code> (compact) for configs
-              that are typically human-edited, and it writes in place with no temp-file + rename. A
-              partial write or a crash mid-write leaves the user's linter config truncated. Linter
-              configs are files people edit by hand and depend on for every build — corrupting one is a
-              bad-faith outcome. Use atomic write (write temp in same dir, <code>os.Rename</code>) and
+              It hardcodes <code>0o644</code> and uses
+              <code>json.Marshal</code> (compact) for configs that are typically
+              human-edited, and it writes in place with no temp-file + rename. A
+              partial write or a crash mid-write leaves the user's linter config
+              truncated. Linter configs are files people edit by hand and depend
+              on for every build — corrupting one is a bad-faith outcome. Use
+              atomic write (write temp in same dir, <code>os.Rename</code>) and
               accept an indent option.
             </p>
           </div>
@@ -598,9 +1323,12 @@ package github.com/larsartmann/linter-autoconfigure-sdk
 
         <!-- Vision -->
         <section id="vision">
-          <h2><span class="num">04</span>What &quot;superb&quot; would look like</h2>
+          <h2>
+            <span class="num">04</span>What &quot;superb&quot; would look like
+          </h2>
           <p>
-            The target state. Small package, honest types, one error policy, and a proven shape.
+            The target state. Small package, honest types, one error policy, and
+            a proven shape.
           </p>
           <pre><code><span class="tok-comment">// One error policy across the whole package.</span>
 <span class="tok-keyword">type</span> <span class="tok-type">Op</span> <span class="tok-type">string</span> <span class="tok-comment">// read | unmarshal | marshal | mkdir | write</span>
@@ -643,9 +1371,10 @@ package github.com/larsartmann/linter-autoconfigure-sdk
 }</code></pre>
           <div class="callout callout-teal">
             <strong>Why this is better.</strong>
-            One error policy (typed <code>Op</code>, real <code>Unwrap</code>). One typing policy
-            (branded types everywhere they exist). Honest positions and errors. No dead API. The
-            surface is smaller and every type earns its place.
+            One error policy (typed <code>Op</code>, real <code>Unwrap</code>).
+            One typing policy (branded types everywhere they exist). Honest
+            positions and errors. No dead API. The surface is smaller and every
+            type earns its place.
           </div>
         </section>
 
@@ -658,42 +1387,74 @@ package github.com/larsartmann/linter-autoconfigure-sdk
             <div class="migration-num">1</div>
             <div class="migration-content">
               <h4>Make it compile</h4>
-              <p><code>go get github.com/larsartmann/go-finding@v1.1.x</code>. Confirm <code>go build ./...</code>, <code>go vet ./...</code>, and <code>go test ./...</code> are green. This is the only step that matters until it is done — nothing else can be trusted while the package is dead code.</p>
+              <p>
+                <code>go get github.com/larsartmann/go-finding@v1.1.x</code>.
+                Confirm <code>go build ./...</code>, <code>go vet ./...</code>,
+                and <code>go test ./...</code> are green. This is the only step
+                that matters until it is done — nothing else can be trusted
+                while the package is dead code.
+              </p>
             </div>
           </div>
           <div class="migration-step">
             <div class="migration-num">2</div>
             <div class="migration-content">
               <h4>Kill the version split brain</h4>
-              <p>Reconcile go.mod, README, and AGENTS.md to one claim. go.mod is the fact; AGENTS.md carries the &quot;do not exceed v1.1.x, here is why&quot; constraint. README links to AGENTS.md instead of restating a version. Add a CI gate (<code>go mod tidy</code> + build) so a bump can't silently land again.</p>
+              <p>
+                Reconcile go.mod, README, and AGENTS.md to one claim. go.mod is
+                the fact; AGENTS.md carries the &quot;do not exceed v1.1.x, here
+                is why&quot; constraint. README links to AGENTS.md instead of
+                restating a version. Add a CI gate (<code>go mod tidy</code> +
+                build) so a bump can't silently land again.
+              </p>
             </div>
           </div>
           <div class="migration-step">
             <div class="migration-num">3</div>
             <div class="migration-content">
               <h4>Unify the data model</h4>
-              <p>Adopt branded types consistently (or reject consistently). Make <code>Op</code> a typed enum with constants. Restore <code>Unwrap() error</code> and fix the linter/false-positive upstream rather than redesigning the type around it.</p>
+              <p>
+                Adopt branded types consistently (or reject consistently). Make
+                <code>Op</code> a typed enum with constants. Restore
+                <code>Unwrap() error</code> and fix the linter/false-positive
+                upstream rather than redesigning the type around it.
+              </p>
             </div>
           </div>
           <div class="migration-step">
             <div class="migration-num">4</div>
             <div class="migration-content">
               <h4>Make FindingFromIssue honest</h4>
-              <p>Return <code>(Finding, error)</code>. Use <code>finding.FilePos</code> for line-less issues. Normalize the fix strategy. Add a test for the builder-error path (previously uncovered, the cause of the 88.9% coverage gap).</p>
+              <p>
+                Return <code>(Finding, error)</code>. Use
+                <code>finding.FilePos</code> for line-less issues. Normalize the
+                fix strategy. Add a test for the builder-error path (previously
+                uncovered, the cause of the 88.9% coverage gap).
+              </p>
             </div>
           </div>
           <div class="migration-step">
             <div class="migration-num">5</div>
             <div class="migration-content">
               <h4>Atomic SaveJSON + indent option</h4>
-              <p>Temp-file + <code>os.Rename</code> so a crash can't truncate a user's config. Accept an indent option (or default to 2-space) since these files are hand-edited.</p>
+              <p>
+                Temp-file + <code>os.Rename</code> so a crash can't truncate a
+                user's config. Accept an indent option (or default to 2-space)
+                since these files are hand-edited.
+              </p>
             </div>
           </div>
           <div class="migration-step">
             <div class="migration-num">6</div>
             <div class="migration-content">
               <h4>Prove or cut ProviderSpec</h4>
-              <p>Either build <code>ProviderFromSpec</code> and wire one real consumer (the README's own success criterion), or remove <code>ProviderSpec</code> + <code>ErrNoRepair</code> until a consumer forces the design. Mark the package experimental until then.</p>
+              <p>
+                Either build <code>ProviderFromSpec</code> and wire one real
+                consumer (the README's own success criterion), or remove
+                <code>ProviderSpec</code> + <code>ErrNoRepair</code> until a
+                consumer forces the design. Mark the package experimental until
+                then.
+              </p>
             </div>
           </div>
         </section>
@@ -704,40 +1465,153 @@ package github.com/larsartmann/linter-autoconfigure-sdk
           <div class="table-wrap">
             <table class="compare">
               <thead>
-                <tr><th>Finding</th><th>Severity</th><th>Effort</th><th>Status</th></tr>
+                <tr>
+                  <th>Finding</th>
+                  <th>Severity</th>
+                  <th>Effort</th>
+                  <th>Status</th>
+                </tr>
               </thead>
               <tbody>
-                <tr><td><a href="#issue-build">Package does not build (go-finding v1.3.0)</a></td><td class="no">Critical</td><td>Low</td><td class="no">Open</td></tr>
-                <tr><td><a href="#issue-splitbrain">Version split brain (go.mod / README / AGENTS)</a></td><td class="no">Critical</td><td>Low</td><td class="no">Open</td></tr>
-                <tr><td><a href="#issue-coupling">Inconsistent branded-type coupling</a></td><td class="no">High</td><td>Medium</td><td class="no">Open</td></tr>
-                <tr><td><a href="#issue-op"><code>ConfigError.Op</code> stringly-typed</a></td><td class="no">High</td><td>Low</td><td class="no">Open</td></tr>
-                <tr><td><a href="#issue-line">FindingFromIssue fabricates lines + swallows errors</a></td><td class="no">High</td><td>Low</td><td class="no">Open</td></tr>
-                <tr><td><a href="#issue-normalize">Fix-strategy zero-value split brain</a></td><td class="no">High</td><td>Low</td><td class="no">Open</td></tr>
-                <tr><td><a href="#issue-yagni">Speculative abstraction, 0 consumers</a></td><td class="no">High</td><td>—</td><td class="no">Design</td></tr>
-                <tr><td><a href="#issue-fields">ConfigError fields mutable</a></td><td>Medium</td><td>Low</td><td class="no">Open</td></tr>
-                <tr><td><a href="#issue-providerspec">ProviderSpec has no behavior / mixed error policy</a></td><td>Medium</td><td>Medium</td><td class="no">Open</td></tr>
-                <tr><td><a href="#issue-savejson">SaveJSON non-atomic, can corrupt configs</a></td><td>Medium</td><td>Low</td><td class="no">Open</td></tr>
-                <tr><td><a href="#issue-errnorepair">ErrNoRepair dead public API</a></td><td>Low</td><td>Low</td><td class="no">Open</td></tr>
-                <tr><td><a href="#issue-readconfig">ReadConfig = os.ReadFile + wrap</a></td><td>Low</td><td>Low</td><td class="no">Design</td></tr>
+                <tr>
+                  <td>
+                    <a href="#issue-build"
+                      >Package does not build (go-finding v1.3.0)</a
+                    >
+                  </td>
+                  <td class="no">Critical</td>
+                  <td>Low</td>
+                  <td class="no">Open</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="#issue-splitbrain"
+                      >Version split brain (go.mod / README / AGENTS)</a
+                    >
+                  </td>
+                  <td class="no">Critical</td>
+                  <td>Low</td>
+                  <td class="no">Open</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="#issue-coupling"
+                      >Inconsistent branded-type coupling</a
+                    >
+                  </td>
+                  <td class="no">High</td>
+                  <td>Medium</td>
+                  <td class="no">Open</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="#issue-op"
+                      ><code>ConfigError.Op</code> stringly-typed</a
+                    >
+                  </td>
+                  <td class="no">High</td>
+                  <td>Low</td>
+                  <td class="no">Open</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="#issue-line"
+                      >FindingFromIssue fabricates lines + swallows errors</a
+                    >
+                  </td>
+                  <td class="no">High</td>
+                  <td>Low</td>
+                  <td class="no">Open</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="#issue-normalize"
+                      >Fix-strategy zero-value split brain</a
+                    >
+                  </td>
+                  <td class="no">High</td>
+                  <td>Low</td>
+                  <td class="no">Open</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="#issue-yagni"
+                      >Speculative abstraction, 0 consumers</a
+                    >
+                  </td>
+                  <td class="no">High</td>
+                  <td>—</td>
+                  <td class="no">Design</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="#issue-fields">ConfigError fields mutable</a>
+                  </td>
+                  <td>Medium</td>
+                  <td>Low</td>
+                  <td class="no">Open</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="#issue-providerspec"
+                      >ProviderSpec has no behavior / mixed error policy</a
+                    >
+                  </td>
+                  <td>Medium</td>
+                  <td>Medium</td>
+                  <td class="no">Open</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="#issue-savejson"
+                      >SaveJSON non-atomic, can corrupt configs</a
+                    >
+                  </td>
+                  <td>Medium</td>
+                  <td>Low</td>
+                  <td class="no">Open</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="#issue-errnorepair">ErrNoRepair dead public API</a>
+                  </td>
+                  <td>Low</td>
+                  <td>Low</td>
+                  <td class="no">Open</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="#issue-readconfig"
+                      >ReadConfig = os.ReadFile + wrap</a
+                    >
+                  </td>
+                  <td>Low</td>
+                  <td>Low</td>
+                  <td class="no">Design</td>
+                </tr>
               </tbody>
             </table>
           </div>
           <div class="callout">
             <strong>Methodology.</strong>
-            Every claim verified against source: build/vet/test exit codes run locally;
-            <code>go-finding</code> v1.3.0 source read from the module cache to confirm branded types
-            (<code>FilePath</code>, <code>RuleName</code>, <code>ToolName</code>), <code>FilePos</code>,
-            <code>NormalizeFixStrategy</code>, <code>MustBuild</code>; <code>ErrNoRepair</code> /
-            <code>ProviderSpec</code> consumer counts confirmed by repo-wide grep. Two of the findings
-            (ProviderSpec typing, ErrNoRepair dead, SaveJSON atomicity) were already flagged in the
-            2026-07-19 brutal self-review and remain unresolved.
+            Every claim verified against source: build/vet/test exit codes run
+            locally;
+            <code>go-finding</code> v1.3.0 source read from the module cache to
+            confirm branded types (<code>FilePath</code>, <code>RuleName</code>,
+            <code>ToolName</code>), <code>FilePos</code>,
+            <code>NormalizeFixStrategy</code>, <code>MustBuild</code>;
+            <code>ErrNoRepair</code> / <code>ProviderSpec</code> consumer counts
+            confirmed by repo-wide grep. Two of the findings (ProviderSpec
+            typing, ErrNoRepair dead, SaveJSON atomicity) were already flagged
+            in the 2026-07-19 brutal self-review and remain unresolved.
           </div>
         </section>
 
         <footer class="footer">
           <p>
-            Generated 2026-07-26 &middot; Combined architecture + data-model review &middot; All claims
-            verified against source: <code>go build</code>/<code>vet</code>/<code>test</code> exit codes,
+            Generated 2026-07-26 &middot; Combined architecture + data-model
+            review &middot; All claims verified against source:
+            <code>go build</code>/<code>vet</code>/<code>test</code> exit codes,
             go-finding v1.3.0 module cache, and repo-wide grep.
           </p>
         </footer>
@@ -750,19 +1624,33 @@ package github.com/larsartmann/linter-autoconfigure-sdk
         var nav = document.querySelector("[data-nav]");
         if (!nav) return;
         var links = nav.querySelectorAll('a[href^="#"]');
-        var ids = Array.from(links).map(function (l) { return l.getAttribute("href").slice(1); });
-        var sections = ids.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
         if (!sections.length) return;
-        var observer = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              links.forEach(function (link) {
-                link.classList.toggle("active", link.getAttribute("href") === "#" + entry.target.id);
-              });
-            }
-          });
-        }, { rootMargin: "-80px 0px -60% 0px", threshold: 0 });
-        sections.forEach(function (s) { observer.observe(s); });
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
       })();
     </script>
   </body>
