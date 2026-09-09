@@ -80,7 +80,7 @@ My recommendation: rename. A module named after one domain shouldn't host anothe
 | `autoconfigure.go:223`     | `ConfigFile string // the config file path the tool manages (e.g. ".golangci.yml")`                        | Example too narrow — fine but improvable |
 | `README.md` throughout     | `linter auto-configuration`, linter examples only                                                          | Domain-locked marketing copy             |
 | `go.mod:1`                 | `module github.com/larsartmann/linter-autoconfigure-sdk`                                                   | Hardcoded name                           |
-| `LICENSE` vs `README.md:7` | PROPRIETARY file, MIT badge                                                                                | Unrelated split-brain — separate fix     |
+| ~~`LICENSE` vs `README.md:7`~~ | ~~PROPRIETARY file, MIT badge~~ | ~~Unrelated split-brain — separate fix~~ fixed at `23e74f1` (LICENSE is MIT; README §License links ./LICENSE since 2026-09-09) |
 
 ---
 
@@ -92,7 +92,7 @@ My recommendation: rename. A module named after one domain shouldn't host anothe
 2. Update `autoconfigure.go` package doc to reference "project files / project artifacts".
 3. Broaden godocs on `ConfigError`, `ConfigIssue`, `SaveJSON`'s indented-output comment, `ConfigFile`.
 4. Update `README.md` to include license + README as first-class examples alongside linter configs.
-5. Fix `LICENSE`/`README.md:7` license split-brain (unrelated to this work but noted).
+5. ~~Fix `LICENSE`/`README.md:7` license split-brain (unrelated to this work but noted).~~ done at `23e74f1`
 
 ### Phase 2 — Add license-shaped helpers
 
@@ -120,6 +120,17 @@ This is **not** in this SDK's scope. licenseforge (or a new `licenseforge-fix` t
 
 ## Out of scope for this analysis
 
-- Fixing the existing LICENSE vs README.md license split-brain (separate ticket).
+- ~~Fixing the existing LICENSE vs README.md license split-brain (separate ticket).~~ done at `23e74f1`
 - Building `licenseforge-fix` itself (lives in licenseforge's repo).
 - Migrating any current linter-auto-configurer to the new helpers (no consumers exist).
+
+---
+
+## Status (2026-09-09, docs-health pass)
+
+The license split-brain noted throughout is fixed (`23e74f1`). The proposal
+itself (rename/repurpose + SaveText/ApplyTemplate/UpdateCopyrightYear) remains
+**open and unexecuted** — routed to ROADMAP.md ("Rename/repurpose proposal")
+for evaluation against the first-consumer milestone. Note this analysis now
+lives in a public repo and names internal projects (`licenseforge`); its
+exposure is part of the docs/ fate decision (ROADMAP Q1, TODO_LIST T17).
