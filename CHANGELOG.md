@@ -24,6 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **License changed from proprietary (all rights reserved) to MIT** and the
+  repository was flipped from private to public (`23e74f1`); full git history
+  secret-scanned with gitleaks after the flip — zero findings
 - **BREAKING:** `ConfigIssue.Rule` is now `finding.RuleName` (was `string`)
 - **BREAKING:** `ConfigIssue.File` is now `finding.FilePath` (was `string`)
 - **BREAKING:** `FindingFromIssue` signature is now
@@ -57,9 +60,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added `github.com/larsartmann/go-atomic-write` (direct) — provides the
   idempotent, crash-durable atomic write primitive used by `SaveJSON`.
   Transitive: `cespare/xxhash/v2` (fingerprinting), `gofrs/flock` (locking)
+- `github.com/larsartmann/go-finding` kept on latest: v1.8.0 (`9d1373a`),
+  then v1.9.2 (`1c7c5e5`) — build and tests verified green at each bump
 
-## [0.1.0] - 2026-01-01
-
-### Added
-
-- Initial release
+> No version has been tagged yet. Everything above `Unreleased`-grade until
+> the first tag (`v0.1.0`, see TODO_LIST/ROADMAP); pkg.go.dev serves only
+> pseudo-versions in the meantime.

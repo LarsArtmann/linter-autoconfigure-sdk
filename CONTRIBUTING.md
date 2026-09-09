@@ -11,10 +11,16 @@ Thanks for your interest in contributing!
 
 ## Development Setup
 
-Run the following commands to set up your development environment:
+The project requires `GOEXPERIMENT=jsonv2` (Go 1.26 gates `encoding/json/v2`).
+On `cd` into the repo, the `.envrc` sets it automatically via direnv — run
+`direnv allow` once after cloning. Without direnv, prefix every command with
+`GOEXPERIMENT=jsonv2`.
 
-    go test ./... -race
-    golangci-lint run ./...
+Quality pipeline (BuildFlow — no Makefile):
+
+    buildflow              # full pipeline, detect mode
+    buildflow --fix        # detect + auto-fix
+    go test -race -count=1 ./...   # just the Go tests
 
 ## Reporting Issues
 

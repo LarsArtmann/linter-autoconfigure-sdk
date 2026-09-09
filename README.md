@@ -32,7 +32,7 @@ What they reinvent identically is the surrounding plumbing:
 go get github.com/larsartmann/linter-autoconfigure-sdk
 ```
 
-Requires Go 1.26+ and [`go-finding`](https://github.com/larsartmann/go-finding) (latest).
+Requires Go 1.26+ and the latest [`go-finding`](https://github.com/larsartmann/go-finding) and [`go-atomic-write`](https://github.com/larsartmann/go-atomic-write) modules.
 Set `GOEXPERIMENT=jsonv2` in your environment (see [AGENTS.md](AGENTS.md#goexperimentjsonv2-required)).
 
 ---
@@ -156,4 +156,4 @@ Early (pre-v1). The config round-trip and finding-emission helpers have breaking
 
 ## License
 
-MIT — see [LarsArtmann/template-LICENSE](https://github.com/LarsArtmann/template-LICENSE).
+MIT — see [LICENSE](LICENSE).
