@@ -68,19 +68,19 @@ My recommendation: rename. A module named after one domain shouldn't host anothe
 
 ## Hardcoded-ness audit (where the lies live)
 
-| Location                   | Current text                                                                                               | Issue                                    |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `autoconfigure.go:1`       | `// Package autoconfigure provides the shared foundation for linter auto-configuration tools`              | Hardcoded to linters                     |
-| `autoconfigure.go:2-3`     | `// (golangci-lint-auto-configure, oxlint-auto-configure, and future additions like biome-auto-configure)` | Examples — fine                          |
-| `autoconfigure.go:47`      | `// ConfigError describes a failure while reading, parsing, or writing a linter config file`               | Hardcoded                                |
-| `autoconfigure.go:81-83`   | `// left to each tool (different YAML libraries: golangci uses yaml.v3 / v4, oxlint may use go-yaml)`      | Tool-specific prose — fine for context   |
-| `autoconfigure.go:118`     | `// Indented output is used because linter configs are typically human-edited`                             | Hardcoded + lying for license files      |
-| `autoconfigure.go:139`     | `// ConfigIssue describes a single problem found in a linter config file`                                  | Hardcoded                                |
-| `autoconfigure.go:143`     | `// Rule is the issue's rule identifier (e.g. "missing-linter", "wrong-priority")`                         | Examples — fine                          |
-| `autoconfigure.go:223`     | `ConfigFile string // the config file path the tool manages (e.g. ".golangci.yml")`                        | Example too narrow — fine but improvable |
-| `README.md` throughout     | `linter auto-configuration`, linter examples only                                                          | Domain-locked marketing copy             |
-| `go.mod:1`                 | `module github.com/larsartmann/linter-autoconfigure-sdk`                                                   | Hardcoded name                           |
-| ~~`LICENSE` vs `README.md:7`~~ | ~~PROPRIETARY file, MIT badge~~ | ~~Unrelated split-brain — separate fix~~ fixed at `23e74f1` (LICENSE is MIT; README §License links ./LICENSE since 2026-09-09) |
+| Location                       | Current text                                                                                               | Issue                                                                                                                          |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `autoconfigure.go:1`           | `// Package autoconfigure provides the shared foundation for linter auto-configuration tools`              | Hardcoded to linters                                                                                                           |
+| `autoconfigure.go:2-3`         | `// (golangci-lint-auto-configure, oxlint-auto-configure, and future additions like biome-auto-configure)` | Examples — fine                                                                                                                |
+| `autoconfigure.go:47`          | `// ConfigError describes a failure while reading, parsing, or writing a linter config file`               | Hardcoded                                                                                                                      |
+| `autoconfigure.go:81-83`       | `// left to each tool (different YAML libraries: golangci uses yaml.v3 / v4, oxlint may use go-yaml)`      | Tool-specific prose — fine for context                                                                                         |
+| `autoconfigure.go:118`         | `// Indented output is used because linter configs are typically human-edited`                             | Hardcoded + lying for license files                                                                                            |
+| `autoconfigure.go:139`         | `// ConfigIssue describes a single problem found in a linter config file`                                  | Hardcoded                                                                                                                      |
+| `autoconfigure.go:143`         | `// Rule is the issue's rule identifier (e.g. "missing-linter", "wrong-priority")`                         | Examples — fine                                                                                                                |
+| `autoconfigure.go:223`         | `ConfigFile string // the config file path the tool manages (e.g. ".golangci.yml")`                        | Example too narrow — fine but improvable                                                                                       |
+| `README.md` throughout         | `linter auto-configuration`, linter examples only                                                          | Domain-locked marketing copy                                                                                                   |
+| `go.mod:1`                     | `module github.com/larsartmann/linter-autoconfigure-sdk`                                                   | Hardcoded name                                                                                                                 |
+| ~~`LICENSE` vs `README.md:7`~~ | ~~PROPRIETARY file, MIT badge~~                                                                            | ~~Unrelated split-brain — separate fix~~ fixed at `23e74f1` (LICENSE is MIT; README §License links ./LICENSE since 2026-09-09) |
 
 ---
 
