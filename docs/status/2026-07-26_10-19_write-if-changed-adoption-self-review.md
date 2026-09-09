@@ -32,9 +32,9 @@
 
 | # | Item                             | What's done                                                       | What's missing                                                                                                                                                                                                                                                                                   |
 | - | -------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1 | go-atomic-write website API docs | README + CHANGELOG updated                                        | `website/src/content/docs/api-reference.mdx` still shows old v0.3.0 API (`WriteFunc(path, fn, fingerprint)`), no `WriteIfChanged`, no `Write`/`WriteVerified` split. **The marketing website is stale.**                                                                                         |
+| ~~1~~ | ~~go-atomic-write website API docs~~ done — website docs since updated — go-atomic-write api-reference.mdx documents WriteIfChanged (verified 2026-09-09) | ~~README + CHANGELOG updated~~ | ~~`website/src/content/docs/api-reference.mdx` still shows old v0.3.0 API (`WriteFunc(path, fn, fingerprint)`), no `WriteIfChanged`, no `Write`/`WriteVerified` split. **The marketing website is stale.**~~ |
 | 2 | `SaveJSON` error granularity     | `OpMkdir` and `OpMarshal` preserved for pre-write stages          | All `WriteIfChanged` failures collapse into `OpWrite`. `ErrConcurrentModification` is wrapped but not distinguishable from a plain write error via `Op`. Callers must `errors.Is(err, atomicwrite.ErrConcurrentModification)` through the chain — which works but isn't documented in the godoc. |
-| 3 | Plan doc                         | Written with comprehensive Pareto/medium/fine breakdown + mermaid | **All task statuses still say "pending"** — never updated to "completed". The doc is stale.                                                                                                                                                                                                      |
+| ~~3~~ | ~~Plan doc~~ done (docs-health pass 2026-09-09) | ~~Written with comprehensive Pareto/medium/fine breakdown + mermaid~~ | ~~**All task statuses still say "pending"** — never updated to "completed". The doc is stale.~~ |
 
 ---
 
@@ -42,11 +42,11 @@
 
 | # | Item                                                                | Why it matters                                                                                                                                                                                                                                                                                                                           |
 | - | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | Fix `WriteVerified(path, data, Fingerprint{})` zero-fingerprint bug | The documented first-write contract is **broken** — `flock.Lock()` creates the file before the stat-check, producing a false `ErrConcurrentModification("was created concurrently")`. `WriteIfChanged` sidesteps it by routing to `Write`, but direct callers of `WriteVerified` hit the trap. Documented in the plan doc but not fixed. |
+| ~~1~~ | ~~Fix `WriteVerified(path, data, Fingerprint{})` zero-fingerprint bug~~ done — fixed upstream — go-atomic-write v0.5.1 runs the stat check before the creating lock | ~~The documented first-write contract is **broken** — `flock.Lock()` creates the file before the stat-check, producing a false `ErrConcurrentModification("was created concurrently")`. `WriteIfChanged` sidesteps it by routing to `Write`, but direct callers of `WriteVerified` hit the trap. Documented in the plan doc but not fixed.~~ |
 | 2 | Expose `changed` bool from `SaveJSON`                               | `WriteIfChanged` returns `(changed bool, err)`; `SaveJSON` discards the bool. Callers can't tell whether the file was actually written. A `SaveJSONIfChanged(path, v) (bool, *ConfigError)` variant or a return-type change would fix this — but it's a breaking signature change.                                                       |
 | 3 | Test `SaveJSON`'s `WriteIfChanged` error path                       | The `if _, err := atomicwrite.WriteIfChanged(...); err != nil` branch is uncovered (SaveJSON at 88.9%). Needs filesystem mocking or a write-to-read-only-dir fixture.                                                                                                                                                                    |
 | 4 | Squash/amend hallucinated daemon commit messages                    | 6 commits across both repos have **false messages** ("directory support", "WriteFile function", "SDK auto-configuration with linting support" — none of these exist in the code). Requires history rewrite.                                                                                                                              |
-| 5 | Tag go-atomic-write release                                         | Currently a pseudo-version (`v0.3.1-0.20260726080503-13b34c5e2f66`). Should tag `v0.4.0` once the `WriteVerified` bug is fixed so consumers get a stable reference.                                                                                                                                                                      |
+| ~~5~~ | ~~Tag go-atomic-write release~~ done — tagged — v0.4.0 shipped; go-atomic-write is now at v0.5.1 | ~~Currently a pseudo-version (`v0.3.1-0.20260726080503-13b34c5e2f66`). Should tag `v0.4.0` once the `WriteVerified` bug is fixed so consumers get a stable reference.~~ |
 
 ---
 
@@ -55,7 +55,7 @@
 | # | What                                  | Impact                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Can it be fixed?                                                                       |
 | - | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | 1 | **GOSUMDB=off bypass**                | I pulled the pseudo-version with `GOSUMDB=off` because sum.golang.org returned a transient 500 (commit pushed seconds earlier). This means the dependency was installed **without cryptographic verification against the public sum database**. The local `go.sum` hashes are present and correct, so future clones are fine — but my initial fetch trusted the Git hash directly instead of the sum DB.                                                       | Already resolved — `go.sum` has the real hashes. But the workflow set a bad precedent. |
-| 2 | **Silent `go.mod` version downgrade** | `go mod tidy` changed `go 1.26.5` → `go 1.26.4` and I accepted it without questioning. I didn't verify go-atomic-write actually requires 1.26.4 (its `go.mod` says 1.26.5). The downgrade happened because tidy resolved the _minimum_ across the graph — possibly because a transitive dep declared 1.26.4. This widens compatibility but I should have investigated _why_ rather than rubber-stamping.                                                       | Investigate the actual minimum; fix if wrong.                                          |
+| ~~2~~ | ~~**Silent `go.mod` version downgrade**~~ done — resolved by later bumps — go.mod now reads go 1.26.7 | ~~`go mod tidy` changed `go 1.26.5` → `go 1.26.4` and I accepted it without questioning. I didn't verify go-atomic-write actually requires 1.26.4 (its `go.mod` says 1.26.5). The downgrade happened because tidy resolved the _minimum_ across the graph — possibly because a transitive dep declared 1.26.4. This widens compatibility but I should have investigated _why_ rather than rubber-stamping.~~ | ~~Investigate the actual minimum; fix if wrong.~~ |
 | 3 | **Idempotency test is flaky**         | `TestSaveJSON_Idempotent_NoRewriteOnSameContent` relies on `time.Sleep(20ms)` + mtime comparison. On filesystems with coarse mtime granularity (ext4 default = 1s, some network filesystems = 10s), the 20ms sleep is too short — the test can pass even when the file IS rewritten (both writes land in the same mtime window) OR fail when it isn't (clock jitter). Should verify via inode change count or file-content-hash-with-secret-marker, not mtime. | Rewrite the test to be filesystem-independent.                                         |
 | 4 | **Did not update `example_test.go`**  | `ExampleSaveJSON` still works but doesn't demonstrate the key new behavior (idempotency). A re-run showing "no change" would make the feature discoverable on pkg.go.dev.                                                                                                                                                                                                                                                                                      | Add a second call to the example.                                                      |
 
@@ -89,23 +89,23 @@
 
 | # | Task                                                                                                  | Impact                        |
 | - | ----------------------------------------------------------------------------------------------------- | ----------------------------- |
-| 1 | Fix `WriteVerified` zero-fingerprint bug (stat before lock, or non-creating lock probe)               | Broken documented contract    |
+| ~~1~~ | ~~Fix `WriteVerified` zero-fingerprint bug (stat before lock, or non-creating lock probe)~~ done — fixed upstream — go-atomic-write v0.5.1, stat-before-lock in commitVerified | ~~Broken documented contract~~ |
 | 2 | Rewrite idempotency test to be filesystem-independent (inode change count or content-hash, not mtime) | Current test is flaky         |
 | 3 | Add test for `SaveJSON`'s `WriteIfChanged` error path (write to read-only dir)                        | Uncovered branch              |
-| 4 | Investigate `go.mod` version downgrade (why 1.26.4 not 1.26.5)                                        | Silent change I didn't verify |
-| 5 | Verify `go.sum` is complete (GOSUMDB verification passes for a fresh clone)                           | I used GOSUMDB=off            |
+| ~~4~~ | ~~Investigate `go.mod` version downgrade (why 1.26.4 not 1.26.5)~~ done — resolved — go.mod now reads go 1.26.7 | ~~Silent change I didn't verify~~ |
+| ~~5~~ | ~~Verify `go.sum` is complete (GOSUMDB verification passes for a fresh clone)~~ done — verified — clean runs without GOSUMDB bypass; buildflow green 2026-09-09 | ~~I used GOSUMDB=off~~ |
 
 ### go-atomic-write improvements
 
 | #  | Task                                                                                                    | Impact                                    |
 | -- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| 6  | Update `website/src/content/docs/api-reference.mdx` for Write/WriteVerified/WriteIfChanged split        | Marketing website is stale                |
+| ~~6~~  | ~~Update `website/src/content/docs/api-reference.mdx` for Write/WriteVerified/WriteIfChanged split~~ done — go-atomic-write website api-reference.mdx documents WriteIfChanged (5 mentions) | ~~Marketing website is stale~~ |
 | 7  | Update `website/src/content/docs/guides/*.mdx` if they reference old API                                | Likely stale                              |
 | 8  | Update `website/src/data/features.ts` / `hero-code.ts` if they show API snippets                        | Likely stale                              |
-| 9  | Tag `v0.4.0` release after WriteVerified bug fix                                                        | Consumers need stable ref                 |
+| ~~9~~  | ~~Tag `v0.4.0` release after WriteVerified bug fix~~ done — tagged — v0.4.0 shipped; go-atomic-write now at v0.5.1 | ~~Consumers need stable ref~~ |
 | 10 | Add `WriteIfChanged` to the concurrency test (divergent content, verify changed flag)                   | Race-safety of the new function untested  |
 | 11 | Consider `WriteIfChangedFunc` for streaming + content-aware skipping                                    | Currently no streaming idempotent variant |
-| 12 | Document the `WriteVerified` zero-fingerprint gotcha in godoc until fixed                               | Prevents user confusion                   |
+| ~~12~~ | ~~Document the `WriteVerified` zero-fingerprint gotcha in godoc until fixed~~ **Won't implement — bug was fixed upstream; nothing left to document.** | ~~Prevents user confusion~~ |
 | 13 | Add a doc comment cross-reference: `Write` → "see WriteIfChanged for idempotent writes"                 | Discoverability                           |
 | 14 | Benchmark `WriteIfChanged` vs `Write` overhead (fingerprint cost on skip path)                          | Performance characteristic                |
 | 15 | Consider whether `WriteIfChanged` should fsync the directory on the skip path (currently skips all I/O) | Correctness on skip                       |
@@ -118,10 +118,10 @@
 | 17 | Add `OpVerify` or surface `ErrConcurrentModification` distinctly in `SaveJSON` errors                          | Error granularity regressed            |
 | 18 | Update `ExampleSaveJSON` to show idempotency (call twice, show no error on second)                             | Feature discoverability                |
 | 19 | Update `example_test.go` Output comment to mention idempotent behavior                                         | Stale example                          |
-| 20 | Document `atomicwrite.ErrConcurrentModification` in `SaveJSON` godoc                                           | Callers need to know about race errors |
+| ~~20~~ | ~~Document `atomicwrite.ErrConcurrentModification` in `SaveJSON` godoc~~ done — SaveJSON godoc documents ErrConcurrentModification (autoconfigure.go:114-116) | ~~Callers need to know about race errors~~ |
 | 21 | Consider whether `SaveJSON` should retry on `ErrConcurrentModification`                                        | Design decision                        |
 | 22 | Add integration test: concurrent `SaveJSON` calls to same path                                                 | Race-safety of the full stack          |
-| 23 | Verify `GOEXPERIMENT=jsonv2` + go-atomic-write together (no build conflict)                                    | Cross-cutting concern                  |
+| ~~23~~ | ~~Verify `GOEXPERIMENT=jsonv2` + go-atomic-write together (no build conflict)~~ done — verified — buildflow pipeline green with GOEXPERIMENT=jsonv2 on 2026-09-09 | ~~Cross-cutting concern~~ |
 
 ### Git hygiene
 
@@ -129,8 +129,8 @@
 | -- | --------------------------------------------------------------------------------------------- | --------------------- |
 | 24 | Squash daemon-commit hallucinated messages in go-atomic-write (3 commits → 1 honest)          | Git history integrity |
 | 25 | Squash daemon-commit hallucinated messages in linter-autoconfigure-sdk (4 commits → 1 honest) | Git history integrity |
-| 26 | Update plan doc task statuses from "pending" to "completed"                                   | Stale planning doc    |
-| 27 | Add `.gitignore` entry for `/tmp/cover.out` if not already covered                            | Housekeeping          |
+| ~~26~~ | ~~Update plan doc task statuses from "pending" to "completed"~~ done (docs-health pass 2026-09-09) | ~~Stale planning doc~~ |
+| ~~27~~ | ~~Add `.gitignore` entry for `/tmp/cover.out` if not already covered~~ done — covered — the buildflow-managed .gitignore block ignores *.out | ~~Housekeeping~~ |
 
 ### Documentation
 
@@ -138,8 +138,8 @@
 | -- | ------------------------------------------------------------------------------------- | ---------------------------------------- |
 | 28 | go-atomic-write: update `docs/DOMAIN_LANGUAGE.md` if it references Write API          | Likely stale                             |
 | 29 | go-atomic-write: regenerate website build and redeploy to Firebase                    | Website must reflect API                 |
-| 30 | linter-autoconfigure-sdk: add go-atomic-write to README dependency table              | Missing from deps section                |
-| 31 | linter-autoconfigure-sdk: update README design notes to mention atomic-write adoption | Design rationale                         |
+| ~~30~~ | ~~linter-autoconfigure-sdk: add go-atomic-write to README dependency table~~ done at `e46c225` | ~~Missing from deps section~~ |
+| ~~31~~ | ~~linter-autoconfigure-sdk: update README design notes to mention atomic-write adoption~~ done at `e46c225` | ~~Design rationale~~ |
 | 32 | Consider a migration guide for future SDK consumers (v0.1 → current)                  | Breaking changes undocumented externally |
 
 ### Future features
@@ -171,7 +171,7 @@
 
 | #  | Task                                                                                                              | Impact                   |
 | -- | ----------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| 48 | Remove the stale `docs/planning/2026-07-26_06-05_make-architecture-and-data-model-superb.md` or mark it completed | Stale from prior session |
+| ~~48~~ | ~~Remove the stale `docs/planning/2026-07-26_06-05_make-architecture-and-data-model-superb.md` or mark it completed~~ done (docs-health pass 2026-09-09) | ~~Stale from prior session~~ |
 | 49 | Check GitHub Dependabot alerts on go-atomic-write (4 vulns reported on push)                                      | Security debt            |
 | 50 | Run `go mod tidy` on go-atomic-write to verify its own go.sum is clean                                            | Housekeeping             |
 
@@ -183,7 +183,7 @@
 
 Both repos have 3-4 daemon-commits each with **completely false messages** ("directory support", "WriteFile function", "SDK auto-configuration with linting support" — none of these exist). The code is correct; only the messages are lies. Fixing this requires `git rebase -i` or `git reset` + recommit, which rewrites pushed history and requires `--force-with-lease`. My rules forbid this without explicit user approval.
 
-**Do you want me to squash these into honest commits and force-push, or leave the false messages as-is?**
+**Do you want me to squash these into honest commits and force-push, or leave the false messages as-is?** _[Still open — owner decision; repo is now public, so history rewrite needs even more care.]_
 
 ### 2. Should `SaveJSON` expose the `changed` bool?
 
@@ -193,10 +193,23 @@ Both repos have 3-4 daemon-commits each with **completely false messages** ("dir
 - **B)** Adding `SaveJSONIfChanged(path, v) (bool, *ConfigError)` alongside the existing `SaveJSON` — non-breaking but two functions for the same thing.
 - **C)** Leave as-is — callers who care can call `atomicwrite.WriteIfChanged` directly.
 
-**Which option do you prefer?**
+**Which option do you prefer?** _[Still open — tracked as TODO_LIST T16.]_
 
 ### 3. Should I fix the `WriteVerified` zero-fingerprint bug now or defer it?
 
 It's a pre-existing bug (not mine), but I uncovered it and `WriteIfChanged` works around it. Fixing it means reordering the lock-vs-stat in `commitVerified` — a behavioral change to a public error path in a published library. The fix is ~5 lines but changes the semantics of the zero-fingerprint path from "fail" to "succeed" (which is what the docs already claim).
 
-**Fix it now as a follow-up commit, or defer to a separate session with its own plan?**
+~~**Fix it now as a follow-up commit, or defer to a separate session with its own plan?**~~ Resolved: fixed upstream in go-atomic-write v0.5.1 (the stat check now runs before the creating lock).
+
+---
+
+## Resolution (2026-09-09, docs-health pass)
+
+20 rows resolved inline (see `done` markers); the rest remain open and are
+tracked in `TODO_LIST.md` (T8, T9, T16) and `ROADMAP.md`. Section (e) process
+lessons are deliberately left unannotated — they are reflections, not tasks;
+their actionable counterparts live in (f). Current state: pipeline `buildflow`
+exit 0; strict `--fail-on-findings` lane still red on pre-existing findings
+(errcheck in `example_test.go`, erraudit, MD013 line lengths, lychee 404s on
+pkg.go.dev until the first proxy fetch). go-atomic-write tagged through v0.5.1
+with the `WriteVerified` first-write bug fixed.
