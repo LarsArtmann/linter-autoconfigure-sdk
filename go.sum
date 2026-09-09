@@ -16,8 +16,8 @@ github.com/larsartmann/go-atomic-write v0.5.1 h1:bMJY+/hpcbjyjFBLtzONX5/aN3F4TkT
 github.com/larsartmann/go-atomic-write v0.5.1/go.mod h1:pkmHWPaCXUdJstjggiHCQufE1vquDCfwYsQfHPywxNI=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
-github.com/larsartmann/go-finding v1.8.0 h1:lMw/wCxvdZDUzG+Jh/r9ZZ4McsyblbHSrJjEnbKc024=
-github.com/larsartmann/go-finding v1.8.0/go.mod h1:gOlU8RDTAhzWrotfL6pHNDWWCP2Hf5Zsm7gceR/80Tc=
+github.com/larsartmann/go-finding v1.9.2 h1:DRH94ScTEtGiXSZzzmWEKQo9qVZrPqe+mNINA+MjFVo=
+github.com/larsartmann/go-finding v1.9.2/go.mod h1:gOlU8RDTAhzWrotfL6pHNDWWCP2Hf5Zsm7gceR/80Tc=
 github.com/onsi/ginkgo/v2 v2.32.0 h1:Hw7s2pVrQo/8Yz5N77qdnpHaoc+c6cC9WIV1Jce+J6E=
 github.com/onsi/ginkgo/v2 v2.32.0/go.mod h1:+aXOY+vzZ5mu2iI2HpTZUPmM//oQfsNFX6gU9kNcA44=
 github.com/onsi/gomega v1.42.1 h1:iN1rCUX+44NZ1Dc97MPoeFYbFR0vh8zxoxMFwKdyZ6I=
