@@ -239,6 +239,16 @@ type ProviderSpec struct {
 // HasRepair reports whether this spec supports auto-repair.
 func (s ProviderSpec) HasRepair() bool { return s.Repair != nil }
 
+// ErrNoRepair is the pre-bridge sentinel for "this tool does not support
+// auto-repair", kept so pre-v1 code referencing it keeps compiling.
+//
+// Deprecated: the canonical suggest-only signal is structural. ProviderFromSpec
+// leaves toolsdk.Spec.Repair nil when ProviderSpec.Repair is nil, and BuildFlow
+// reads that directly. This SDK never returns ErrNoRepair, and returning it
+// from a custom Repairer is a repair failure for BuildFlow, not a suggest-only
+// signal. Removed at v1.
+var ErrNoRepair = errors.New("autoconfigure: tool does not support auto-repair")
+
 // ProviderFromSpec converts a ProviderSpec into the canonical BuildFlow provider
 // contract: go-finding's toolsdk.Spec (module github.com/larsartmann/go-finding/toolsdk).
 // The result can be handed to toolsdk.Register for BuildFlow discovery, or its

@@ -371,6 +371,21 @@ func TestProviderSpec_HasRepair(t *testing.T) {
 	}
 }
 
+func TestErrNoRepair_DeprecatedAliasStable(t *testing.T) {
+	if ErrNoRepair == nil {
+		t.Fatal("expected ErrNoRepair to be non-nil")
+	}
+
+	const want = "autoconfigure: tool does not support auto-repair"
+	if ErrNoRepair.Error() != want {
+		t.Errorf("expected message %q, got %q", want, ErrNoRepair.Error())
+	}
+
+	if !errors.Is(ErrNoRepair, ErrNoRepair) {
+		t.Error("expected ErrNoRepair to match itself as a sentinel target")
+	}
+}
+
 func TestProviderFromSpec_MapsFieldsToToolsDKSpec(t *testing.T) {
 	spec := ProviderSpec{
 		Name:        "golangci-autoconfigure",

@@ -59,10 +59,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `errors.As` calls migrated to `errors.AsType[E]` (Go 1.26 generic)
 - AGENTS.md rewritten: stale "do not upgrade go-finding" note replaced with
   "stay on latest + GOEXPERIMENT=jsonv2" guidance
-- **BREAKING:** `ErrNoRepair` removed — suggest-only is now expressed
-  structurally: `ProviderFromSpec` leaves `toolsdk.Spec.Repair` nil, which is
-  the canonical signal in the toolsdk contract (suggestions still flow through
-  findings carrying `FixStrategySuggest`)
+- `ErrNoRepair` deprecated — suggest-only is now expressed structurally:
+  `ProviderFromSpec` leaves `toolsdk.Spec.Repair` nil, which is the canonical
+  signal in the toolsdk contract (suggestions still flow through findings
+  carrying `FixStrategySuggest`). The sentinel stays as a deprecated alias so
+  pre-v1 code referencing it keeps compiling; this SDK never returns it, and
+  returning it from a custom Repairer is a repair failure for BuildFlow, not a
+  suggest-only signal. Removal planned at v1 (TODO_LIST T20)
 - **BREAKING:** `ProviderSpec.ConfigFile` is now `finding.FilePath` (was
   `string`), matching `ConfigIssue.File`
 - Unchecked `os.RemoveAll` returns in godoc examples are now explicitly
