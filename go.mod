@@ -4,7 +4,7 @@ go 1.26.7
 
 require (
 	github.com/larsartmann/go-atomic-write v0.5.1
-	github.com/larsartmann/go-finding v1.9.2
+	github.com/larsartmann/go-finding v1.10.0
 )
 
 require (
