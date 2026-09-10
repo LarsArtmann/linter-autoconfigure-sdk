@@ -46,7 +46,9 @@ jobs:
         run: go vet ./...
 
       - name: Test
-        run: go test -race -count=1 -coverprofile=reports/coverage.out ./...
+        run: |
+          mkdir -p reports
+          go test -race -count=1 -coverprofile=reports/coverage.out ./...
 
       - name: Upload coverage
         if: always()
