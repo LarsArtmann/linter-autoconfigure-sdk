@@ -1,0 +1,56 @@
+# CI for linter-autoconfigure-sdk.
+#
+# The full local pipeline is BuildFlow (`buildflow --fix --fail-on-findings`),
+# but BuildFlow itself is not publicly installable yet, so CI runs the portable
+# subset: gofmt, vet, and race-enabled tests with coverage uploaded as an
+# artifact. Swap this for a buildflow job once BuildFlow is public.
+#
+# GOEXPERIMENT=jsonv2 is required on Go 1.26 because go-finding imports
+# encoding/json/v2 (standard in Go 1.27).
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  GOEXPERIMENT: jsonv2
+
+jobs:
+  check:
+    name: Build, vet, test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Verify gofmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "Files not gofmt-formatted:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race -count=1 -coverprofile=reports/coverage.out ./...
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: reports/coverage.out

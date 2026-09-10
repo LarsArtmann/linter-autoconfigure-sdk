@@ -1,0 +1,12 @@
+# golangci-lint configuration.
+#
+# The flat layout of this module is intentional:
+# - No internal/: the entire module is public API surface (config I/O helpers,
+#   finding emission, the BuildFlow provider bridge). There is no non-public
+#   code to hide, so an internal/ directory would be empty ceremony.
+# - No examples/ directory: runnable examples live in example_test.go so
+#   pkg.go.dev renders them inline with the symbols they demonstrate.
+version: "2"
+
+linters:
+  default: standard

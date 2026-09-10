@@ -2,6 +2,7 @@
 
 Shared foundation for linter auto-configuration tools — config round-trip, finding emission for config issues, and a provider spec for BuildFlow integration.
 
+[![CI](https://github.com/LarsArtmann/linter-autoconfigure-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/linter-autoconfigure-sdk/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/linter-autoconfigure-sdk.svg)](https://pkg.go.dev/github.com/larsartmann/linter-autoconfigure-sdk)
 [![Go Report Card](https://goreportcard.com/badge/github.com/larsartmann/linter-autoconfigure-sdk)](https://goreportcard.com/report/github.com/larsartmann/linter-autoconfigure-sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -29,11 +30,19 @@ What they reinvent identically is the surrounding plumbing:
 ## Installation
 
 ```bash
-go get github.com/larsartmann/linter-autoconfigure-sdk
+go get github.com/larsartmann/linter-autoconfigure-sdk@master
 ```
 
-Requires Go 1.26+ and the latest [`go-finding`](https://github.com/larsartmann/go-finding) and [`go-atomic-write`](https://github.com/larsartmann/go-atomic-write) modules.
-Set `GOEXPERIMENT=jsonv2` in your environment (see [AGENTS.md](AGENTS.md#goexperimentjsonv2-required)).
+The `@master` pin is needed until the first tag (`v0.1.0`) is cut; after
+that, plain `go get github.com/larsartmann/linter-autoconfigure-sdk` works.
+
+Requires Go 1.26+ with `GOEXPERIMENT=jsonv2` set: go-finding imports
+`encoding/json/v2`, which is experimental in Go 1.26 and standard in Go 1.27.
+Either `export GOEXPERIMENT=jsonv2` or use a direnv-based `.envrc`.
+
+Peer dependencies: the latest
+[`go-finding`](https://github.com/larsartmann/go-finding) and
+[`go-atomic-write`](https://github.com/larsartmann/go-atomic-write) modules.
 
 ---
 
@@ -56,7 +65,7 @@ type oxlintConfig struct {
 
 cfg, err := autoconfigure.LoadJSON[oxlintConfig](".oxlintrc.json")
 // ... mutate cfg ...
-err = autoconfigure.SaveJSON(".oxlintrc.json", cfg) // creates parent dirs
+changed, err := autoconfigure.SaveJSON(".oxlintrc.json", cfg) // creates parent dirs; changed=false when content already matched
 ```
 
 ### Emit findings for config issues
@@ -111,7 +120,7 @@ provider, err := autoconfigure.ProviderFromSpec(spec)
 | ------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
 | `ReadConfig(path)`  | `([]byte, *ConfigError)` | Read raw bytes; YAML parsing stays tool-specific                                                                            |
 | `LoadJSON[T](path)` | `(*T, *ConfigError)`     | Read + unmarshal a JSON config                                                                                              |
-| `SaveJSON(path, v)` | `*ConfigError`           | Idempotent + crash-durable atomic write of indented JSON; creates parent dirs and skips the write when content is unchanged |
+| `SaveJSON(path, v)` | `(changed bool, *ConfigError)`         | Idempotent + crash-durable atomic write of indented JSON; creates parent dirs, skips the write when content is unchanged, and reports whether a write happened |
 
 All three return a `*ConfigError` (implements `error`) whose `Op` (typed:
 `OpRead`, `OpUnmarshal`, `OpMarshal`, `OpMkdir`, `OpWrite`), `Path`, and
@@ -165,7 +174,7 @@ No active consumers yet. The SDK provides atomic, crash-durable config writes (v
 
 ## Status
 
-Early (pre-v1). The config round-trip and finding-emission helpers have breaking signatures (typed `Op` enum, branded types, `(Finding, error)` returns) — no consumers exist yet, so breaking changes are acceptable. BuildFlow wiring is anchored to go-finding's canonical `toolsdk` contract (v1.10.0+). Requires `GOEXPERIMENT=jsonv2` (see [AGENTS.md](AGENTS.md)).
+Early (pre-v1). The config round-trip and finding-emission helpers have breaking signatures (typed `Op` enum, branded types, `(Finding, error)` and `(bool, *ConfigError)` returns) — no consumers exist yet, so breaking changes are acceptable. BuildFlow wiring is anchored to go-finding's canonical `toolsdk` contract (v1.10.0+). Requires `GOEXPERIMENT=jsonv2` on Go 1.26 (see [Installation](#installation)).
 
 ## License
 

@@ -60,12 +60,18 @@ everything about the abstraction is provisional. The package doc in
   `docs/status/*` became world-readable in the 2026-09-09 visibility flip.
   Keep (radical transparency), forward-delete (history retains them), or
   rewrite history? Risk-appetite call; see flip report section g.
+  _T17 sweep (2026-09-10) resolved to ACCEPT all mentions: the names are
+  irreversibly in public git history, gitleaks ran clean at the flip, and
+  redacting working-tree copies would be cosmetic. Deletion remains covered
+  by this open question._
 - **Q2 — first tag timing.** Zero tags exist; pkg.go.dev serves only
   pseudo-versions until `v0.1.0` is cut. Is the current API surface ready to
   freeze, or should planned breaking changes land first?
 - **Q3 — will the consumer tools ever go public?** The README justifies the
-  SDK by referencing two private repos. If they go public, the story writes
-  itself; if not, the README needs a standalone motivation.
+  SDK by referencing two repos. _Resolved 2026-09-10: both
+  `golangci-lint-auto-configure` and `oxlint-auto-configure` are public
+  (verified via GitHub API), so the README's consumer links resolve and the
+  why-it-exists story stands on its own._
 
 ## Non-goals
 
