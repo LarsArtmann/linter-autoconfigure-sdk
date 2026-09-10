@@ -32,6 +32,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `toolsdk.Register` acceptance of the converted spec
 - Package doc now states the `GOEXPERIMENT=jsonv2` requirement for Go 1.26
   builds (standard in Go 1.27)
+- Regression tests for `(*ConfigError).Is` / `.As` delegation to the wrapped
+  cause (positive, negative, and `errors.Is` / `errors.AsType` round-trips)
+- Filesystem-independent idempotency test: `os.SameFile` (dev+inode identity)
+  replaces the 20ms-sleep mtime comparison that could false-pass on
+  coarse-mtime filesystems (write-if-changed report d.3 / TODO_LIST T8)
+- Concurrency test: parallel `SaveJSON` calls to the same path surface
+  `*ConfigError` wrapping `atomicwrite.ErrConcurrentModification`
+  (barrier-released writers, re-seeded rounds); write-error-path test
+  (read-only dir wraps `fs.ErrPermission`); `changed`-flag test
+- Minimal `.golangci.yml` (golangci-lint v2, standard linters) that also
+  documents why the flat layout is intentional: no `internal/` (the whole
+  module is public API) and no `examples/` dir (godoc examples live in
+  `example_test.go` for pkg.go.dev rendering)
+- `SECURITY.md` with a private-vulnerability-reporting contact and scope
+- CI (`.github/workflows/ci.yml`): gofmt check, `go vet`, race-enabled tests,
+  coverage artifact on every push/PR, with `GOEXPERIMENT=jsonv2` set. BuildFlow
+  itself is private and not installable on runners, so CI runs the portable
+  subset of the pipeline; swap for a buildflow job when BuildFlow goes public
+- Issue and PR templates, `CODEOWNERS`, and `dependabot.yml` (gomod +
+  github-actions ecosystems, weekly)
+- Social preview image asset at `docs/branding/social-preview.png`
+  (1280x640; upload via repo Settings is a manual step, no API exists)
 
 ### Changed
 
@@ -70,6 +92,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `string`), matching `ConfigIssue.File`
 - Unchecked `os.RemoveAll` returns in godoc examples are now explicitly
   discarded with `_ =` (errcheck clean)
+- **BREAKING:** `SaveJSON` now returns `(changed bool, *ConfigError)` — was
+  `*ConfigError`. Zero consumers exist, so the change is free now; repair
+  flows can distinguish "config updated" from "config already correct"
+  (write-if-changed report Q2 / TODO_LIST T16; the `SaveJSONIfChanged`
+  variant was rejected because `SaveJSON` is already if-changed — the name
+  would lie)
+- `FindingsFromIssues` conversion errors now include the tool name
+  (erraudit: context variable was lost on the error path)
+- `ConfigError.As` carries a trailing `//nolint:legacyerrors` suppression
+  with reason: `As` must delegate to an arbitrary caller-chosen target type,
+  which `errors.AsType[E]` cannot express (erraudit false positive; the
+  directive only works as a trailing comment, not on the line above)
+- README audited as the public sales page: install snippet now pins
+  `@master` (plain `go get` fails with zero tags until `v0.1.0`), the
+  `GOEXPERIMENT=jsonv2` requirement is explained inline instead of deferring
+  to AGENTS.md, CI badge added, and the consumer links verified (both
+  consumer repos are public, resolving ROADMAP Q3)
 
 ### Removed
 
@@ -92,6 +131,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Note: the `go` directive sits at `1.26.7` because go-finding declares that
   floor; `go mod tidy` reinstates it after any normalization, so the fix
   belongs upstream
+
+### Repository
+
+- Branch protection enabled on `master`: force pushes and deletions blocked,
+  admins not enforced (the auto-commit daemon keeps pushing as owner)
+- Repo topics set (`go`, `linter`, `sdk`, `golangci-lint`, `oxlint`, `config`),
+  description refreshed with the install command, homepage pointed at the
+  pkg.go.dev page
+- External fetchability verified end-to-end: `go get
+  github.com/larsartmann/linter-autoconfigure-sdk@master` from a clean
+  throwaway module resolves a pseudo-version via proxy.golang.org, and a
+  consumer program using the SDK compiles and runs (flip report f3)
+- pkg.go.dev listing triggered and rendering verified: MIT license detected,
+  godoc for all exported symbols, all four `Example*` functions render
+  (flip report f4/f43; re-check after 24h for the post-T16 snapshot)
+- TODO_LIST T17 sweep decided: internal project names in tracked `docs/`
+  are ACCEPTED, not redacted — they are irreversibly in public git history,
+  gitleaks ran clean at the visibility flip, and redacting working-tree
+  copies would be cosmetic. ROADMAP Q1 still owns the docs-fate decision
 
 > No version has been tagged yet. Everything above `Unreleased`-grade until
 > the first tag (`v0.1.0`, see TODO_LIST/ROADMAP); pkg.go.dev serves only

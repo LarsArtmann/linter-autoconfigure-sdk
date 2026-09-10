@@ -38,13 +38,26 @@ This project is automated with **BuildFlow** (no Makefile, no flake.nix):
 - `buildflow` — full quality pipeline (detect mode). Exits 0 when healthy.
 - `buildflow --fix` — detect + auto-fix. Exits 0 when healthy.
 - `buildflow --fix --fail-on-findings` — strict; exits non-zero if ANY finding
-  remains, including pre-existing environmental warnings (currently the
-  errcheck + go-structure-linter findings tracked in TODO_LIST).
+  remains (the markdown-lint MD013 line-length flood in wide doc tables makes
+  this red today). The erraudit findings were fixed 2026-09-10; the
+  go-structure-linter `golangci-config` error was cleared by adding
+  `.golangci.yml` (its remaining `internal/` / `examples/` warnings are
+  intentional — see the flat-layout note in `.golangci.yml`).
 - `go test -race -count=1 ./...` — just the Go tests (covered by buildflow
   `test-race` and `test-coverage` steps).
 
 Single step: `buildflow -s <step> -v`. Disable result cache during debugging:
 `BUILDFLOW_NO_RESULT_CACHE=1 buildflow ...`.
+
+## CI (GitHub Actions)
+
+`.github/workflows/ci.yml` runs the portable subset on push/PR: gofmt check,
+`go vet`, race tests with the coverage artifact uploaded (`GOEXPERIMENT=jsonv2`
+is set at the workflow env level). BuildFlow itself is a private module and
+cannot be installed on runners, so it is NOT in CI; swap the workflow for a
+buildflow job if/when BuildFlow goes public (TODO_LIST T21). Branch protection
+on `master` blocks force pushes and deletions but does not enforce on admins,
+so the auto-commit daemon keeps working.
 
 ## `reports/` is buildflow-owned (nothing tracked inside)
 
@@ -71,6 +84,22 @@ If direnv is unavailable (CI, containers), set the env var explicitly:
 
 ## Design decisions
 
+### `SaveJSON` returns `(changed bool, *ConfigError)`
+
+Decided 2026-09-10 (TODO_LIST T16 / write-if-changed report Q2): the `changed`
+bool from `atomicwrite.WriteIfChanged` is surfaced instead of discarded, so
+repair flows can distinguish "config updated" from "config already correct".
+A `SaveJSONIfChanged` variant was rejected on naming grounds: `SaveJSON` is
+ALREADY if-changed (idempotent skip), so the variant name would lie. Zero
+consumers existed when the signature changed, so the break was free.
+
+### Flat layout is intentional
+
+No `internal/` (the whole module is public API; there is nothing to hide) and
+no `examples/` dir (runnable examples live in `example_test.go` so pkg.go.dev
+renders them inline). Documented in `.golangci.yml`; the go-structure-linter
+warnings about both are accepted, not fixed.
+
 ### `ConfigError` error-chain traversal
 
 `ConfigError` wraps an underlying cause (`Err error`) and exposes it through the
@@ -85,7 +114,11 @@ jsonv2 equivalent of v1's `json.SyntaxError`).
 - Return `*ConfigError` (a specific type), never bare `error`, from config I/O
   helpers. This is what the `hierarchical-errors` check enforces and why the
   type exists.
-- No em dashes in code; prefer `errors.Is`/`errors.As` over string matching on
-  error messages.
+- No em dashes in code; prefer `errors.Is`/`errors.AsType` over string matching
+  on error messages.
+- `(*ConfigError).As` must keep `errors.As` (it delegates to an arbitrary
+  caller-chosen target type; `AsType[E]` cannot express that). erraudit accepts
+  this only via a TRAILING `//nolint:legacyerrors` comment on the same line —
+  a standalone directive on the line above does NOT suppress.
 - Exported symbols carry godoc comments (matches existing style; also keeps
   buildflow lint quiet).
