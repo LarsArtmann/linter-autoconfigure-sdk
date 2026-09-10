@@ -7,10 +7,12 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-finding"
+	"github.com/larsartmann/go-finding/toolsdk"
 )
 
 func TestSaveAndLoadJSON(t *testing.T) {
@@ -366,5 +368,203 @@ func TestProviderSpec_HasRepair(t *testing.T) {
 	withoutRepair := ProviderSpec{}
 	if withoutRepair.HasRepair() {
 		t.Error("expected HasRepair=false when Repair is nil")
+	}
+}
+
+func TestProviderFromSpec_MapsFieldsToToolsDKSpec(t *testing.T) {
+	spec := ProviderSpec{
+		Name:        "golangci-autoconfigure",
+		Description: "keeps .golangci.yml aligned with the project shape",
+		ConfigFile:  ".golangci.yml",
+		Analyze:     func(ctx context.Context) ([]ConfigIssue, error) { return nil, nil },
+		Repair:      func(ctx context.Context) (string, error) { return "", nil },
+	}
+
+	converted, err := ProviderFromSpec(spec)
+	if err != nil {
+		t.Fatalf("ProviderFromSpec failed: %v", err)
+	}
+
+	if converted.Name != spec.Name || converted.Description != spec.Description {
+		t.Errorf("Name/Description not passed through: %+v", converted)
+	}
+
+	if len(converted.Inputs) != 1 || converted.Inputs[0] != ".golangci.yml" {
+		t.Errorf("expected Inputs=[.golangci.yml], got %v", converted.Inputs)
+	}
+
+	if converted.Detect == nil {
+		t.Fatal("expected Detect to be set")
+	}
+
+	if converted.Detect.Name() != spec.Name {
+		t.Errorf("expected detector name %q, got %q", spec.Name, converted.Detect.Name())
+	}
+
+	if converted.Repair == nil {
+		t.Error("expected Repair to be set when spec.Repair is non-nil")
+	}
+}
+
+func TestProviderFromSpec_Detect_ConvertsIssuesToFindings(t *testing.T) {
+	issues := []ConfigIssue{
+		{Rule: "missing-linter", Message: "errcheck is not enabled", Severity: finding.SeverityWarning, File: ".golangci.yml", Line: 5},
+		{Rule: "wrong-priority", Message: "gofmt has the wrong priority", Severity: finding.SeverityError, File: ".golangci.yml"},
+	}
+	spec := ProviderSpec{
+		Name:        "golangci-autoconfigure",
+		Description: "desc",
+		Analyze:     func(ctx context.Context) ([]ConfigIssue, error) { return issues, nil },
+	}
+
+	converted, err := ProviderFromSpec(spec)
+	if err != nil {
+		t.Fatalf("ProviderFromSpec failed: %v", err)
+	}
+
+	findings, err := converted.Detect.Detect(context.Background())
+	if err != nil {
+		t.Fatalf("Detect failed: %v", err)
+	}
+
+	if len(findings) != len(issues) {
+		t.Fatalf("expected %d findings, got %d", len(issues), len(findings))
+	}
+
+	first := findings[0]
+	if first.ToolName != finding.ToolName(spec.Name) {
+		t.Errorf("expected ToolName %q, got %q", spec.Name, first.ToolName)
+	}
+	if first.Rule != "missing-linter" || first.Severity != finding.SeverityWarning {
+		t.Errorf("unexpected first finding: %+v", first)
+	}
+
+	if findings[1].Severity != finding.SeverityError {
+		t.Errorf("expected second finding severity error, got %q", findings[1].Severity)
+	}
+}
+
+func TestProviderFromSpec_Detect_PropagatesAnalyzeError(t *testing.T) {
+	analyzeFailed := errors.New("analyze failed")
+	spec := ProviderSpec{
+		Name:        "oxlint-autoconfigure",
+		Description: "desc",
+		Analyze:     func(ctx context.Context) ([]ConfigIssue, error) { return nil, analyzeFailed },
+	}
+
+	converted, err := ProviderFromSpec(spec)
+	if err != nil {
+		t.Fatalf("ProviderFromSpec failed: %v", err)
+	}
+
+	if _, err := converted.Detect.Detect(context.Background()); !errors.Is(err, analyzeFailed) {
+		t.Errorf("expected Detect error to wrap the Analyze error, got %v", err)
+	}
+}
+
+func TestProviderFromSpec_RepairAdapter_WrapsRepairClosure(t *testing.T) {
+	repairFailed := errors.New("disk full")
+	spec := ProviderSpec{
+		Name:        "golangci-autoconfigure",
+		Description: "desc",
+		Analyze:     func(ctx context.Context) ([]ConfigIssue, error) { return nil, nil },
+		Repair: func(ctx context.Context) (string, error) {
+			return "enabled errcheck", nil
+		},
+	}
+
+	converted, err := ProviderFromSpec(spec)
+	if err != nil {
+		t.Fatalf("ProviderFromSpec failed: %v", err)
+	}
+
+	result, err := converted.Repair.Repair(context.Background())
+	if err != nil {
+		t.Fatalf("Repair failed: %v", err)
+	}
+
+	if result.Description != "enabled errcheck" {
+		t.Errorf("expected description %q, got %q", "enabled errcheck", result.Description)
+	}
+
+	spec.Repair = func(ctx context.Context) (string, error) { return "", repairFailed }
+
+	failing, err := ProviderFromSpec(spec)
+	if err != nil {
+		t.Fatalf("ProviderFromSpec failed: %v", err)
+	}
+
+	if _, err := failing.Repair.Repair(context.Background()); !errors.Is(err, repairFailed) {
+		t.Errorf("expected Repair error to wrap the closure error, got %v", err)
+	}
+}
+
+func TestProviderFromSpec_SuggestOnly_LeavesRepairNil(t *testing.T) {
+	spec := ProviderSpec{
+		Name:        "biome-autoconfigure",
+		Description: "desc",
+		Analyze:     func(ctx context.Context) ([]ConfigIssue, error) { return nil, nil },
+	}
+
+	converted, err := ProviderFromSpec(spec)
+	if err != nil {
+		t.Fatalf("ProviderFromSpec failed: %v", err)
+	}
+
+	if converted.Repair != nil {
+		t.Errorf("expected nil Repair for suggest-only spec, got %T", converted.Repair)
+	}
+
+	if converted.Detect == nil {
+		t.Error("expected Detect to be set for suggest-only spec")
+	}
+}
+
+func TestProviderFromSpec_Validation(t *testing.T) {
+	analyze := func(ctx context.Context) ([]ConfigIssue, error) { return nil, nil }
+
+	cases := []struct {
+		name    string
+		spec    ProviderSpec
+		wantSub string
+	}{
+		{"empty name", ProviderSpec{Description: "d", Analyze: analyze}, "Name"},
+		{"empty description", ProviderSpec{Name: "n", Analyze: analyze}, "Description"},
+		{"nil analyze", ProviderSpec{Name: "n", Description: "d"}, "Analyze"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := ProviderFromSpec(tc.spec)
+			if err == nil {
+				t.Fatal("expected validation error")
+			}
+
+			if !strings.Contains(err.Error(), tc.wantSub) {
+				t.Errorf("expected error to mention %q, got %v", tc.wantSub, err)
+			}
+		})
+	}
+}
+
+func TestProviderFromSpec_ConvertedSpecPassesToolsDKRegisterValidation(t *testing.T) {
+	spec := ProviderSpec{
+		Name:        "golangci-autoconfigure",
+		Description: "desc",
+		Analyze:     func(ctx context.Context) ([]ConfigIssue, error) { return nil, nil },
+	}
+
+	converted, err := ProviderFromSpec(spec)
+	if err != nil {
+		t.Fatalf("ProviderFromSpec failed: %v", err)
+	}
+
+	before := len(toolsdk.All())
+	registered := toolsdk.Register(converted)
+	if registered.Name != converted.Name {
+		t.Errorf("expected registered spec %q, got %q", converted.Name, registered.Name)
+	}
+	if got := len(toolsdk.All()); got != before+1 {
+		t.Errorf("expected registry to grow from %d to %d, got %d", before, before+1, got)
 	}
 }

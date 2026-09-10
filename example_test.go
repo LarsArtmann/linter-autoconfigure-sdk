@@ -1,6 +1,7 @@
 package autoconfigure
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,7 +15,7 @@ type exampleLintConfig struct {
 
 func ExampleLoadJSON() {
 	dir, _ := os.MkdirTemp("", "example")
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 	path := filepath.Join(dir, ".oxlintrc.json")
 	_ = os.WriteFile(path, []byte(`{"linters":["errcheck","gofmt"]}`), 0o644)
 
@@ -30,7 +31,7 @@ func ExampleLoadJSON() {
 
 func ExampleSaveJSON() {
 	dir, _ := os.MkdirTemp("", "example")
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 	path := filepath.Join(dir, "nested", ".oxlintrc.json")
 
 	cfg := exampleLintConfig{Linters: []string{"errcheck", "gofmt"}}
@@ -68,4 +69,30 @@ func ExampleFindingFromIssue() {
 
 	fmt.Println(f.Rule, f.Severity, f.FixStrategy)
 	// Output: missing-linter warning suggest
+}
+
+func ExampleProviderFromSpec() {
+	spec := ProviderSpec{
+		Name:        "golangci-autoconfigure",
+		Description: "keeps .golangci.yml aligned with the project shape",
+		ConfigFile:  ".golangci.yml",
+		Analyze: func(ctx context.Context) ([]ConfigIssue, error) {
+			return []ConfigIssue{{Rule: "missing-linter", Message: "errcheck is not enabled"}}, nil
+		},
+		Repair: func(ctx context.Context) (string, error) {
+			return "enabled errcheck", nil
+		},
+	}
+
+	provider, err := ProviderFromSpec(spec)
+	if err != nil {
+		fmt.Println("error:", err)
+		return
+	}
+
+	fmt.Println(provider.Name, provider.Inputs, provider.Repair != nil)
+	fmt.Println(provider.Detect.Name())
+	// Output:
+	// golangci-autoconfigure [.golangci.yml] true
+	// golangci-autoconfigure
 }
