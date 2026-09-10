@@ -25,8 +25,7 @@ Evidence cites code; claims were verified against the test suite (green,
 
 ## BuildFlow integration
 
-| Feature                                       | Status               | Notes / Evidence                                                                                                                      |
-| --------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Provider shape (`ProviderSpec` + `HasRepair`) | PARTIALLY_FUNCTIONAL | `autoconfigure.go:220-239`; closures usable standalone, but shape is provisional with zero consumers and godoc says fields may evolve |
-| Suggest-only sentinel (`ErrNoRepair`)         | PARTIALLY_FUNCTIONAL | `autoconfigure.go:239`; exported and documented, but no in-repo test or example yet (TODO_LIST T6)                                    |
-| `ProviderFromSpec` BuildFlow adapter          | PLANNED              | Promised in README as a future helper; no code exists                                                                                 |
+| Feature                                                            | Status           | Notes / Evidence                                                                                                                                                                      |
+| ------------------------------------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Provider shape (`ProviderSpec` + `HasRepair`)                      | FULLY_FUNCTIONAL | `autoconfigure.go:224-239`; typed `ConfigFile` (`finding.FilePath`); closures usable standalone without BuildFlow                                                                     |
+| BuildFlow adapter (`ProviderFromSpec` → go-finding `toolsdk.Spec`) | FULLY_FUNCTIONAL | `autoconfigure.go:241`; Detect adapter emits findings via `FindingFromIssue`, nil Repair stays nil (canonical suggest-only signal), validated by a `toolsdk.Register` acceptance test |

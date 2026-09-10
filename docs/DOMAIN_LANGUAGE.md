@@ -30,11 +30,13 @@ definitions describe how the code actually uses them.
 - **`ConfigIssue`** — one problem found in a config file:
   `{Rule, Message, Severity, File, Line, Suggestion}`. Auto-configurers
   produce these; the SDK converts them to findings.
-- **`ProviderSpec`** — the minimal shape an auto-configurer supplies to wire
+- **`ProviderSpec`** — the shape an auto-configurer supplies to wire
   into BuildFlow: `{Name, Description, ConfigFile, Analyze, Repair}`.
-  Provisional (zero consumers so far).
-- **`ErrNoRepair`** — sentinel signalling an auto-configurer is suggest-only
-  (its `Repair` closure is nil); BuildFlow treats it as non-autofixable.
+  `ConfigFile` is a `finding.FilePath`.
+- **`ProviderFromSpec`** — converts a `ProviderSpec` into the canonical
+  BuildFlow provider contract (go-finding's `toolsdk.Spec`) for
+  `toolsdk.Register`. Suggest-only is expressed structurally: a nil `Repair`
+  closure converts to a nil `toolsdk.Spec.Repair`.
 - **Analyze / Repair** — the closures in a `ProviderSpec`. Analyze inspects
   the config and returns issues; Repair rewrites it and returns a
   human-readable description of what changed.

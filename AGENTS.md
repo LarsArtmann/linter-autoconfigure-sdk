@@ -7,15 +7,22 @@ the README; this file captures what is hard to discover from the code alone.
 
 Shared foundation (Go library) for linter auto-configuration tools. Owns the
 plumbing that `golangci-lint-auto-configure` and `oxlint-auto-configure` duplicate:
-config file round-trip, finding emission for config issues, and a BuildFlow
-provider spec. YAML parsing is intentionally NOT here (each tool uses a
+config file round-trip, finding emission for config issues, and the BuildFlow
+provider bridge (`ProviderSpec` → `ProviderFromSpec` → go-finding's canonical
+`toolsdk.Spec`). YAML parsing is intentionally NOT here (each tool uses a
 different YAML library). Early-stage; no active consumers yet. Public repo
 (github.com/LarsArtmann/linter-autoconfigure-sdk), MIT-licensed.
 
 Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.26+,
-`github.com/larsartmann/go-finding` (always latest), and
+`github.com/larsartmann/go-finding` (always latest),
+`github.com/larsartmann/go-finding/toolsdk` (always latest — the canonical
+BuildFlow provider contract, consumed via `ProviderFromSpec`), and
 `github.com/larsartmann/go-atomic-write` (always latest — used by `SaveJSON`
 for idempotent, crash-durable writes).
+
+**go.mod gotcha:** the `go 1.26.7` patch floor is dependency-imposed
+(go-finding declares `go 1.26.7`); `go mod tidy` reinstates it after any
+normalization to `go 1.26`, so the fix belongs upstream, not here.
 
 **Always stay on the latest go-finding version.** go-finding v1.2+ imports
 `encoding/json/v2` and `encoding/json/jsontext`, which are gated behind the

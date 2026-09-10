@@ -20,7 +20,7 @@ What they reinvent identically is the surrounding plumbing:
 | ------------------------------------------ | ------------------------------------------------------------- | -------------------------------------------------------------- |
 | Read/write config files                    | Each tool hand-wraps `os.ReadFile` + parse + error handling   | `ReadConfig(path)` / `LoadJSON[T](path)` / `SaveJSON(path, v)` |
 | Emit findings for config issues            | Each tool maps priority → Severity, fix → Suggestion, by hand | `FindingFromIssue(tool, ConfigIssue{...})`                     |
-| Wire into BuildFlow as Detector + Repairer | Each tool writes its own adapter                              | `ProviderSpec` shape (analyze + repair closures)               |
+| Wire into BuildFlow as Detector + Repairer | Each tool writes its own adapter                              | `ProviderFromSpec` → canonical `toolsdk.Spec` (go-finding)     |
 
 `linter-autoconfigure-sdk` owns that plumbing once. Adding a third auto-configurer (e.g. `biome-auto-configure`) becomes a config-schema exercise, not a from-scratch build.
 
@@ -92,7 +92,14 @@ spec := autoconfigure.ProviderSpec{
 }
 ```
 
-A future `ProviderFromSpec(spec)` helper will wrap this as a `toolsdk.Spec` (BuildFlow tool-sdk), but the underlying analyze/repair closures are usable standalone today.
+`ProviderFromSpec(spec)` wraps this as the canonical BuildFlow provider contract — go-finding's `toolsdk.Spec` — ready for `toolsdk.Register` (adjust its `Trigger` / `DependsOn` on the returned value first if needed). The underlying analyze/repair closures also work standalone with no BuildFlow wiring.
+
+```go
+provider, err := autoconfigure.ProviderFromSpec(spec)
+// provider.Detect implements finding.Detector (issues become findings)
+// provider.Repair implements toolsdk.Repairer (nil when spec.Repair is nil:
+// the canonical suggest-only signal)
+```
 
 ---
 
@@ -120,21 +127,27 @@ from parse or I/O failures without parsing error strings.
 | `FindingFromIssue(tool, issue)`    | `(finding.Finding, error)`   | Convert one `ConfigIssue` to a `finding.Finding` (suggest-strategy auto-attached when `Suggestion != ""`) |
 | `FindingsFromIssues(tool, issues)` | `([]finding.Finding, error)` | Slice version; propagates conversion errors                                                               |
 
+### BuildFlow integration
+
+| Function                      | Signature               | Purpose                                                                                                               |
+| ----------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `ProviderFromSpec(spec)`      | `(toolsdk.Spec, error)` | Convert a `ProviderSpec` into go-finding's canonical `toolsdk.Spec` for `toolsdk.Register`; validates required fields |
+| `(*ProviderSpec).HasRepair()` | `bool`                  | Whether the spec supports auto-repair                                                                                 |
+
 ### Types
 
-| Type           | Purpose                                                                                                                            |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `ConfigError`  | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal |
-| `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                   |
-| `ProviderSpec` | `{Name, Description, ConfigFile, Analyze, Repair}` — BuildFlow provider shape (provisional); `HasRepair()` reports repair support  |
-| `ErrNoRepair`  | Sentinel: tool does not support auto-repair (suggest-only)                                                                         |
+| Type           | Purpose                                                                                                                                                    |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ConfigError`  | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal                         |
+| `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                                           |
+| `ProviderSpec` | `{Name, Description, ConfigFile, Analyze, Repair}` — auto-configurer declaration; `ConfigFile` is `finding.FilePath`; `HasRepair()` reports repair support |
 
 ---
 
 ## Design notes
 
 - **YAML parsing is NOT in this SDK.** The two existing tools use different YAML libraries (yaml.v3 vs go-yaml) with different semantics. Forcing one would create friction. The SDK covers the shared byte-level read; YAML unmarshaling stays in each tool.
-- **Branded types are adopted consistently.** `ConfigIssue.Rule` is `finding.RuleName`, `File` is `finding.FilePath`, and `FindingFromIssue` takes `finding.ToolName`. The SDK is coupled to go-finding; taking the branded types buys compile-time safety at no extra cost.
+- **Branded types are adopted consistently.** `ConfigIssue.Rule` is `finding.RuleName`, `File` is `finding.FilePath`, `ProviderSpec.ConfigFile` is `finding.FilePath`, and `FindingFromIssue` takes `finding.ToolName`. The SDK is coupled to go-finding; taking the branded types buys compile-time safety at no extra cost.
 - **`FindingFromIssue` auto-attaches `FixStrategySuggest` when `Suggestion != ""`; otherwise sets `FixStrategyNone` explicitly** to avoid the empty-string zero-value split brain. When `Line == 0`, a file-level position (`finding.FilePos`) is used instead of fabricating a line number.
 - **No `ProjectType` enum.** The two existing tools have incompatible concepts (Go shape vs JS framework); sharing one enum would force false convergence. Each tool keeps its own detection layer.
 
@@ -152,7 +165,7 @@ No active consumers yet. The SDK provides atomic, crash-durable config writes (v
 
 ## Status
 
-Early (pre-v1). The config round-trip and finding-emission helpers have breaking signatures (typed `Op` enum, branded types, `(Finding, error)` returns) — no consumers exist yet, so breaking changes are acceptable. The `ProviderSpec` shape is provisional and may evolve when the first consumer migrates. Requires `GOEXPERIMENT=jsonv2` (see [AGENTS.md](AGENTS.md)).
+Early (pre-v1). The config round-trip and finding-emission helpers have breaking signatures (typed `Op` enum, branded types, `(Finding, error)` returns) — no consumers exist yet, so breaking changes are acceptable. BuildFlow wiring is anchored to go-finding's canonical `toolsdk` contract (v1.10.0+). Requires `GOEXPERIMENT=jsonv2` (see [AGENTS.md](AGENTS.md)).
 
 ## License
 
