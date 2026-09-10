@@ -14,6 +14,9 @@
 //
 // This package owns that plumbing once. Adding a third auto-configurer becomes
 // a config-schema exercise, not a from-scratch build.
+//
+// Build with Go 1.26 requires GOEXPERIMENT=jsonv2 (encoding/json/v2 becomes
+// standard in Go 1.27).
 package autoconfigure
 
 import (
@@ -28,6 +31,7 @@ import (
 
 	atomicwrite "github.com/larsartmann/go-atomic-write"
 	"github.com/larsartmann/go-finding"
+	"github.com/larsartmann/go-finding/toolsdk"
 )
 
 // --- Config round-trip (YAML / JSON) ---
@@ -208,15 +212,15 @@ func FindingsFromIssues(toolName finding.ToolName, issues []ConfigIssue) ([]find
 	return findings, nil
 }
 
-// --- Provider wiring (via BuildFlow tool-sdk, optional) ---
+// --- Provider wiring (via go-finding toolsdk) ---
 
-// ProviderSpec is the minimal shape an auto-configurer supplies to wire into
-// BuildFlow via the tool-sdk. This avoids each tool reimplementing the
-// Detector/Repairer adapter ceremony.
+// ProviderSpec is the shape an auto-configurer supplies to wire into BuildFlow.
+// It speaks the auto-configurer's domain language: Analyze reports ConfigIssues
+// against the managed config file, Repair describes what was rewritten.
 //
-// Provisional: no consumer has migrated to this shape yet. The fields may
-// evolve when the first auto-configurer adopts the SDK. The Analyze and Repair
-// closures are usable standalone today.
+// ProviderFromSpec converts a ProviderSpec into the canonical BuildFlow provider
+// contract, go-finding's toolsdk.Spec, ready for toolsdk.Register. The Analyze
+// and Repair closures are also usable standalone without any BuildFlow wiring.
 type ProviderSpec struct {
 	Name        string
 	Description string
@@ -226,14 +230,79 @@ type ProviderSpec struct {
 	Analyze func(ctx context.Context) ([]ConfigIssue, error)
 	// Repair, if non-nil, rewrites the config to fix the issues. Returns a
 	// human-readable description of what changed. When nil, the spec is
-	// suggest-only and callers should return ErrNoRepair from repair attempts.
+	// suggest-only: ProviderFromSpec leaves toolsdk.Spec.Repair nil, the
+	// canonical signal that BuildFlow should not attempt repairs.
 	Repair func(ctx context.Context) (string, error)
 }
 
 // HasRepair reports whether this spec supports auto-repair.
 func (s ProviderSpec) HasRepair() bool { return s.Repair != nil }
 
-// ErrNoRepair is returned by a ProviderSpec whose Repair function is nil,
-// signalling that the auto-configurer does not support auto-repair. BuildFlow
-// treats this as a suggest-only tool.
-var ErrNoRepair = errors.New("autoconfigure: tool does not support auto-repair")
+// ProviderFromSpec converts a ProviderSpec into the canonical BuildFlow provider
+// contract: go-finding's toolsdk.Spec (module github.com/larsartmann/go-finding/toolsdk).
+// The result can be handed to toolsdk.Register for BuildFlow discovery, or its
+// Trigger / DependsOn fields can be adjusted first — the returned Spec is a
+// plain value.
+//
+// Field mapping:
+//   - Name, Description pass through verbatim; Name also becomes the tool name
+//     stamped onto every finding the Detect adapter emits.
+//   - ConfigFile becomes Inputs (the config file is what the tool reads).
+//   - Analyze is wrapped as a finding.Detector that converts each ConfigIssue
+//     via FindingFromIssue.
+//   - A non-nil Repair is wrapped as a toolsdk.Repairer; a nil Repair stays nil,
+//     the canonical signal for a suggest-only tool (suggestions still flow
+//     through findings carrying FixStrategySuggest).
+//   - Trigger and DependsOn have no ProviderSpec equivalent and stay zero;
+//     set them on the returned Spec when needed.
+//
+// Validation errors name the offending field: Name, Description, and Analyze
+// are all required.
+func ProviderFromSpec(spec ProviderSpec) (toolsdk.Spec, error) {
+	switch {
+	case spec.Name == "":
+		return toolsdk.Spec{}, fmt.Errorf("autoconfigure: ProviderFromSpec: Name must not be empty")
+	case spec.Description == "":
+		return toolsdk.Spec{}, fmt.Errorf("autoconfigure: ProviderFromSpec: Description must not be empty")
+	case spec.Analyze == nil:
+		return toolsdk.Spec{}, fmt.Errorf("autoconfigure: ProviderFromSpec: Analyze must not be nil")
+	}
+
+	converted := toolsdk.Spec{
+		Name:        spec.Name,
+		Description: spec.Description,
+		Detect:      issueDetector{spec: spec},
+	}
+	if spec.ConfigFile != "" {
+		converted.Inputs = []string{spec.ConfigFile}
+	}
+	if spec.Repair != nil {
+		converted.Repair = toolsdk.RepairerFunc(func(ctx context.Context) (toolsdk.RepairResult, error) {
+			description, err := spec.Repair(ctx)
+			if err != nil {
+				return toolsdk.RepairResult{}, err
+			}
+			return toolsdk.RepairResult{Description: description}, nil
+		})
+	}
+
+	return converted, nil
+}
+
+// issueDetector adapts a ProviderSpec's Analyze closure to the finding.Detector
+// interface, emitting the reported config issues as findings attributed to the
+// auto-configurer's tool name.
+type issueDetector struct {
+	spec ProviderSpec
+}
+
+func (d issueDetector) Name() string { return d.spec.Name }
+
+func (d issueDetector) Detect(ctx context.Context) ([]finding.Finding, error) {
+	issues, err := d.spec.Analyze(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("analyze config: %w", err)
+	}
+
+	return FindingsFromIssues(finding.ToolName(d.spec.Name), issues)
+}
