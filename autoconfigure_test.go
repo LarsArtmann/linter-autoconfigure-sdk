@@ -4,13 +4,15 @@ import (
 	"context"
 	"encoding/json/jsontext"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
-	"time"
 
+	atomicwrite "github.com/larsartmann/go-atomic-write"
 	"github.com/larsartmann/go-finding"
 	"github.com/larsartmann/go-finding/toolsdk"
 )
@@ -25,7 +27,7 @@ func TestSaveAndLoadJSON(t *testing.T) {
 
 	want := config{Linters: []string{"errcheck", "gofmt"}}
 
-	if err := SaveJSON(path, want); err != nil {
+	if _, err := SaveJSON(path, want); err != nil {
 		t.Fatalf("SaveJSON failed: %v", err)
 	}
 
@@ -179,7 +181,7 @@ func TestSaveJSON_CreatesParentDirsAndRoundTrips(t *testing.T) {
 		Name string `json:"name"`
 	}
 
-	if err := SaveJSON(path, cfg{Name: "errcheck"}); err != nil {
+	if _, err := SaveJSON(path, cfg{Name: "errcheck"}); err != nil {
 		t.Fatalf("SaveJSON failed: %v", err)
 	}
 
@@ -201,30 +203,158 @@ func TestSaveJSON_Idempotent_NoRewriteOnSameContent(t *testing.T) {
 		Name string `json:"name"`
 	}
 
-	if err := SaveJSON(path, cfg{Name: "errcheck"}); err != nil {
+	if _, err := SaveJSON(path, cfg{Name: "errcheck"}); err != nil {
 		t.Fatalf("first SaveJSON: %v", err)
 	}
 
-	info, err := os.Stat(path)
+	before, err := os.Stat(path)
 	if err != nil {
 		t.Fatalf("stat after first write: %v", err)
 	}
-	firstMtime := info.ModTime()
+	beforeContent, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read after first write: %v", err)
+	}
 
-	// Force the clock forward so an actual rewrite would be detectable.
-	time.Sleep(20 * time.Millisecond)
-
-	if err := SaveJSON(path, cfg{Name: "errcheck"}); err != nil {
+	if _, err := SaveJSON(path, cfg{Name: "errcheck"}); err != nil {
 		t.Fatalf("second SaveJSON: %v", err)
 	}
 
-	info, err = os.Stat(path)
+	after, err := os.Stat(path)
 	if err != nil {
 		t.Fatalf("stat after second write: %v", err)
 	}
 
-	if !info.ModTime().Equal(firstMtime) {
-		t.Errorf("mtime changed despite identical content (idempotency broken)")
+	// File identity (dev+inode), not mtime: an atomic rewrite goes through a
+	// temp-file rename and always produces a new inode, while a skipped write
+	// leaves the original file untouched. Unlike the previous mtime comparison,
+	// this cannot false-pass on coarse-mtime filesystems.
+	if !os.SameFile(before, after) {
+		t.Error("file identity changed despite identical content (idempotency broken)")
+	}
+
+	afterContent, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read after second write: %v", err)
+	}
+	if string(beforeContent) != string(afterContent) {
+		t.Error("content changed despite identical input")
+	}
+}
+
+func TestSaveJSON_ReportsChanged(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	type cfg struct {
+		Name string `json:"name"`
+	}
+
+	changed, err := SaveJSON(path, cfg{Name: "errcheck"})
+	if err != nil {
+		t.Fatalf("first SaveJSON: %v", err)
+	}
+	if !changed {
+		t.Error("expected changed=true on first write")
+	}
+
+	changed, err = SaveJSON(path, cfg{Name: "errcheck"})
+	if err != nil {
+		t.Fatalf("second SaveJSON: %v", err)
+	}
+	if changed {
+		t.Error("expected changed=false for identical content")
+	}
+
+	changed, err = SaveJSON(path, cfg{Name: "gofmt"})
+	if err != nil {
+		t.Fatalf("third SaveJSON: %v", err)
+	}
+	if !changed {
+		t.Error("expected changed=true for different content")
+	}
+}
+
+func TestSaveJSON_ConcurrentWritesToSamePath_SurfaceConcurrentModification(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	type cfg struct {
+		Writer string `json:"writer"`
+	}
+
+	const (
+		rounds  = 200
+		writers = 8
+	)
+
+	for round := range rounds {
+		// Re-seed known content so every writer's payload differs from disk.
+		if _, err := SaveJSON(path, cfg{Writer: "seed"}); err != nil {
+			t.Fatalf("seed save in round %d: %v", round, err)
+		}
+
+		start := make(chan struct{})
+		errs := make([]*ConfigError, writers)
+
+		var wg sync.WaitGroup
+		for w := range writers {
+			wg.Add(1)
+			go func(w int) {
+				defer wg.Done()
+				<-start
+				_, errs[w] = SaveJSON(path, cfg{Writer: fmt.Sprintf("round-%d-writer-%d", round, w)})
+			}(w)
+		}
+		close(start)
+		wg.Wait()
+
+		for _, err := range errs {
+			if err == nil {
+				continue
+			}
+
+			if err.Op != OpWrite {
+				t.Errorf("expected Op=write, got %q", err.Op)
+			}
+			if !errors.Is(err, atomicwrite.ErrConcurrentModification) {
+				t.Errorf("expected wrapped atomicwrite.ErrConcurrentModification, got %v", err)
+			}
+			return
+		}
+	}
+
+	t.Fatalf("ErrConcurrentModification never surfaced in %d rounds of %d concurrent SaveJSON calls", rounds, writers)
+}
+
+func TestSaveJSON_WriteErrorInReadOnlyDir_ReturnsConfigError(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("running as root: read-only directories do not block root writes")
+	}
+
+	dir := t.TempDir()
+	roDir := filepath.Join(dir, "readonly")
+	if err := os.Mkdir(roDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(roDir, 0o555); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(roDir, 0o755) })
+
+	path := filepath.Join(roDir, "config.json")
+
+	_, err := SaveJSON(path, map[string]string{"k": "v"})
+	if err == nil {
+		t.Fatal("expected write error, got nil")
+	}
+
+	if err.Op != OpWrite {
+		t.Errorf("expected Op=write, got %q", err.Op)
+	}
+
+	if !errors.Is(err, fs.ErrPermission) {
+		t.Errorf("expected wrapped fs.ErrPermission, got %v", err)
 	}
 }
 
@@ -236,11 +366,11 @@ func TestSaveJSON_Idempotent_RewritesOnDifferentContent(t *testing.T) {
 		Name string `json:"name"`
 	}
 
-	if err := SaveJSON(path, cfg{Name: "first"}); err != nil {
+	if _, err := SaveJSON(path, cfg{Name: "first"}); err != nil {
 		t.Fatalf("first SaveJSON: %v", err)
 	}
 
-	if err := SaveJSON(path, cfg{Name: "second"}); err != nil {
+	if _, err := SaveJSON(path, cfg{Name: "second"}); err != nil {
 		t.Fatalf("second SaveJSON: %v", err)
 	}
 
@@ -282,6 +412,53 @@ func TestConfigError_Unwrap(t *testing.T) {
 
 	if unwrapped := errors.Unwrap(ce); unwrapped != cause {
 		t.Errorf("expected Unwrap to return the cause, got %v", unwrapped)
+	}
+}
+
+type stubAsCause struct{ msg string }
+
+func (s *stubAsCause) Error() string { return s.msg }
+
+func TestConfigError_IsDelegatesToWrappedCause(t *testing.T) {
+	sentinel := errors.New("sentinel cause")
+	ce := &ConfigError{Op: OpWrite, Path: "config.json", Err: sentinel}
+
+	if !ce.Is(sentinel) {
+		t.Error("expected Is to match the wrapped sentinel")
+	}
+
+	if !errors.Is(ce, sentinel) {
+		t.Error("expected errors.Is to reach the wrapped sentinel through ConfigError")
+	}
+
+	unrelated := errors.New("unrelated")
+	if ce.Is(unrelated) {
+		t.Error("expected Is to be false for an unrelated target")
+	}
+	if errors.Is(ce, unrelated) {
+		t.Error("expected errors.Is to be false for an unrelated target")
+	}
+}
+
+func TestConfigError_AsDelegatesToWrappedCause(t *testing.T) {
+	cause := &stubAsCause{msg: "typed cause"}
+	ce := &ConfigError{Op: OpUnmarshal, Path: "config.json", Err: cause}
+
+	var got *stubAsCause
+	if !ce.As(&got) {
+		t.Fatal("expected As to extract the wrapped cause's type")
+	}
+	if got != cause {
+		t.Errorf("expected As to set the target to the wrapped cause, got %v", got)
+	}
+
+	var wrong *os.LinkError
+	if ce.As(&wrong) {
+		t.Error("expected As to be false for a type the cause does not implement")
+	}
+
+	if viaErrorsAs, ok := errors.AsType[*stubAsCause](ce); !ok || viaErrorsAs != cause {
+		t.Error("expected errors.AsType to reach the wrapped cause through ConfigError")
 	}
 }
 
@@ -331,7 +508,7 @@ func TestSaveJSON_MarshalError_ReturnsConfigError(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "bad.json")
 
-	err := SaveJSON(path, func() {})
+	_, err := SaveJSON(path, func() {})
 	if err == nil {
 		t.Fatal("expected marshal error, got nil")
 	}
@@ -349,7 +526,7 @@ func TestSaveJSON_MkdirFails_WhenParentIsAFile(t *testing.T) {
 	}
 
 	path := filepath.Join(blocker, "sub", "config.json")
-	err := SaveJSON(path, map[string]string{"k": "v"})
+	_, err := SaveJSON(path, map[string]string{"k": "v"})
 	if err == nil {
 		t.Fatal("expected mkdir error, got nil")
 	}

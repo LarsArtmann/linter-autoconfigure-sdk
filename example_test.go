@@ -35,14 +35,17 @@ func ExampleSaveJSON() {
 	path := filepath.Join(dir, "nested", ".oxlintrc.json")
 
 	cfg := exampleLintConfig{Linters: []string{"errcheck", "gofmt"}}
-	if err := SaveJSON(path, cfg); err != nil {
+	changed, err := SaveJSON(path, cfg)
+	if err != nil {
 		fmt.Println("error:", err)
 		return
 	}
 
+	fmt.Println("changed:", changed)
 	data, _ := os.ReadFile(path)
 	fmt.Println(string(data))
 	// Output:
+	// changed: true
 	// {
 	//   "linters": [
 	//     "errcheck",

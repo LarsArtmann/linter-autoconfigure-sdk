@@ -79,7 +79,10 @@ func (e *ConfigError) Error() string {
 // interchangeably.
 func (e *ConfigError) Unwrap() error        { return e.Err }
 func (e *ConfigError) Is(target error) bool { return errors.Is(e.Err, target) }
-func (e *ConfigError) As(target any) bool   { return errors.As(e.Err, target) }
+
+func (e *ConfigError) As(target any) bool {
+	return errors.As(e.Err, target) //nolint:legacyerrors // As delegates to an arbitrary caller-chosen target type; errors.AsType[E] cannot express that
+}
 
 // ReadConfig reads a config file's raw bytes. YAML parsing is deliberately
 // left to each tool (different YAML libraries: golangci uses yaml.v3 / v4,
@@ -119,23 +122,28 @@ func LoadJSON[T any](path string) (*T, *ConfigError) {
 // rename surfaces as a non-nil *ConfigError wrapping
 // atomicwrite.ErrConcurrentModification.
 //
+// The changed return reports whether the file was actually written: false
+// means the on-disk content already matched and the write was skipped. Repair
+// flows use it to distinguish "config updated" from "config already correct".
+//
 // Indented output is used because linter configs are typically human-edited.
-func SaveJSON(path string, v any) *ConfigError {
+func SaveJSON(path string, v any) (bool, *ConfigError) {
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return &ConfigError{Op: OpMkdir, Path: dir, Err: err}
+		return false, &ConfigError{Op: OpMkdir, Path: dir, Err: err}
 	}
 
 	data, err := json.Marshal(v, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
-		return &ConfigError{Op: OpMarshal, Path: path, Err: err}
+		return false, &ConfigError{Op: OpMarshal, Path: path, Err: err}
 	}
 
-	if _, err := atomicwrite.WriteIfChanged(path, data); err != nil {
-		return &ConfigError{Op: OpWrite, Path: path, Err: err}
+	changed, err := atomicwrite.WriteIfChanged(path, data)
+	if err != nil {
+		return false, &ConfigError{Op: OpWrite, Path: path, Err: err}
 	}
 
-	return nil
+	return changed, nil
 }
 
 // --- Finding emission for config issues ---
@@ -204,7 +212,7 @@ func FindingsFromIssues(toolName finding.ToolName, issues []ConfigIssue) ([]find
 	for _, issue := range issues {
 		f, err := FindingFromIssue(toolName, issue)
 		if err != nil {
-			return nil, fmt.Errorf("convert issue %q: %w", issue.Rule, err)
+			return nil, fmt.Errorf("convert issue %q for tool %q: %w", issue.Rule, toolName, err)
 		}
 		findings = append(findings, f)
 	}
