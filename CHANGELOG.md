@@ -52,8 +52,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   subset of the pipeline; swap for a buildflow job when BuildFlow goes public
 - Issue and PR templates, `CODEOWNERS`, and `dependabot.yml` (gomod +
   github-actions ecosystems, weekly)
-- Social preview image asset at `docs/branding/social-preview.png`
+- Social preview image asset at `assets/branding/social-preview.png`
   (1280x640; upload via repo Settings is a manual step, no API exists)
+- `*.png binary` added to `.gitattributes` (go-structure-linter: binary
+  extensions must be marked to prevent diff/merge corruption)
 
 ### Changed
 

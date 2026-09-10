@@ -1,2 +1,5 @@
 # Enforce consistent line endings across all platforms
 * text=auto eol=lf
+
+# Binary assets must never go through line-ending normalization or textual merge
+*.png binary
