@@ -224,7 +224,8 @@ func FindingsFromIssues(toolName finding.ToolName, issues []ConfigIssue) ([]find
 type ProviderSpec struct {
 	Name        string
 	Description string
-	ConfigFile  string // the config file path the tool manages (e.g. ".golangci.yml")
+	// ConfigFile is the config file path the tool manages (e.g. ".golangci.yml").
+	ConfigFile finding.FilePath
 	// Analyze inspects the config and returns issues. The working directory
 	// is available via finding.WorkingDirFromContext(ctx).
 	Analyze func(ctx context.Context) ([]ConfigIssue, error)
@@ -274,7 +275,7 @@ func ProviderFromSpec(spec ProviderSpec) (toolsdk.Spec, error) {
 		Detect:      issueDetector{spec: spec},
 	}
 	if spec.ConfigFile != "" {
-		converted.Inputs = []string{spec.ConfigFile}
+		converted.Inputs = []string{string(spec.ConfigFile)}
 	}
 	if spec.Repair != nil {
 		converted.Repair = toolsdk.RepairerFunc(func(ctx context.Context) (toolsdk.RepairResult, error) {

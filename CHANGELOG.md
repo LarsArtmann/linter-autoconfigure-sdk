@@ -21,6 +21,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `FindingsFromIssues` error propagation, `SaveJSON` marshal/mkdir errors,
   `SaveJSON` idempotency (no mtime bump on identical content), and
   `ConfigError.Unwrap`
+- `ProviderFromSpec(spec ProviderSpec) (toolsdk.Spec, error)` — converts a
+  provider spec into the canonical BuildFlow provider contract from
+  go-finding's `toolsdk` sub-module: `Analyze` is wrapped as a
+  `finding.Detector` (issues become findings stamped with the spec's tool
+  name), a non-nil `Repair` is wrapped as a `toolsdk.Repairer`, and
+  `ConfigFile` becomes `Inputs`. Validation errors name the offending field.
+- `ExampleProviderFromSpec` godoc example plus tests for the field mapping,
+  Detect/Repair adapters, suggest-only nil `Repairer`, validation errors, and
+  `toolsdk.Register` acceptance of the converted spec
+- Package doc now states the `GOEXPERIMENT=jsonv2` requirement for Go 1.26
+  builds (standard in Go 1.27)
 
 ### Changed
 
@@ -48,6 +59,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `errors.As` calls migrated to `errors.AsType[E]` (Go 1.26 generic)
 - AGENTS.md rewritten: stale "do not upgrade go-finding" note replaced with
   "stay on latest + GOEXPERIMENT=jsonv2" guidance
+- **BREAKING:** `ErrNoRepair` removed — suggest-only is now expressed
+  structurally: `ProviderFromSpec` leaves `toolsdk.Spec.Repair` nil, which is
+  the canonical signal in the toolsdk contract (suggestions still flow through
+  findings carrying `FixStrategySuggest`)
+- **BREAKING:** `ProviderSpec.ConfigFile` is now `finding.FilePath` (was
+  `string`), matching `ConfigIssue.File`
+- Unchecked `os.RemoveAll` returns in godoc examples are now explicitly
+  discarded with `_ =` (errcheck clean)
 
 ### Removed
 
@@ -61,7 +80,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   idempotent, crash-durable atomic write primitive used by `SaveJSON`.
   Transitive: `cespare/xxhash/v2` (fingerprinting), `gofrs/flock` (locking)
 - `github.com/larsartmann/go-finding` kept on latest: v1.8.0 (`9d1373a`),
-  then v1.9.2 (`1c7c5e5`) — build and tests verified green at each bump
+  then v1.9.2 (`1c7c5e5`), then v1.10.0 — build and tests verified green at
+  each bump. v1.10.0 has no core-module API changes; it adds the `toolsdk`
+  sub-module (the BuildFlow provider contract), consumed via
+  `ProviderFromSpec`
+- Added `github.com/larsartmann/go-finding/toolsdk` v1.10.0 (direct) — the
+  canonical BuildFlow provider plugin contract (`Spec`, `Register`, `Trigger`)
+- Note: the `go` directive sits at `1.26.7` because go-finding declares that
+  floor; `go mod tidy` reinstates it after any normalization, so the fix
+  belongs upstream
 
 > No version has been tagged yet. Everything above `Unreleased`-grade until
 > the first tag (`v0.1.0`, see TODO_LIST/ROADMAP); pkg.go.dev serves only
