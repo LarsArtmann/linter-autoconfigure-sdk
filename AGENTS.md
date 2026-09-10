@@ -11,7 +11,8 @@ config file round-trip, finding emission for config issues, and the BuildFlow
 provider bridge (`ProviderSpec` → `ProviderFromSpec` → go-finding's canonical
 `toolsdk.Spec`). YAML parsing is intentionally NOT here (each tool uses a
 different YAML library). Early-stage; no active consumers yet. Public repo
-(github.com/LarsArtmann/linter-autoconfigure-sdk), MIT-licensed.
+(github.com/LarsArtmann/linter-autoconfigure-sdk), MIT-licensed. First tagged
+release: `v0.1.0` (2026-09-10).
 
 Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.26+,
 `github.com/larsartmann/go-finding` (always latest),
@@ -57,7 +58,21 @@ is set at the workflow env level). BuildFlow itself is a private module and
 cannot be installed on runners, so it is NOT in CI; swap the workflow for a
 buildflow job if/when BuildFlow goes public (TODO_LIST T21). Branch protection
 on `master` blocks force pushes and deletions but does not enforce on admins,
-so the auto-commit daemon keeps working.
+so the auto-commit daemon keeps working; the `Build, vet, test` check is a
+required status check (admins bypass it, PRs must pass it).
+
+## Releases
+
+`v0.1.0` tagged 2026-09-10 (annotated tag, first release). Procedure that
+worked: cut CHANGELOG, sync README/FEATURES into the release commit, wait for
+CI green on that exact commit, `git tag -a` + push tag + `gh release create
+--prerelease --latest` (v0.x releases are marked pre-release on GitHub per
+convention), then verify proxy (`go list -m -versions`) and a clean-dir
+`go get@vX.Y.Z` + consumer compile. Gotchas seen live: the daemon does not
+always push promptly (manual `git push origin master` of its commit was
+needed once); pkg.go.dev 404s for a fresh tag even after the proxy serves it
+(minutes-to-longer lag; the proxy is the source of truth). Tags are immutable
+once the proxy caches them — never re-tag, always cut a new version.
 
 ## `reports/` is buildflow-owned (nothing tracked inside)
 
