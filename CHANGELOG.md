@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [0.1.0] - 2026-09-10
+
+First tagged release. Freezes the public API surface (config round-trip,
+finding emission, BuildFlow provider bridge) for early adopters; consumers can
+now `go get` a stable SemVer version instead of `@master` pseudo-versions.
+
+### Added
+
 - `Op` typed enum (`OpRead`, `OpUnmarshal`, `OpMarshal`, `OpMkdir`, `OpWrite`)
   replacing the bare `string` on `ConfigError.Op` — typos are now compile errors
 - `ConfigError.Unwrap() error` method for idiomatic `errors.Unwrap` chain
@@ -152,7 +166,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   are ACCEPTED, not redacted — they are irreversibly in public git history,
   gitleaks ran clean at the visibility flip, and redacting working-tree
   copies would be cosmetic. ROADMAP Q1 still owns the docs-fate decision
-
-> No version has been tagged yet. Everything above `Unreleased`-grade until
-> the first tag (`v0.1.0`, see TODO_LIST/ROADMAP); pkg.go.dev serves only
-> pseudo-versions in the meantime.

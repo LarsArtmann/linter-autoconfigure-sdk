@@ -30,11 +30,11 @@ What they reinvent identically is the surrounding plumbing:
 ## Installation
 
 ```bash
-go get github.com/larsartmann/linter-autoconfigure-sdk@master
+go get github.com/larsartmann/linter-autoconfigure-sdk
 ```
 
-The `@master` pin is needed until the first tag (`v0.1.0`) is cut; after
-that, plain `go get github.com/larsartmann/linter-autoconfigure-sdk` works.
+Resolves to the latest tagged release (`v0.1.0` as of 2026-09-10); pin
+`@v0.1.0` explicitly for reproducible builds.
 
 Requires Go 1.26+ with `GOEXPERIMENT=jsonv2` set: go-finding imports
 `encoding/json/v2`, which is experimental in Go 1.26 and standard in Go 1.27.
@@ -174,7 +174,7 @@ No active consumers yet. The SDK provides atomic, crash-durable config writes (v
 
 ## Status
 
-Early (pre-v1). The config round-trip and finding-emission helpers have breaking signatures (typed `Op` enum, branded types, `(Finding, error)` and `(bool, *ConfigError)` returns) — no consumers exist yet, so breaking changes are acceptable. BuildFlow wiring is anchored to go-finding's canonical `toolsdk` contract (v1.10.0+). Requires `GOEXPERIMENT=jsonv2` on Go 1.26 (see [Installation](#installation)).
+v0.1.0 — first tagged release. The config round-trip and finding-emission helpers have breaking signatures (typed `Op` enum, branded types, `(Finding, error)` and `(bool, *ConfigError)` returns) — no consumers exist yet, so breaking changes remain acceptable until v1. BuildFlow wiring is anchored to go-finding's canonical `toolsdk` contract (v1.10.0+). Requires `GOEXPERIMENT=jsonv2` on Go 1.26 (see [Installation](#installation)).
 
 ## License
 
