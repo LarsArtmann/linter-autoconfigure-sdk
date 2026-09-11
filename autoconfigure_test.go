@@ -122,6 +122,7 @@ func TestFindingsFromIssues(t *testing.T) {
 	if err != nil {
 		t.Fatalf("FindingsFromIssues failed: %v", err)
 	}
+
 	if len(findings) != 2 {
 		t.Fatalf("expected 2 findings, got %d", len(findings))
 	}
@@ -211,6 +212,7 @@ func TestSaveJSON_Idempotent_NoRewriteOnSameContent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stat after first write: %v", err)
 	}
+
 	beforeContent, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read after first write: %v", err)
@@ -237,6 +239,7 @@ func TestSaveJSON_Idempotent_NoRewriteOnSameContent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read after second write: %v", err)
 	}
+
 	if string(beforeContent) != string(afterContent) {
 		t.Error("content changed despite identical input")
 	}
@@ -254,6 +257,7 @@ func TestSaveJSON_ReportsChanged(t *testing.T) {
 	if err != nil {
 		t.Fatalf("first SaveJSON: %v", err)
 	}
+
 	if !changed {
 		t.Error("expected changed=true on first write")
 	}
@@ -262,6 +266,7 @@ func TestSaveJSON_ReportsChanged(t *testing.T) {
 	if err != nil {
 		t.Fatalf("second SaveJSON: %v", err)
 	}
+
 	if changed {
 		t.Error("expected changed=false for identical content")
 	}
@@ -270,6 +275,7 @@ func TestSaveJSON_ReportsChanged(t *testing.T) {
 	if err != nil {
 		t.Fatalf("third SaveJSON: %v", err)
 	}
+
 	if !changed {
 		t.Error("expected changed=true for different content")
 	}
@@ -302,10 +308,13 @@ func TestSaveJSON_ConcurrentWritesToSamePath_SurfaceConcurrentModification(t *te
 			wg.Add(1)
 			go func(w int) {
 				defer wg.Done()
+
 				<-start
+
 				_, errs[w] = SaveJSON(path, cfg{Writer: fmt.Sprintf("round-%d-writer-%d", round, w)})
 			}(w)
 		}
+
 		close(start)
 		wg.Wait()
 
@@ -317,9 +326,11 @@ func TestSaveJSON_ConcurrentWritesToSamePath_SurfaceConcurrentModification(t *te
 			if err.Op != OpWrite {
 				t.Errorf("expected Op=write, got %q", err.Op)
 			}
+
 			if !errors.Is(err, atomicwrite.ErrConcurrentModification) {
 				t.Errorf("expected wrapped atomicwrite.ErrConcurrentModification, got %v", err)
 			}
+
 			return
 		}
 	}
@@ -333,13 +344,16 @@ func TestSaveJSON_WriteErrorInReadOnlyDir_ReturnsConfigError(t *testing.T) {
 	}
 
 	dir := t.TempDir()
+
 	roDir := filepath.Join(dir, "readonly")
 	if err := os.Mkdir(roDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
+
 	if err := os.Chmod(roDir, 0o555); err != nil {
 		t.Fatal(err)
 	}
+
 	t.Cleanup(func() { _ = os.Chmod(roDir, 0o755) })
 
 	path := filepath.Join(roDir, "config.json")
@@ -400,6 +414,7 @@ func TestConfigError_SuccessReturnsNilTypedError(t *testing.T) {
 
 func TestConfigError_ErrorFormat(t *testing.T) {
 	ce := &ConfigError{Op: OpRead, Path: "x.yml", Err: errors.New("boom")}
+
 	want := "autoconfigure: read x.yml: boom"
 	if got := ce.Error(); got != want {
 		t.Errorf("unexpected Error(): %q, want %q", got, want)
@@ -410,7 +425,7 @@ func TestConfigError_Unwrap(t *testing.T) {
 	cause := errors.New("root cause")
 	ce := &ConfigError{Op: OpRead, Path: "x.yml", Err: cause}
 
-	if unwrapped := errors.Unwrap(ce); unwrapped != cause {
+	if unwrapped := errors.Unwrap(ce); !errors.Is(unwrapped, cause) {
 		t.Errorf("expected Unwrap to return the cause, got %v", unwrapped)
 	}
 }
@@ -435,6 +450,7 @@ func TestConfigError_IsDelegatesToWrappedCause(t *testing.T) {
 	if ce.Is(unrelated) {
 		t.Error("expected Is to be false for an unrelated target")
 	}
+
 	if errors.Is(ce, unrelated) {
 		t.Error("expected errors.Is to be false for an unrelated target")
 	}
@@ -448,6 +464,7 @@ func TestConfigError_AsDelegatesToWrappedCause(t *testing.T) {
 	if !ce.As(&got) {
 		t.Fatal("expected As to extract the wrapped cause's type")
 	}
+
 	if got != cause {
 		t.Errorf("expected As to set the target to the wrapped cause, got %v", got)
 	}
@@ -520,12 +537,14 @@ func TestSaveJSON_MarshalError_ReturnsConfigError(t *testing.T) {
 
 func TestSaveJSON_MkdirFails_WhenParentIsAFile(t *testing.T) {
 	dir := t.TempDir()
+
 	blocker := filepath.Join(dir, "blocker")
 	if err := os.WriteFile(blocker, []byte("x"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	path := filepath.Join(blocker, "sub", "config.json")
+
 	_, err := SaveJSON(path, map[string]string{"k": "v"})
 	if err == nil {
 		t.Fatal("expected mkdir error, got nil")
@@ -600,8 +619,19 @@ func TestProviderFromSpec_MapsFieldsToToolsDKSpec(t *testing.T) {
 
 func TestProviderFromSpec_Detect_ConvertsIssuesToFindings(t *testing.T) {
 	issues := []ConfigIssue{
-		{Rule: "missing-linter", Message: "errcheck is not enabled", Severity: finding.SeverityWarning, File: ".golangci.yml", Line: 5},
-		{Rule: "wrong-priority", Message: "gofmt has the wrong priority", Severity: finding.SeverityError, File: ".golangci.yml"},
+		{
+			Rule:     "missing-linter",
+			Message:  "errcheck is not enabled",
+			Severity: finding.SeverityWarning,
+			File:     ".golangci.yml",
+			Line:     5,
+		},
+		{
+			Rule:     "wrong-priority",
+			Message:  "gofmt has the wrong priority",
+			Severity: finding.SeverityError,
+			File:     ".golangci.yml",
+		},
 	}
 	spec := ProviderSpec{
 		Name:        "golangci-autoconfigure",
@@ -627,6 +657,7 @@ func TestProviderFromSpec_Detect_ConvertsIssuesToFindings(t *testing.T) {
 	if first.ToolName != finding.ToolName(spec.Name) {
 		t.Errorf("expected ToolName %q, got %q", spec.Name, first.ToolName)
 	}
+
 	if first.Rule != "missing-linter" || first.Severity != finding.SeverityWarning {
 		t.Errorf("unexpected first finding: %+v", first)
 	}
@@ -752,10 +783,12 @@ func TestProviderFromSpec_ConvertedSpecPassesToolsDKRegisterValidation(t *testin
 	}
 
 	before := len(toolsdk.All())
+
 	registered := toolsdk.Register(converted)
 	if registered.Name != converted.Name {
 		t.Errorf("expected registered spec %q, got %q", converted.Name, registered.Name)
 	}
+
 	if got := len(toolsdk.All()); got != before+1 {
 		t.Errorf("expected registry to grow from %d to %d, got %d", before, before+1, got)
 	}

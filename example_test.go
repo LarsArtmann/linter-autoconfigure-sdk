@@ -16,12 +16,14 @@ type exampleLintConfig struct {
 func ExampleLoadJSON() {
 	dir, _ := os.MkdirTemp("", "example")
 	defer func() { _ = os.RemoveAll(dir) }()
+
 	path := filepath.Join(dir, ".oxlintrc.json")
 	_ = os.WriteFile(path, []byte(`{"linters":["errcheck","gofmt"]}`), 0o644)
 
 	cfg, err := LoadJSON[exampleLintConfig](path)
 	if err != nil {
 		fmt.Println("error:", err)
+
 		return
 	}
 
@@ -32,16 +34,20 @@ func ExampleLoadJSON() {
 func ExampleSaveJSON() {
 	dir, _ := os.MkdirTemp("", "example")
 	defer func() { _ = os.RemoveAll(dir) }()
+
 	path := filepath.Join(dir, "nested", ".oxlintrc.json")
 
 	cfg := exampleLintConfig{Linters: []string{"errcheck", "gofmt"}}
+
 	changed, err := SaveJSON(path, cfg)
 	if err != nil {
 		fmt.Println("error:", err)
+
 		return
 	}
 
 	fmt.Println("changed:", changed)
+
 	data, _ := os.ReadFile(path)
 	fmt.Println(string(data))
 	// Output:
@@ -67,6 +73,7 @@ func ExampleFindingFromIssue() {
 	f, err := FindingFromIssue(finding.ToolName("golangci-autoconfigure"), issue)
 	if err != nil {
 		fmt.Println("error:", err)
+
 		return
 	}
 
@@ -90,6 +97,7 @@ func ExampleProviderFromSpec() {
 	provider, err := ProviderFromSpec(spec)
 	if err != nil {
 		fmt.Println("error:", err)
+
 		return
 	}
 

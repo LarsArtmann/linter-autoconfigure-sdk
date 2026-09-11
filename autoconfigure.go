@@ -21,13 +21,12 @@ package autoconfigure
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"encoding/json/jsontext"
 
 	atomicwrite "github.com/larsartmann/go-atomic-write"
 	"github.com/larsartmann/go-finding"
@@ -81,7 +80,10 @@ func (e *ConfigError) Unwrap() error        { return e.Err }
 func (e *ConfigError) Is(target error) bool { return errors.Is(e.Err, target) }
 
 func (e *ConfigError) As(target any) bool {
-	return errors.As(e.Err, target) //nolint:legacyerrors // As delegates to an arbitrary caller-chosen target type; errors.AsType[E] cannot express that
+	return errors.As(
+		e.Err,
+		target,
+	) //nolint:legacyerrors // As delegates to an arbitrary caller-chosen target type; errors.AsType[E] cannot express that
 }
 
 // ReadConfig reads a config file's raw bytes. YAML parsing is deliberately
@@ -214,6 +216,7 @@ func FindingsFromIssues(toolName finding.ToolName, issues []ConfigIssue) ([]find
 		if err != nil {
 			return nil, fmt.Errorf("convert issue %q for tool %q: %w", issue.Rule, toolName, err)
 		}
+
 		findings = append(findings, f)
 	}
 
@@ -280,11 +283,11 @@ var ErrNoRepair = errors.New("autoconfigure: tool does not support auto-repair")
 func ProviderFromSpec(spec ProviderSpec) (toolsdk.Spec, error) {
 	switch {
 	case spec.Name == "":
-		return toolsdk.Spec{}, fmt.Errorf("autoconfigure: ProviderFromSpec: Name must not be empty")
+		return toolsdk.Spec{}, errors.New("autoconfigure: ProviderFromSpec: Name must not be empty")
 	case spec.Description == "":
-		return toolsdk.Spec{}, fmt.Errorf("autoconfigure: ProviderFromSpec: Description must not be empty")
+		return toolsdk.Spec{}, errors.New("autoconfigure: ProviderFromSpec: Description must not be empty")
 	case spec.Analyze == nil:
-		return toolsdk.Spec{}, fmt.Errorf("autoconfigure: ProviderFromSpec: Analyze must not be nil")
+		return toolsdk.Spec{}, errors.New("autoconfigure: ProviderFromSpec: Analyze must not be nil")
 	}
 
 	converted := toolsdk.Spec{
@@ -295,12 +298,14 @@ func ProviderFromSpec(spec ProviderSpec) (toolsdk.Spec, error) {
 	if spec.ConfigFile != "" {
 		converted.Inputs = []string{string(spec.ConfigFile)}
 	}
+
 	if spec.Repair != nil {
 		converted.Repair = toolsdk.RepairerFunc(func(ctx context.Context) (toolsdk.RepairResult, error) {
 			description, err := spec.Repair(ctx)
 			if err != nil {
 				return toolsdk.RepairResult{}, err
 			}
+
 			return toolsdk.RepairResult{Description: description}, nil
 		})
 	}
