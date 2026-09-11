@@ -1,4 +1,4 @@
-## Summary
+# Summary
 
 What this PR changes and why. Reference the issue it closes, if any (`Closes #N`).
 

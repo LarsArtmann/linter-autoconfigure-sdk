@@ -4,21 +4,23 @@ about: Something does not work as documented
 labels: bug
 ---
 
-**What happened?**
+# Bug report
+
+## What happened?
 
 A clear description of the bug.
 
-**What did you expect?**
+## What did you expect?
 
 The behavior you expected instead.
 
-**Minimal reproduction**
+## Minimal reproduction
 
 ```go
 // Smallest code that triggers the bug, plus the error output.
 ```
 
-**Environment**
+## Environment
 
 - Go version: `go version`
 - Module version / commit:

@@ -9,3 +9,7 @@ MD013:
   line_length: 120
   tables: false
   code_blocks: false
+# Changelogs repeat "Added"/"Changed" per version section by convention; only
+# flag duplicates among siblings within the same section.
+MD024:
+  siblings_only: true

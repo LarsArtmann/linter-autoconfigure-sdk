@@ -209,7 +209,12 @@ func FindingFromIssue(toolName finding.ToolName, issue ConfigIssue) (finding.Fin
 
 	built, err := builder.Build()
 	if err != nil {
-		return finding.Finding{}, fmt.Errorf("autoconfigure: build finding for tool %q rule %q: %w", toolName, issue.Rule, err)
+		return finding.Finding{}, fmt.Errorf(
+			"autoconfigure: build finding for tool %q rule %q: %w",
+			toolName,
+			issue.Rule,
+			err,
+		)
 	}
 
 	return built, nil
