@@ -18,7 +18,7 @@ Two existing auto-configurers — `golangci-lint-auto-configure` and `oxlint-aut
 What they reinvent identically is the surrounding plumbing:
 
 | Concern                                    | Before (per tool)                                             | After (this SDK)                                               |
-| ------------------------------------------ | ------------------------------------------------------------- | -------------------------------------------------------------- |
+| ------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------- |
 | Read/write config files                    | Each tool hand-wraps `os.ReadFile` + parse + error handling   | `ReadConfig(path)` / `LoadJSON[T](path)` / `SaveJSON(path, v)` |
 | Emit findings for config issues            | Each tool maps priority → Severity, fix → Suggestion, by hand | `FindingFromIssue(tool, ConfigIssue{...})`                     |
 | Wire into BuildFlow as Detector + Repairer | Each tool writes its own adapter                              | `ProviderFromSpec` → canonical `toolsdk.Spec` (go-finding)     |
@@ -116,11 +116,11 @@ provider, err := autoconfigure.ProviderFromSpec(spec)
 
 ### Config I/O
 
-| Function            | Signature                | Purpose                                                                                                                     |
-| ------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| `ReadConfig(path)`  | `([]byte, *ConfigError)` | Read raw bytes; YAML parsing stays tool-specific                                                                            |
-| `LoadJSON[T](path)` | `(*T, *ConfigError)`     | Read + unmarshal a JSON config                                                                                              |
-| `SaveJSON(path, v)` | `(changed bool, *ConfigError)`         | Idempotent + crash-durable atomic write of indented JSON; creates parent dirs, skips the write when content is unchanged, and reports whether a write happened |
+| Function            | Signature                      | Purpose                                                                                                                                                        |
+| -------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ReadConfig(path)`  | `([]byte, *ConfigError)`       | Read raw bytes; YAML parsing stays tool-specific                                                                                                               |
+| `LoadJSON[T](path)` | `(*T, *ConfigError)`           | Read + unmarshal a JSON config                                                                                                                                 |
+| `SaveJSON(path, v)` | `(changed bool, *ConfigError)` | Idempotent + crash-durable atomic write of indented JSON; creates parent dirs, skips the write when content is unchanged, and reports whether a write happened |
 
 All three return a `*ConfigError` (implements `error`) whose `Op` (typed:
 `OpRead`, `OpUnmarshal`, `OpMarshal`, `OpMkdir`, `OpWrite`), `Path`, and
@@ -132,21 +132,21 @@ from parse or I/O failures without parsing error strings.
 ### Finding emission
 
 | Function                           | Signature                    | Purpose                                                                                                   |
-| ---------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------- |
+| ----------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `FindingFromIssue(tool, issue)`    | `(finding.Finding, error)`   | Convert one `ConfigIssue` to a `finding.Finding` (suggest-strategy auto-attached when `Suggestion != ""`) |
 | `FindingsFromIssues(tool, issues)` | `([]finding.Finding, error)` | Slice version; propagates conversion errors                                                               |
 
 ### BuildFlow integration
 
 | Function                      | Signature               | Purpose                                                                                                               |
-| ----------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| ------------------------------ | ------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | `ProviderFromSpec(spec)`      | `(toolsdk.Spec, error)` | Convert a `ProviderSpec` into go-finding's canonical `toolsdk.Spec` for `toolsdk.Register`; validates required fields |
 | `(*ProviderSpec).HasRepair()` | `bool`                  | Whether the spec supports auto-repair                                                                                 |
 
 ### Types
 
 | Type           | Purpose                                                                                                                                                    |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ConfigError`  | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal                         |
 | `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                                           |
 | `ProviderSpec` | `{Name, Description, ConfigFile, Analyze, Repair}` — auto-configurer declaration; `ConfigFile` is `finding.FilePath`; `HasRepair()` reports repair support |

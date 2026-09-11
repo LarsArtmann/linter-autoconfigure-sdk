@@ -24,6 +24,13 @@ exclude:
   - dist
   - "*.pb.go"
   - "*.gen.go"
+  # Historical records: status reports and archived planning docs are
+  # point-in-time snapshots. Rewriting them (even reformatting) would falsify
+  # the record, and their links rot by design, so all doc checks skip them.
+  # markdownlint-cli has no hierarchical config, so this is the only clean
+  # mechanism; live docs stay covered (see .markdownlint.yml).
+  - docs/status/**
+  - docs/planning/**
 
 # Auto-fix settings
 auto_fix: false
