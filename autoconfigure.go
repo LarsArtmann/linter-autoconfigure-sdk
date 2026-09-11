@@ -115,6 +115,10 @@ func LoadJSON[T any](path string) (*T, *ConfigError) {
 	return v, nil
 }
 
+// configDirPerm is the mode for parent directories SaveJSON creates. No
+// world-access bit (gosec G301): config paths may name private locations.
+const configDirPerm os.FileMode = 0o750
+
 // SaveJSON marshals v to indented JSON and writes it to path atomically,
 // creating parent directories. The write is idempotent: if the marshalled
 // content is byte-identical to the existing file, the write is skipped entirely
@@ -131,7 +135,7 @@ func LoadJSON[T any](path string) (*T, *ConfigError) {
 // Indented output is used because linter configs are typically human-edited.
 func SaveJSON(path string, v any) (bool, *ConfigError) {
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0o750); err != nil {
+	if err := os.MkdirAll(dir, configDirPerm); err != nil {
 		return false, &ConfigError{Op: OpMkdir, Path: dir, Err: err}
 	}
 

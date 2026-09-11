@@ -336,7 +336,7 @@ func TestSaveJSON_ConcurrentWritesToSamePath_SurfaceConcurrentModification(t *te
 		}
 
 		start := make(chan struct{})
-		errs := make([]*ConfigError, writers)
+		errs := make([]*ConfigError, writers) //nolint:makezero // distinct-index writes are race-free
 
 		var wg sync.WaitGroup
 		for w := range writers {
