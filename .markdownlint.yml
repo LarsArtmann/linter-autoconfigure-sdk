@@ -13,3 +13,9 @@ MD013:
 # flag duplicates among siblings within the same section.
 MD024:
   siblings_only: true
+# The README hero embed needs width-controlled HTML (a + img); markdown
+# images cannot constrain rendered width.
+MD033:
+  allowed_elements:
+    - a
+    - img
