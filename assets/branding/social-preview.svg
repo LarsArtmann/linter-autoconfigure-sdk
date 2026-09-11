@@ -1,0 +1,25 @@
+<svg width="1280" height="640" viewBox="0 0 1280 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="linter-autoconfigure-sdk">
+  <defs>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00ADD8"/>
+      <stop offset="0.55" stop-color="#58a6ff"/>
+      <stop offset="1" stop-color="#3fb950"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="640" fill="#0d1117"/>
+  <rect width="1280" height="10" fill="url(#accent)"/>
+
+  <rect x="96" y="148" width="196" height="58" rx="29" fill="#161b22" stroke="#30363d" stroke-width="2"/>
+  <text x="194" y="186" text-anchor="middle" font-family="JetBrainsMono Nerd Font" font-weight="600" font-size="26" letter-spacing="4" fill="#00ADD8">GO SDK</text>
+
+  <text x="96" y="330" font-family="JetBrainsMono Nerd Font" font-weight="800" font-size="72" fill="#f0f6fc"><tspan>linter</tspan><tspan fill="#58a6ff">-</tspan><tspan>autoconfigure</tspan><tspan fill="#58a6ff">-</tspan><tspan>sdk</tspan></text>
+
+  <text x="96" y="402" font-family="Noto Sans" font-size="36" fill="#9aa7b3">Shared foundation for linter auto-configuration tools</text>
+
+  <rect x="96" y="458" width="1043" height="88" rx="16" fill="#010409" stroke="#30363d" stroke-width="2"/>
+  <circle cx="130" cy="502" r="6.5" fill="#ff5f56"/>
+  <circle cx="157" cy="502" r="6.5" fill="#ffbd2e"/>
+  <circle cx="184" cy="502" r="6.5" fill="#27c93f"/>
+  <text x="214" y="511" xml:space="preserve" font-family="JetBrainsMono Nerd Font" font-size="26"><tspan fill="#3fb950">$</tspan><tspan fill="#f0f6fc" font-weight="600"> go get </tspan><tspan fill="#79c0ff">github.com/larsartmann/linter-autoconfigure-sdk</tspan></text>
+</svg>
