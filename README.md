@@ -3,6 +3,10 @@
 Shared foundation for linter auto-configuration tools — config round-trip, finding emission for config issues,
 and a provider spec for BuildFlow integration.
 
+<a href="https://github.com/LarsArtmann/linter-autoconfigure-sdk">
+  <img src="assets/branding/social-preview-animated.gif" alt="linter-autoconfigure-sdk — typed install command animating on a GitHub-dark card" width="640">
+</a>
+
 [![CI](https://github.com/LarsArtmann/linter-autoconfigure-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/linter-autoconfigure-sdk/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/linter-autoconfigure-sdk.svg)](https://pkg.go.dev/github.com/larsartmann/linter-autoconfigure-sdk)
 [![Go Report Card](https://goreportcard.com/badge/github.com/larsartmann/linter-autoconfigure-sdk)](https://goreportcard.com/report/github.com/larsartmann/linter-autoconfigure-sdk)
