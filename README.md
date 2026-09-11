@@ -178,21 +178,27 @@ from parse or I/O failures without parsing error strings.
 
 ## Consumers
 
-Planned:
+Active:
 
-- [`golangci-lint-auto-configure`](https://github.com/LarsArtmann/golangci-lint-auto-configure)
 - [`oxlint-auto-configure`](https://github.com/LarsArtmann/oxlint-auto-configure)
-- Future: `biome-auto-configure`, etc.
+  — builds its BuildFlow provider via `ProviderFromSpec` (first migrated consumer, 2026-09-11).
+- [`golangci-lint-auto-configure`](https://github.com/LarsArtmann/golangci-lint-auto-configure)
+  — emits validate-command health findings via `FindingFromIssue` (2026-09-11).
+  Its linter-recommendation conversion (`missing-linter` findings with
+  per-linter categories/tags) intentionally stays app-side: those carry
+  domain metadata ConfigIssue does not model.
 
-No active consumers yet. The SDK provides atomic, crash-durable config writes (via go-atomic-write), branded
-finding types, and structured ConfigError wrapping — but value over stdlib remains modest until a consumer
-migrates.
+Future: `biome-auto-configure`, etc.
+
+Until the next SDK release is tagged, both consumers track this repo via a
+local `replace` directive; drop the replace and `go get` the tagged version
+once it is published.
 
 ## Status
 
 v0.1.0 — first tagged release. The config round-trip and finding-emission helpers have breaking signatures
-(typed `Op` enum, branded types, `(Finding, error)` and `(bool, *ConfigError)` returns) — no consumers exist
-yet, so breaking changes remain acceptable until v1. BuildFlow wiring is anchored to go-finding's canonical
+(typed `Op` enum, branded types, `(Finding, error)` and `(bool, *ConfigError)` returns) — breaking changes
+remain acceptable until v1. BuildFlow wiring is anchored to go-finding's canonical
 `toolsdk` contract (v1.10.0+). Requires `GOEXPERIMENT=jsonv2` on Go 1.26 (see [Installation](#installation)).
 
 ## License

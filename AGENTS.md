@@ -10,9 +10,15 @@ plumbing that `golangci-lint-auto-configure` and `oxlint-auto-configure` duplica
 config file round-trip, finding emission for config issues, and the BuildFlow
 provider bridge (`ProviderSpec` → `ProviderFromSpec` → go-finding's canonical
 `toolsdk.Spec`). YAML parsing is intentionally NOT here (each tool uses a
-different YAML library). Early-stage; no active consumers yet. Public repo
+different YAML library). Public repo
 (github.com/LarsArtmann/linter-autoconfigure-sdk), MIT-licensed. First tagged
-release: `v0.1.0` (2026-09-10).
+release: `v0.1.0` (2026-09-10). First consumers migrated 2026-09-11:
+oxlint-auto-configure (ProviderFromSpec bridge) and golangci-lint-auto-configure
+(FindingFromIssue for validate health findings); both track the repo via local
+`replace` directives until the next version is tagged — see README "Consumers".
+Boundary decision: linter-recommendation findings with per-linter
+categories/tags (golangci's `missing-linter`) stay app-side; ConfigIssue
+models config-health issues only (no Category/Tags fields by design).
 
 Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.26+,
 `github.com/larsartmann/go-finding` (always latest),
