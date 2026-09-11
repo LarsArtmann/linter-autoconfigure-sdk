@@ -596,7 +596,6 @@ func TestFindingFromIssue_FixStrategyOverride_KeepsSuggestion(t *testing.T) {
 		Suggestion:  "run the auto-configurer",
 		FixStrategy: &direct,
 	}
-
 	f, err := FindingFromIssue(finding.ToolName("tool"), issue)
 	if err != nil {
 		t.Fatalf("FindingFromIssue failed: %v", err)
