@@ -131,7 +131,7 @@ func LoadJSON[T any](path string) (*T, *ConfigError) {
 // Indented output is used because linter configs are typically human-edited.
 func SaveJSON(path string, v any) (bool, *ConfigError) {
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return false, &ConfigError{Op: OpMkdir, Path: dir, Err: err}
 	}
 
@@ -203,7 +203,12 @@ func FindingFromIssue(toolName finding.ToolName, issue ConfigIssue) (finding.Fin
 		builder = builder.WithFixStrategy(finding.FixStrategyNone)
 	}
 
-	return builder.Build()
+	built, err := builder.Build()
+	if err != nil {
+		return finding.Finding{}, fmt.Errorf("autoconfigure: build finding for rule %q: %w", issue.Rule, err)
+	}
+
+	return built, nil
 }
 
 // FindingsFromIssues converts a slice of ConfigIssues to findings. If any
@@ -260,6 +265,16 @@ func (s ProviderSpec) HasRepair() bool { return s.Repair != nil }
 // signal. Removed at v1.
 var ErrNoRepair = errors.New("autoconfigure: tool does not support auto-repair")
 
+// Validation sentinels returned by ProviderFromSpec when a required field is
+// missing. The messages are identical to the pre-sentinel dynamic errors, so
+// callers matching on text keep working; new callers should match with
+// errors.Is instead.
+var (
+	ErrNameRequired        = errors.New("autoconfigure: ProviderFromSpec: Name must not be empty")
+	ErrDescriptionRequired = errors.New("autoconfigure: ProviderFromSpec: Description must not be empty")
+	ErrAnalyzeRequired     = errors.New("autoconfigure: ProviderFromSpec: Analyze must not be nil")
+)
+
 // ProviderFromSpec converts a ProviderSpec into the canonical BuildFlow provider
 // contract: go-finding's toolsdk.Spec (module github.com/larsartmann/go-finding/toolsdk).
 // The result can be handed to toolsdk.Register for BuildFlow discovery, or its
@@ -283,11 +298,11 @@ var ErrNoRepair = errors.New("autoconfigure: tool does not support auto-repair")
 func ProviderFromSpec(spec ProviderSpec) (toolsdk.Spec, error) {
 	switch {
 	case spec.Name == "":
-		return toolsdk.Spec{}, errors.New("autoconfigure: ProviderFromSpec: Name must not be empty")
+		return toolsdk.Spec{}, ErrNameRequired
 	case spec.Description == "":
-		return toolsdk.Spec{}, errors.New("autoconfigure: ProviderFromSpec: Description must not be empty")
+		return toolsdk.Spec{}, ErrDescriptionRequired
 	case spec.Analyze == nil:
-		return toolsdk.Spec{}, errors.New("autoconfigure: ProviderFromSpec: Analyze must not be nil")
+		return toolsdk.Spec{}, ErrAnalyzeRequired
 	}
 
 	converted := toolsdk.Spec{

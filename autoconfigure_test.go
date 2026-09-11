@@ -17,7 +17,20 @@ import (
 	"github.com/larsartmann/go-finding/toolsdk"
 )
 
+// Test-scoped error values. Static sentinels keep err113 quiet and give the
+// assertions stable identities to match on.
+var (
+	errBoom        = errors.New("boom")
+	errRootCause   = errors.New("root cause")
+	errSentinel    = errors.New("sentinel cause")
+	errUnrelated   = errors.New("unrelated")
+	errAnalyzeFail = errors.New("analyze failed")
+	errDiskFull    = errors.New("disk full")
+)
+
 func TestSaveAndLoadJSON(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	path := filepath.Join(dir, "sub", "config.json")
 
@@ -42,6 +55,8 @@ func TestSaveAndLoadJSON(t *testing.T) {
 }
 
 func TestLoadJSON_MissingFile(t *testing.T) {
+	t.Parallel()
+
 	_, err := LoadJSON[struct{}]("nonexistent.json")
 	if err == nil {
 		t.Error("expected error for missing file")
@@ -49,6 +64,8 @@ func TestLoadJSON_MissingFile(t *testing.T) {
 }
 
 func TestReadConfig(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	path := filepath.Join(dir, "linters.yml")
 
@@ -67,6 +84,8 @@ func TestReadConfig(t *testing.T) {
 }
 
 func TestFindingFromIssue_WithSuggestion(t *testing.T) {
+	t.Parallel()
+
 	issue := ConfigIssue{
 		Rule:       finding.RuleName("missing-linter"),
 		Message:    "errcheck is not enabled",
@@ -95,6 +114,8 @@ func TestFindingFromIssue_WithSuggestion(t *testing.T) {
 }
 
 func TestFindingFromIssue_NoSuggestion(t *testing.T) {
+	t.Parallel()
+
 	issue := ConfigIssue{
 		Rule:     finding.RuleName("deprecated-linter"),
 		Message:  "golint is deprecated",
@@ -113,6 +134,8 @@ func TestFindingFromIssue_NoSuggestion(t *testing.T) {
 }
 
 func TestFindingsFromIssues(t *testing.T) {
+	t.Parallel()
+
 	issues := []ConfigIssue{
 		{Rule: finding.RuleName("a"), Message: "a", Severity: finding.SeverityInfo, File: finding.FilePath("f")},
 		{Rule: finding.RuleName("b"), Message: "b", Severity: finding.SeverityWarning, File: finding.FilePath("f")},
@@ -129,6 +152,8 @@ func TestFindingsFromIssues(t *testing.T) {
 }
 
 func TestReadConfig_MissingFile_ReturnsConfigErrorWrappingErrNotExist(t *testing.T) {
+	t.Parallel()
+
 	_, err := ReadConfig(filepath.Join(t.TempDir(), "does-not-exist.yml"))
 
 	ce, ok := errors.AsType[*ConfigError](err)
@@ -150,6 +175,8 @@ func TestReadConfig_MissingFile_ReturnsConfigErrorWrappingErrNotExist(t *testing
 }
 
 func TestLoadJSON_MalformedJSON_ReturnsConfigErrorWrappingUnmarshalTypeError(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	path := filepath.Join(dir, "bad.json")
 
@@ -175,6 +202,8 @@ func TestLoadJSON_MalformedJSON_ReturnsConfigErrorWrappingUnmarshalTypeError(t *
 }
 
 func TestSaveJSON_CreatesParentDirsAndRoundTrips(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	path := filepath.Join(dir, "nested", "deep", "config.json")
 
@@ -197,6 +226,8 @@ func TestSaveJSON_CreatesParentDirsAndRoundTrips(t *testing.T) {
 }
 
 func TestSaveJSON_Idempotent_NoRewriteOnSameContent(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")
 
@@ -246,6 +277,8 @@ func TestSaveJSON_Idempotent_NoRewriteOnSameContent(t *testing.T) {
 }
 
 func TestSaveJSON_ReportsChanged(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")
 
@@ -282,6 +315,8 @@ func TestSaveJSON_ReportsChanged(t *testing.T) {
 }
 
 func TestSaveJSON_ConcurrentWritesToSamePath_SurfaceConcurrentModification(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")
 
@@ -339,6 +374,8 @@ func TestSaveJSON_ConcurrentWritesToSamePath_SurfaceConcurrentModification(t *te
 }
 
 func TestSaveJSON_WriteErrorInReadOnlyDir_ReturnsConfigError(t *testing.T) {
+	t.Parallel()
+
 	if os.Geteuid() == 0 {
 		t.Skip("running as root: read-only directories do not block root writes")
 	}
@@ -373,6 +410,8 @@ func TestSaveJSON_WriteErrorInReadOnlyDir_ReturnsConfigError(t *testing.T) {
 }
 
 func TestSaveJSON_Idempotent_RewritesOnDifferentContent(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")
 
@@ -399,6 +438,8 @@ func TestSaveJSON_Idempotent_RewritesOnDifferentContent(t *testing.T) {
 }
 
 func TestConfigError_SuccessReturnsNilTypedError(t *testing.T) {
+	t.Parallel()
+
 	// Guards against the typed-nil interface gotcha: success must yield a true
 	// nil error, not a nil *ConfigError boxed in a non-nil error interface.
 	path := filepath.Join(t.TempDir(), "ok.yml")
@@ -413,7 +454,9 @@ func TestConfigError_SuccessReturnsNilTypedError(t *testing.T) {
 }
 
 func TestConfigError_ErrorFormat(t *testing.T) {
-	ce := &ConfigError{Op: OpRead, Path: "x.yml", Err: errors.New("boom")}
+	t.Parallel()
+
+	ce := &ConfigError{Op: OpRead, Path: "x.yml", Err: errBoom}
 
 	want := "autoconfigure: read x.yml: boom"
 	if got := ce.Error(); got != want {
@@ -422,7 +465,9 @@ func TestConfigError_ErrorFormat(t *testing.T) {
 }
 
 func TestConfigError_Unwrap(t *testing.T) {
-	cause := errors.New("root cause")
+	t.Parallel()
+
+	cause := errRootCause
 	ce := &ConfigError{Op: OpRead, Path: "x.yml", Err: cause}
 
 	if unwrapped := errors.Unwrap(ce); !errors.Is(unwrapped, cause) {
@@ -430,12 +475,14 @@ func TestConfigError_Unwrap(t *testing.T) {
 	}
 }
 
-type stubAsCause struct{ msg string }
+type stubAsCauseError struct{ msg string }
 
-func (s *stubAsCause) Error() string { return s.msg }
+func (s *stubAsCauseError) Error() string { return s.msg }
 
 func TestConfigError_IsDelegatesToWrappedCause(t *testing.T) {
-	sentinel := errors.New("sentinel cause")
+	t.Parallel()
+
+	sentinel := errSentinel
 	ce := &ConfigError{Op: OpWrite, Path: "config.json", Err: sentinel}
 
 	if !ce.Is(sentinel) {
@@ -446,21 +493,22 @@ func TestConfigError_IsDelegatesToWrappedCause(t *testing.T) {
 		t.Error("expected errors.Is to reach the wrapped sentinel through ConfigError")
 	}
 
-	unrelated := errors.New("unrelated")
-	if ce.Is(unrelated) {
+	if ce.Is(errUnrelated) {
 		t.Error("expected Is to be false for an unrelated target")
 	}
 
-	if errors.Is(ce, unrelated) {
+	if errors.Is(ce, errUnrelated) {
 		t.Error("expected errors.Is to be false for an unrelated target")
 	}
 }
 
 func TestConfigError_AsDelegatesToWrappedCause(t *testing.T) {
-	cause := &stubAsCause{msg: "typed cause"}
+	t.Parallel()
+
+	cause := &stubAsCauseError{msg: "typed cause"}
 	ce := &ConfigError{Op: OpUnmarshal, Path: "config.json", Err: cause}
 
-	var got *stubAsCause
+	var got *stubAsCauseError
 	if !ce.As(&got) {
 		t.Fatal("expected As to extract the wrapped cause's type")
 	}
@@ -474,12 +522,14 @@ func TestConfigError_AsDelegatesToWrappedCause(t *testing.T) {
 		t.Error("expected As to be false for a type the cause does not implement")
 	}
 
-	if viaErrorsAs, ok := errors.AsType[*stubAsCause](ce); !ok || viaErrorsAs != cause {
+	if viaErrorsAs, ok := errors.AsType[*stubAsCauseError](ce); !ok || viaErrorsAs != cause {
 		t.Error("expected errors.AsType to reach the wrapped cause through ConfigError")
 	}
 }
 
 func TestFindingFromIssue_LineZero_ProducesFileLevelPosition(t *testing.T) {
+	t.Parallel()
+
 	issue := ConfigIssue{
 		Rule:     finding.RuleName("deprecated-linter"),
 		Message:  "golint is deprecated",
@@ -499,6 +549,8 @@ func TestFindingFromIssue_LineZero_ProducesFileLevelPosition(t *testing.T) {
 }
 
 func TestFindingFromIssue_EmptyRule_ReturnsError(t *testing.T) {
+	t.Parallel()
+
 	issue := ConfigIssue{
 		Rule:     finding.RuleName(""),
 		Message:  "missing rule",
@@ -512,6 +564,8 @@ func TestFindingFromIssue_EmptyRule_ReturnsError(t *testing.T) {
 }
 
 func TestFindingsFromIssues_InvalidIssue_ReturnsError(t *testing.T) {
+	t.Parallel()
+
 	issues := []ConfigIssue{
 		{Rule: finding.RuleName(""), Message: "bad", Severity: finding.SeverityInfo, File: finding.FilePath("f")},
 	}
@@ -522,6 +576,8 @@ func TestFindingsFromIssues_InvalidIssue_ReturnsError(t *testing.T) {
 }
 
 func TestSaveJSON_MarshalError_ReturnsConfigError(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 	path := filepath.Join(dir, "bad.json")
 
@@ -536,6 +592,8 @@ func TestSaveJSON_MarshalError_ReturnsConfigError(t *testing.T) {
 }
 
 func TestSaveJSON_MkdirFails_WhenParentIsAFile(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 
 	blocker := filepath.Join(dir, "blocker")
@@ -556,6 +614,8 @@ func TestSaveJSON_MkdirFails_WhenParentIsAFile(t *testing.T) {
 }
 
 func TestProviderSpec_HasRepair(t *testing.T) {
+	t.Parallel()
+
 	withRepair := ProviderSpec{Repair: func(ctx context.Context) (string, error) { return "", nil }}
 	if !withRepair.HasRepair() {
 		t.Error("expected HasRepair=true when Repair is set")
@@ -568,6 +628,8 @@ func TestProviderSpec_HasRepair(t *testing.T) {
 }
 
 func TestErrNoRepair_DeprecatedAliasStable(t *testing.T) {
+	t.Parallel()
+
 	if ErrNoRepair == nil {
 		t.Fatal("expected ErrNoRepair to be non-nil")
 	}
@@ -583,6 +645,8 @@ func TestErrNoRepair_DeprecatedAliasStable(t *testing.T) {
 }
 
 func TestProviderFromSpec_MapsFieldsToToolsDKSpec(t *testing.T) {
+	t.Parallel()
+
 	spec := ProviderSpec{
 		Name:        "golangci-autoconfigure",
 		Description: "keeps .golangci.yml aligned with the project shape",
@@ -618,6 +682,8 @@ func TestProviderFromSpec_MapsFieldsToToolsDKSpec(t *testing.T) {
 }
 
 func TestProviderFromSpec_Detect_ConvertsIssuesToFindings(t *testing.T) {
+	t.Parallel()
+
 	issues := []ConfigIssue{
 		{
 			Rule:     "missing-linter",
@@ -668,7 +734,9 @@ func TestProviderFromSpec_Detect_ConvertsIssuesToFindings(t *testing.T) {
 }
 
 func TestProviderFromSpec_Detect_PropagatesAnalyzeError(t *testing.T) {
-	analyzeFailed := errors.New("analyze failed")
+	t.Parallel()
+
+	analyzeFailed := errAnalyzeFail
 	spec := ProviderSpec{
 		Name:        "oxlint-autoconfigure",
 		Description: "desc",
@@ -686,7 +754,9 @@ func TestProviderFromSpec_Detect_PropagatesAnalyzeError(t *testing.T) {
 }
 
 func TestProviderFromSpec_RepairAdapter_WrapsRepairClosure(t *testing.T) {
-	repairFailed := errors.New("disk full")
+	t.Parallel()
+
+	repairFailed := errDiskFull
 	spec := ProviderSpec{
 		Name:        "golangci-autoconfigure",
 		Description: "desc",
@@ -723,6 +793,8 @@ func TestProviderFromSpec_RepairAdapter_WrapsRepairClosure(t *testing.T) {
 }
 
 func TestProviderFromSpec_SuggestOnly_LeavesRepairNil(t *testing.T) {
+	t.Parallel()
+
 	spec := ProviderSpec{
 		Name:        "biome-autoconfigure",
 		Description: "desc",
@@ -744,6 +816,8 @@ func TestProviderFromSpec_SuggestOnly_LeavesRepairNil(t *testing.T) {
 }
 
 func TestProviderFromSpec_Validation(t *testing.T) {
+	t.Parallel()
+
 	analyze := func(ctx context.Context) ([]ConfigIssue, error) { return nil, nil }
 
 	cases := []struct {
@@ -758,6 +832,8 @@ func TestProviderFromSpec_Validation(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := ProviderFromSpec(tc.spec)
 			if err == nil {
 				t.Fatal("expected validation error")
@@ -771,6 +847,8 @@ func TestProviderFromSpec_Validation(t *testing.T) {
 }
 
 func TestProviderFromSpec_ConvertedSpecPassesToolsDKRegisterValidation(t *testing.T) {
+	t.Parallel()
+
 	spec := ProviderSpec{
 		Name:        "golangci-autoconfigure",
 		Description: "desc",
