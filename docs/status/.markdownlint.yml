@@ -1,0 +1,4 @@
+# Historical status reports are point-in-time records: they document what was
+# true at writing time, so reformatting them (even whitespace) would falsify
+# the record. MD013 is off for this subtree; other rules still apply.
+MD013: false

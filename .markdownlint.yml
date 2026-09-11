@@ -1,0 +1,11 @@
+# MD013 line-length tuning.
+#
+# Tables are exempt: wide comparison tables are intentional and MD060 expects
+# their pipes aligned, which pads rows past any line limit. Code blocks are
+# exempt for the same reason. Historical reports under docs/status/ are
+# point-in-time records that must not be rewritten; they carry their own
+# .markdownlint.yml disabling MD013.
+MD013:
+  line_length: 120
+  tables: false
+  code_blocks: false
