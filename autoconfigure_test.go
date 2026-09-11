@@ -587,22 +587,23 @@ func TestFindingFromIssue_Confidence_PassedThroughWhenSet(t *testing.T) {
 func TestFindingFromIssue_FixStrategyOverride_KeepsSuggestion(t *testing.T) {
 	t.Parallel()
 
-	direct := finding.FixStrategyDirect
+	suggest := finding.FixStrategySuggest
 	issue := ConfigIssue{
 		Rule:        finding.RuleName("config-missing"),
 		Message:     "no config",
 		Severity:    finding.SeverityWarning,
 		File:        finding.FilePath(".oxlintrc.json"),
 		Suggestion:  "run the auto-configurer",
-		FixStrategy: &direct,
+		FixStrategy: &suggest,
 	}
+
 	f, err := FindingFromIssue(finding.ToolName("tool"), issue)
 	if err != nil {
 		t.Fatalf("FindingFromIssue failed: %v", err)
 	}
 
-	if f.FixStrategy != finding.FixStrategyDirect {
-		t.Errorf("expected overridden FixStrategyDirect, got %q", f.FixStrategy)
+	if f.FixStrategy != finding.FixStrategySuggest {
+		t.Errorf("expected overridden FixStrategySuggest, got %q", f.FixStrategy)
 	}
 
 	if f.Suggestion != "run the auto-configurer" {
