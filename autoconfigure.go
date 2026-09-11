@@ -175,12 +175,26 @@ type ConfigIssue struct {
 
 	// Suggestion is the recommended fix text (empty if no auto-fix).
 	Suggestion string
+
+	// Confidence is the issue's confidence. Zero value (ConfidenceNone == 0)
+	// means unset: the finding keeps the builder default (ConfidenceFull),
+	// matching pre-extension behavior. Note this makes an explicit
+	// ConfidenceNone unrepresentable through ConfigIssue; adjust the finding
+	// afterwards if that level is genuinely needed.
+	Confidence finding.Confidence
+
+	// FixStrategy overrides the default strategy selection: nil (the default)
+	// picks FixStrategySuggest when Suggestion is non-empty and
+	// FixStrategyNone otherwise. Set it for issues whose repair is directly
+	// applicable (FixStrategyDirect) rather than suggestion-only.
+	FixStrategy *finding.FixStrategy
 }
 
 // FindingFromIssue converts a ConfigIssue to a finding.Finding with the given
-// tool name. When Suggestion is non-empty, the finding carries a FixStrategySuggest
-// so BuildFlow's repair loop can surface it; otherwise FixStrategyNone is set
-// explicitly to avoid the empty-string zero-value split brain.
+// tool name. The fix strategy is issue.FixStrategy when set; otherwise a
+// non-empty Suggestion yields FixStrategySuggest (so BuildFlow's repair loop
+// can surface it) and an empty one yields FixStrategyNone, set explicitly to
+// avoid the empty-string zero-value split brain.
 //
 // When issue.Line is 0 (unknown), the finding receives a file-level Position via
 // finding.FilePos rather than a fabricated line number.
@@ -200,10 +214,20 @@ func FindingFromIssue(toolName finding.ToolName, issue ConfigIssue) (finding.Fin
 		pos,
 	).WithCategory(finding.CategoryConfiguration)
 
+	if issue.Confidence != 0 {
+		builder = builder.WithConfidence(issue.Confidence)
+	}
+
 	if issue.Suggestion != "" {
-		builder = builder.WithFixStrategy(finding.FixStrategySuggest).
-			WithSuggestion(issue.Suggestion)
-	} else {
+		builder = builder.WithSuggestion(issue.Suggestion)
+	}
+
+	switch {
+	case issue.FixStrategy != nil:
+		builder = builder.WithFixStrategy(*issue.FixStrategy)
+	case issue.Suggestion != "":
+		builder = builder.WithFixStrategy(finding.FixStrategySuggest)
+	default:
 		builder = builder.WithFixStrategy(finding.FixStrategyNone)
 	}
 

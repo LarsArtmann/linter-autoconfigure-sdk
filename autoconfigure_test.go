@@ -563,6 +563,54 @@ func TestFindingFromIssue_EmptyRule_ReturnsError(t *testing.T) {
 	}
 }
 
+func TestFindingFromIssue_Confidence_PassedThroughWhenSet(t *testing.T) {
+	t.Parallel()
+
+	issue := ConfigIssue{
+		Rule:       finding.RuleName("config-missing"),
+		Message:    "no config",
+		Severity:   finding.SeverityWarning,
+		File:       finding.FilePath(".oxlintrc.json"),
+		Confidence: finding.ConfidenceHigh,
+	}
+
+	f, err := FindingFromIssue(finding.ToolName("tool"), issue)
+	if err != nil {
+		t.Fatalf("FindingFromIssue failed: %v", err)
+	}
+
+	if f.Confidence != finding.ConfidenceHigh {
+		t.Errorf("expected ConfidenceHigh, got %q", f.Confidence)
+	}
+}
+
+func TestFindingFromIssue_FixStrategyOverride_KeepsSuggestion(t *testing.T) {
+	t.Parallel()
+
+	direct := finding.FixStrategyDirect
+	issue := ConfigIssue{
+		Rule:        finding.RuleName("config-missing"),
+		Message:     "no config",
+		Severity:    finding.SeverityWarning,
+		File:        finding.FilePath(".oxlintrc.json"),
+		Suggestion:  "run the auto-configurer",
+		FixStrategy: &direct,
+	}
+
+	f, err := FindingFromIssue(finding.ToolName("tool"), issue)
+	if err != nil {
+		t.Fatalf("FindingFromIssue failed: %v", err)
+	}
+
+	if f.FixStrategy != finding.FixStrategyDirect {
+		t.Errorf("expected overridden FixStrategyDirect, got %q", f.FixStrategy)
+	}
+
+	if f.Suggestion != "run the auto-configurer" {
+		t.Errorf("expected suggestion to survive the strategy override, got %q", f.Suggestion)
+	}
+}
+
 func TestFindingsFromIssues_InvalidIssue_ReturnsError(t *testing.T) {
 	t.Parallel()
 
