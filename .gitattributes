@@ -3,3 +3,5 @@
 
 # Binary assets must never go through line-ending normalization or textual merge
 *.png binary
+# Binary files should not be diffed or merged
+*.gif binary
