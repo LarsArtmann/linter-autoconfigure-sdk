@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [0.2.0] - 2026-09-11
+
+### Added
+
 - `ConfigIssue.Confidence` — optional confidence passthrough (zero value keeps
   the builder default `ConfidenceFull`)
 - `ConfigIssue.FixStrategy *finding.FixStrategy` — optional strategy override;

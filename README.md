@@ -4,7 +4,8 @@ Shared foundation for linter auto-configuration tools — config round-trip, fin
 and a provider spec for BuildFlow integration.
 
 <a href="https://github.com/LarsArtmann/linter-autoconfigure-sdk">
-  <img src="assets/branding/social-preview-animated.gif" alt="linter-autoconfigure-sdk — typed install command animating on a GitHub-dark card" width="640">
+  <img src="assets/branding/social-preview-animated.gif"
+    alt="linter-autoconfigure-sdk — typed install command animating on a GitHub-dark card" width="640">
 </a>
 
 [![CI](https://github.com/LarsArtmann/linter-autoconfigure-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/linter-autoconfigure-sdk/actions/workflows/ci.yml)
