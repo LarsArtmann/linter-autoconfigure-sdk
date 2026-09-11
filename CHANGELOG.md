@@ -10,6 +10,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Nothing yet.
 
+### Changed
+
+- Verified the pkg.go.dev `v0.1.0` page renders with the two-value `SaveJSON`
+  signature, `ExampleSaveJSON`, and the README (release day saw a 404 while the
+  proxy already served the version — propagation lag); closes TODO_LIST T24.
+
 ### Fixed
 
 - Nothing yet.
