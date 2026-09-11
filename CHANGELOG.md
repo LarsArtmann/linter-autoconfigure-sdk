@@ -18,6 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - First consumers migrated: `oxlint-auto-configure` (BuildFlow provider via
   `ProviderFromSpec`) and `golangci-lint-auto-configure` (validate health
   findings via `FindingFromIssue`) — see README "Consumers"
+- TODO_LIST T23 closed: the redesigned social preview is live on GitHub —
+  og:image serves the uploaded PNG byte-identical (57,801 bytes, verified via
+  the SKILLS generator's new `--verify` mode)
 
 ### Changed
 
