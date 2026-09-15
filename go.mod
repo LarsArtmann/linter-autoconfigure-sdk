@@ -11,6 +11,6 @@ require (
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/gofrs/flock v0.13.1 // indirect
-	github.com/larsartmann/go-error-family v0.10.0 // indirect
+	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
