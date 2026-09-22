@@ -12,12 +12,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- Nothing yet.
+
+## [0.3.1] - 2026-09-23
+
+### Dependencies
+
+- `go-atomic-write` v0.5.1 → v0.6.0 (verified bump via buildflow); indirect
+  `go-error-family` v0.10.1 → v0.10.2; go directive floor `1.27` → `1.27.1`
+
+### Fixed
+
 - `SaveJSON` now passes `json.Deterministic(true)`: map-bearing configs marshal
   to stable bytes across runs. Without it, map-key iteration order silently
   defeated the `WriteIfChanged` idempotency guarantee (mtime/inode churn on
   every identical write). Regression test `TestSaveJSON_DeterministicMapKeyOrdering`
   (bite-proven: red without the fix). Found during oxlint-auto-configure's
   2026-09-22 determinism audit
+
+### Documentation
+
+- README fact-sync: latest-release claim (was still `v0.1.0`), Go requirement
+  (`1.26` + `GOEXPERIMENT=jsonv2` → `1.27.1`, jsonv2 is standard), and the
+  consumers paragraph (both track tagged releases; the local-`replace`
+  sentence was obsolete)
 
 ## [0.3.0] - 2026-09-22
 
