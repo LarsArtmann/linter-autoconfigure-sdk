@@ -52,6 +52,11 @@ This project is automated with **BuildFlow** (no Makefile, no flake.nix):
   `--strict`'s treatment of those 2 warnings.
 - `go test -race -count=1 ./...` — just the Go tests (covered by buildflow
   `test-race` and `test-coverage` steps).
+- Known tool bug (2026-09-22): `license-check` (go-licenses) fails on the go
+  1.27 floor — it cannot load go 1.27 toolchain stdlib packages ("Package log/slog
+  does not have module info. Non go modules projects are no longer supported").
+  Unrelated to code state; every other step is green. Re-check after a
+  go-licenses release supporting 1.27 toolchains.
 
 Single step: `buildflow -s <step> -v`. Disable result cache during debugging:
 `BUILDFLOW_NO_RESULT_CACHE=1 buildflow ...` — the result cache has a 168h TTL
