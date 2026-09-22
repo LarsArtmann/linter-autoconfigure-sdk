@@ -107,3 +107,65 @@ func ExampleProviderFromSpec() {
 	// golangci-autoconfigure [.golangci.yml] true
 	// golangci-autoconfigure
 }
+
+func ExampleMarshalJSONIndented() {
+	data, err := MarshalJSONIndented(map[string][]string{"categories": {"correctness"}})
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	fmt.Printf("%s", data)
+	// Output:
+	// {
+	//   "categories": [
+	//     "correctness"
+	//   ]
+	// }
+}
+
+func ExampleParseJSON() {
+	cfg, err := ParseJSON[exampleLintConfig]([]byte(`{"linters":["errcheck"]}`))
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	fmt.Println(cfg.Linters)
+	// Output: [errcheck]
+}
+
+func ExampleSaveJSONBytes() {
+	dir, _ := os.MkdirTemp("", "example")
+	defer func() { _ = os.RemoveAll(dir) }()
+
+	path := filepath.Join(dir, ".oxlintrc.json")
+
+	data, err := MarshalJSONIndented(exampleLintConfig{Linters: []string{"errcheck"}})
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	// Trailing newline is the caller's contract: append it to match the
+	// tool's existing file format.
+	changed, err := SaveJSONBytes(path, append(data, '\n'))
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	fmt.Println("changed:", changed)
+	// Output: changed: true
+}
+
+func ExampleWorkingDir() {
+	ctx := finding.WithWorkingDir(context.Background(), "/repo")
+
+	fmt.Println(WorkingDir(ctx), WorkingDir(context.Background()))
+	// Output: /repo .
+}

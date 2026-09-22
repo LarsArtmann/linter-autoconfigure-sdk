@@ -1,6 +1,7 @@
 package autoconfigure
 
 import (
+	"bytes"
 	"context"
 	"encoding/json/jsontext"
 	"errors"
@@ -965,5 +966,222 @@ func TestProviderFromSpec_ConvertedSpecPassesToolsDKRegisterValidation(t *testin
 
 	if got := len(toolsdk.All()); got != before+1 {
 		t.Errorf("expected registry to grow from %d to %d, got %d", before, before+1, got)
+	}
+}
+
+// --- ParseJSON / MarshalJSONIndented / SaveJSONBytes / WorkingDir ---
+
+func TestParseJSON_RoundTrip(t *testing.T) {
+	t.Parallel()
+
+	data, err := MarshalJSONIndented(exampleLintConfig{Linters: []string{"errcheck"}})
+	if err != nil {
+		t.Fatalf("MarshalJSONIndented failed: %v", err)
+	}
+
+	got, err := ParseJSON[exampleLintConfig](data)
+	if err != nil {
+		t.Fatalf("ParseJSON failed: %v", err)
+	}
+
+	if len(got.Linters) != 1 || got.Linters[0] != "errcheck" {
+		t.Errorf("unexpected config: %+v", got)
+	}
+}
+
+func TestParseJSON_Malformed_ReturnsConfigErrorWithoutPath(t *testing.T) {
+	t.Parallel()
+
+	_, err := ParseJSON[struct{}]([]byte(`{"broken"`))
+	if err == nil {
+		t.Fatal("expected unmarshal error, got nil")
+	}
+
+	if err.Op != OpUnmarshal {
+		t.Errorf("expected Op=unmarshal, got %q", err.Op)
+	}
+
+	if err.Path != "" {
+		t.Errorf("expected no Path for byte-level input, got %q", err.Path)
+	}
+
+	var synerr *jsontext.SyntacticError
+	if !errors.As(err, &synerr) {
+		t.Errorf("expected chain to reach *jsontext.SyntacticError, got %v", err)
+	}
+}
+
+func TestMarshalJSONIndented_DeterministicMapKeys(t *testing.T) {
+	t.Parallel()
+
+	cfg := map[string]string{"zulu": "1", "alpha": "2", "mike": "3"}
+
+	first, err := MarshalJSONIndented(cfg)
+	if err != nil {
+		t.Fatalf("MarshalJSONIndented failed: %v", err)
+	}
+
+	second, err := MarshalJSONIndented(cfg)
+	if err != nil {
+		t.Fatalf("MarshalJSONIndented failed: %v", err)
+	}
+
+	if string(first) != string(second) {
+		t.Errorf("expected identical bytes across runs:\nfirst:  %q\nsecond: %q", first, second)
+	}
+
+	want := "{\n  \"alpha\": \"2\",\n  \"mike\": \"3\",\n  \"zulu\": \"1\"\n}"
+	if string(first) != want {
+		t.Errorf("expected sorted keys and 2-space indent, got %q", first)
+	}
+}
+
+func TestMarshalJSONIndented_NoTrailingNewline(t *testing.T) {
+	t.Parallel()
+
+	data, err := MarshalJSONIndented(map[string]int{"a": 1})
+	if err != nil {
+		t.Fatalf("MarshalJSONIndented failed: %v", err)
+	}
+
+	if bytes.HasSuffix(data, []byte("\n")) {
+		t.Errorf("MarshalJSONIndented must not append a trailing newline (caller contract), got %q", data)
+	}
+}
+
+func TestMarshalJSONIndented_MarshalError_ReturnsConfigError(t *testing.T) {
+	t.Parallel()
+
+	_, err := MarshalJSONIndented(func() {})
+	if err == nil {
+		t.Fatal("expected marshal error, got nil")
+	}
+
+	if err.Op != OpMarshal {
+		t.Errorf("expected Op=marshal, got %q", err.Op)
+	}
+}
+
+func TestSaveJSONBytes_WritesExactBytes(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "nested", "config.json")
+
+	want := []byte("{\n  \"a\": 1\n}\n") // includes a caller-appended trailing newline
+
+	changed, err := SaveJSONBytes(path, want)
+	if err != nil {
+		t.Fatalf("SaveJSONBytes failed: %v", err)
+	}
+
+	if !changed {
+		t.Error("expected changed=true on first write")
+	}
+
+	got, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(got, want) {
+		t.Errorf("expected byte-faithful write %q, got %q", want, got)
+	}
+}
+
+func TestSaveJSONBytes_Idempotent_SameBytes(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	data := []byte(`{"a":1}`)
+
+	if _, err := SaveJSONBytes(path, data); err != nil {
+		t.Fatalf("first SaveJSONBytes failed: %v", err)
+	}
+
+	changed, err := SaveJSONBytes(path, data)
+	if err != nil {
+		t.Fatalf("second SaveJSONBytes failed: %v", err)
+	}
+
+	if changed {
+		t.Error("expected changed=false for identical bytes")
+	}
+}
+
+func TestSaveJSONBytes_MkdirFails_WhenParentIsAFile(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	blocker := filepath.Join(dir, "blocker")
+	if err := os.WriteFile(blocker, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := SaveJSONBytes(filepath.Join(blocker, "sub", "config.json"), []byte("{}"))
+	if err == nil {
+		t.Fatal("expected mkdir error, got nil")
+	}
+
+	if err.Op != OpMkdir {
+		t.Errorf("expected Op=mkdir, got %q", err.Op)
+	}
+}
+
+func TestSaveJSON_OutputsMarshalJSONIndentedBytes(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	cfg := map[string]string{"b": "2", "a": "1"}
+
+	if _, err := SaveJSON(path, cfg); err != nil {
+		t.Fatalf("SaveJSON failed: %v", err)
+	}
+
+	onDisk, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want, err := MarshalJSONIndented(cfg)
+	if err != nil {
+		t.Fatalf("MarshalJSONIndented failed: %v", err)
+	}
+
+	if !bytes.Equal(onDisk, want) {
+		t.Errorf("SaveJSON output must equal MarshalJSONIndented bytes:\non disk: %q\nwant:    %q", onDisk, want)
+	}
+}
+
+func TestWorkingDir_ContextValueWins(t *testing.T) {
+	t.Parallel()
+
+	ctx := finding.WithWorkingDir(context.Background(), "/some/root")
+	if got := WorkingDir(ctx); got != "/some/root" {
+		t.Errorf("expected /some/root, got %q", got)
+	}
+}
+
+func TestWorkingDir_FallsBackToDot(t *testing.T) {
+	t.Parallel()
+
+	if got := WorkingDir(context.Background()); got != "." {
+		t.Errorf("expected \".\" fallback, got %q", got)
+	}
+}
+
+func TestConfigError_ErrorFormat_EmptyPath(t *testing.T) {
+	t.Parallel()
+
+	err := &ConfigError{Op: OpMarshal, Err: errRootCause}
+
+	want := "autoconfigure: marshal: root cause"
+	if got := err.Error(); got != want {
+		t.Errorf("expected %q, got %q", want, got)
 	}
 }

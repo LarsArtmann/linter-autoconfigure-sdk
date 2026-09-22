@@ -15,8 +15,7 @@
 // This package owns that plumbing once. Adding a third auto-configurer becomes
 // a config-schema exercise, not a from-scratch build.
 //
-// Build with Go 1.26 requires GOEXPERIMENT=jsonv2 (encoding/json/v2 becomes
-// standard in Go 1.27).
+// The package uses encoding/json/v2 (standard since Go 1.27).
 package autoconfigure
 
 import (
@@ -69,6 +68,10 @@ type ConfigError struct {
 }
 
 func (e *ConfigError) Error() string {
+	if e.Path == "" {
+		return fmt.Sprintf("autoconfigure: %s: %s", e.Op, e.Err)
+	}
+
 	return fmt.Sprintf("autoconfigure: %s %s: %s", e.Op, e.Path, e.Err)
 }
 
@@ -115,17 +118,82 @@ func LoadJSON[T any](path string) (*T, *ConfigError) {
 	return v, nil
 }
 
-// configDirPerm is the mode for parent directories SaveJSON creates. No
-// world-access bit (gosec G301): config paths may name private locations.
+// ParseJSON unmarshals JSON bytes into a new *T. It is the byte-level
+// counterpart of LoadJSON for callers that already read (or generated) the
+// bytes themselves. The returned *ConfigError uses OpUnmarshal and carries no
+// Path: the bytes did not come from a file this helper knows about.
+func ParseJSON[T any](data []byte) (*T, *ConfigError) {
+	v := new(T)
+
+	if err := json.Unmarshal(data, v); err != nil {
+		return nil, &ConfigError{Op: OpUnmarshal, Err: err}
+	}
+
+	return v, nil
+}
+
+// marshalOpts is the canonical JSON configuration shared by every SDK
+// writer (and reusable via MarshalJSONIndented): deterministic map-key
+// ordering so output bytes are stable across runs, and 2-space indentation
+// because linter configs are typically human-edited.
+var marshalOpts = []json.Option{
+	json.Deterministic(true),
+	jsontext.WithIndentPrefix(""),
+	jsontext.WithIndent("  "),
+}
+
+// MarshalJSONIndented marshals v with the SDK's canonical options:
+// deterministic map-key ordering (byte-stable output across runs) and
+// 2-space indentation. It is the helper behind SaveJSON; config writers that
+// need the bytes themselves (for example to append a trailing newline before
+// SaveJSONBytes) use it instead of hand-copying these options.
+func MarshalJSONIndented(v any) ([]byte, *ConfigError) {
+	data, err := json.Marshal(v, marshalOpts...)
+	if err != nil {
+		return nil, &ConfigError{Op: OpMarshal, Err: err}
+	}
+
+	return data, nil
+}
+
+// configDirPerm is the mode for parent directories SaveJSON and SaveJSONBytes
+// create. No world-access bit (gosec G301): config paths may name private
+// locations.
 const configDirPerm os.FileMode = 0o750
 
+// SaveJSONBytes writes raw bytes to path atomically, creating parent
+// directories, and reports whether the file content changed (false means the
+// on-disk content already matched and the write was skipped). It is
+// byte-faithful: no newline is appended or trimmed — whether config files end
+// with a trailing newline is the caller's contract. Combine with
+// MarshalJSONIndented plus a manual '\n' append to reproduce a tool's existing
+// file format exactly.
+//
+// Crash-durable like SaveJSON: fsync'd temp file + atomic rename, so a crash
+// cannot truncate the config. Race-safe: a concurrent modification between
+// the content check and the rename surfaces as a non-nil *ConfigError
+// wrapping atomicwrite.ErrConcurrentModification.
+func SaveJSONBytes(path string, data []byte) (bool, *ConfigError) {
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, configDirPerm); err != nil {
+		return false, &ConfigError{Op: OpMkdir, Path: dir, Err: err}
+	}
+
+	changed, err := atomicwrite.WriteIfChanged(path, data)
+	if err != nil {
+		return false, &ConfigError{Op: OpWrite, Path: path, Err: err}
+	}
+
+	return changed, nil
+}
+
 // SaveJSON marshals v to indented JSON and writes it to path atomically,
-// creating parent directories. Map keys are emitted in sorted order
-// (json.Deterministic), so byte output is stable across runs: the write is
-// idempotent — if the marshalled content is byte-identical to the existing
-// file, the write is skipped entirely (no mtime bump, no spurious diff).
-// Otherwise the file is replaced via an fsync'd temp-file + atomic rename, so
-// a crash cannot truncate the config.
+// creating parent directories: MarshalJSONIndented followed by SaveJSONBytes.
+// Map keys are emitted in sorted order (json.Deterministic), so byte output
+// is stable across runs: the write is idempotent — if the marshalled content
+// is byte-identical to the existing file, the write is skipped entirely (no
+// mtime bump, no spurious diff). Otherwise the file is replaced via an
+// fsync'd temp-file + atomic rename, so a crash cannot truncate the config.
 // Race-safe: a concurrent modification between the content check and the
 // rename surfaces as a non-nil *ConfigError wrapping
 // atomicwrite.ErrConcurrentModification.
@@ -135,23 +203,31 @@ const configDirPerm os.FileMode = 0o750
 // flows use it to distinguish "config updated" from "config already correct".
 //
 // Indented output is used because linter configs are typically human-edited.
+// The output carries no trailing newline; callers whose format needs one use
+// MarshalJSONIndented + SaveJSONBytes directly.
 func SaveJSON(path string, v any) (bool, *ConfigError) {
-	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, configDirPerm); err != nil {
-		return false, &ConfigError{Op: OpMkdir, Path: dir, Err: err}
-	}
-
-	data, err := json.Marshal(v, json.Deterministic(true), jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	data, err := MarshalJSONIndented(v)
 	if err != nil {
-		return false, &ConfigError{Op: OpMarshal, Path: path, Err: err}
+		return false, err
 	}
 
-	changed, err := atomicwrite.WriteIfChanged(path, data)
-	if err != nil {
-		return false, &ConfigError{Op: OpWrite, Path: path, Err: err}
+	return SaveJSONBytes(path, data)
+}
+
+// --- Working directory resolution ---
+
+// WorkingDir returns the working directory carried by ctx via
+// finding.WorkingDirFromContext, falling back to "." (the process working
+// directory) when the context carries none — the convention BuildFlow
+// providers follow so the WithWorkingDir fan-out works identically across
+// tools. Analyze/Repair closures should resolve config paths through this
+// helper instead of hand-rolling the fallback.
+func WorkingDir(ctx context.Context) string {
+	if dir := finding.WorkingDirFromContext(ctx); dir != "" {
+		return dir
 	}
 
-	return changed, nil
+	return "."
 }
 
 // --- Finding emission for config issues ---
