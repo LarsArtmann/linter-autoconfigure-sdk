@@ -120,10 +120,12 @@ func LoadJSON[T any](path string) (*T, *ConfigError) {
 const configDirPerm os.FileMode = 0o750
 
 // SaveJSON marshals v to indented JSON and writes it to path atomically,
-// creating parent directories. The write is idempotent: if the marshalled
-// content is byte-identical to the existing file, the write is skipped entirely
-// (no mtime bump, no spurious diff). Otherwise the file is replaced via an
-// fsync'd temp-file + atomic rename, so a crash cannot truncate the config.
+// creating parent directories. Map keys are emitted in sorted order
+// (json.Deterministic), so byte output is stable across runs: the write is
+// idempotent — if the marshalled content is byte-identical to the existing
+// file, the write is skipped entirely (no mtime bump, no spurious diff).
+// Otherwise the file is replaced via an fsync'd temp-file + atomic rename, so
+// a crash cannot truncate the config.
 // Race-safe: a concurrent modification between the content check and the
 // rename surfaces as a non-nil *ConfigError wrapping
 // atomicwrite.ErrConcurrentModification.
@@ -139,7 +141,7 @@ func SaveJSON(path string, v any) (bool, *ConfigError) {
 		return false, &ConfigError{Op: OpMkdir, Path: dir, Err: err}
 	}
 
-	data, err := json.Marshal(v, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	data, err := json.Marshal(v, json.Deterministic(true), jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		return false, &ConfigError{Op: OpMarshal, Path: path, Err: err}
 	}

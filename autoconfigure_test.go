@@ -276,6 +276,52 @@ func TestSaveJSON_Idempotent_NoRewriteOnSameContent(t *testing.T) {
 	}
 }
 
+// TestSaveJSON_DeterministicMapKeyOrdering pins sorted map-key emission. Under
+// GOEXPERIMENT=jsonv2, json.Marshal without json.Deterministic walks maps in
+// randomized iteration order, so map-bearing configs would produce different
+// bytes on every SaveJSON call — silently defeating the idempotent-skip
+// guarantee and churning mtime, inode, and consumer-side config diffs.
+func TestSaveJSON_DeterministicMapKeyOrdering(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	// Nested maps whose lexical order differs from any literal order.
+	cfg := map[string]any{
+		"rules":    map[string]any{"no-unused-vars": "error", "eqeqeq": "warn", "curly": "error"},
+		"settings": map[string]any{"z": 1, "a": 2, "m": 3},
+		"plugins":  []string{"typescript", "react"},
+	}
+
+	if _, err := SaveJSON(path, cfg); err != nil {
+		t.Fatalf("first SaveJSON: %v", err)
+	}
+
+	reference, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read reference: %v", err)
+	}
+
+	for i := range 20 {
+		changed, err := SaveJSON(path, cfg)
+		if err != nil {
+			t.Fatalf("SaveJSON iteration %d: %v", i, err)
+		}
+		if changed {
+			t.Fatalf("iteration %d rewrote the file: marshal output was not byte-stable", i)
+		}
+
+		current, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("read iteration %d: %v", i, err)
+		}
+		if string(current) != string(reference) {
+			t.Fatalf("iteration %d produced different bytes:\nreference:\n%s\ngot:\n%s", i, reference, current)
+		}
+	}
+}
+
 func TestSaveJSON_ReportsChanged(t *testing.T) {
 	t.Parallel()
 
