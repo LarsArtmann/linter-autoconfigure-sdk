@@ -12,7 +12,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- Nothing yet.
+- `SaveJSON` now passes `json.Deterministic(true)`: map-bearing configs marshal
+  to stable bytes across runs. Without it, map-key iteration order silently
+  defeated the `WriteIfChanged` idempotency guarantee (mtime/inode churn on
+  every identical write). Regression test `TestSaveJSON_DeterministicMapKeyOrdering`
+  (bite-proven: red without the fix). Found during oxlint-auto-configure's
+  2026-09-22 determinism audit
+
+## [0.3.0] - 2026-09-22
+
+### Changed
+
+- Go directive floor `1.26.7` → `1.27`: go-finding v1.13.0 ships a minor-form
+  go 1.27 floor (ADR-0001 fleet-minor) and tidy settles this module at go 1.27.
+  Replaces the accidental patch-form `go 1.26.7` floor that v0.2.0 published,
+  which re-poisoned consumers on every tidy
+- `encoding/json/v2` is standard in Go 1.27: the `GOEXPERIMENT=jsonv2`
+  requirement for building this module is gone (the `.envrc` export is now
+  inert legacy)
+
+### Dependencies
+
+- `go-finding` and `go-finding/toolsdk` v1.10.0 → v1.13.0; `go-atomic-write`
+  unchanged at v0.5.1
 
 ## [0.2.0] - 2026-09-11
 

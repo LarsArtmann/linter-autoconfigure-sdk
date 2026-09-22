@@ -20,23 +20,23 @@ Boundary decision: linter-recommendation findings with per-linter
 categories/tags (golangci's `missing-linter`) stay app-side; ConfigIssue
 models config-health issues only (no Category/Tags fields by design).
 
-Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.26+,
+Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.27+
+(`v0.3.0` floor),
 `github.com/larsartmann/go-finding` (always latest),
 `github.com/larsartmann/go-finding/toolsdk` (always latest — the canonical
 BuildFlow provider contract, consumed via `ProviderFromSpec`), and
 `github.com/larsartmann/go-atomic-write` (always latest — used by `SaveJSON`
 for idempotent, crash-durable writes).
 
-**go.mod gotcha:** the `go 1.26.7` patch floor is dependency-imposed
-(go-finding declares `go 1.26.7`); `go mod tidy` reinstates it after any
-normalization to `go 1.26`, so the fix belongs upstream, not here.
+**go.mod gotcha (resolved at v0.3.0):** the old `go 1.26.7` patch floor was
+dependency-imposed (go-finding declared it); go-finding v1.13.0 ships a
+minor-form go 1.27 floor, and tidy now settles this module at `go 1.27`.
+Patch-form floors re-poison consumers on every tidy — keep floors minor-form.
 
-**Always stay on the latest go-finding version.** go-finding v1.2+ imports
-`encoding/json/v2` and `encoding/json/jsontext`, which are gated behind the
-`//go:build goexperiment.jsonv2` build tag in Go 1.26.x. This is NOT a
-permanent incompatibility — it just requires `GOEXPERIMENT=jsonv2` to be set in
-the environment. The repo's `.envrc` handles this automatically via direnv
-(`direnv allow` on first clone). See "GOEXPERIMENT=jsonv2" below for details.
+**Always stay on the latest go-finding version.** Since Go 1.27,
+`encoding/json/v2` and `encoding/json/jsontext` are standard (no build tag);
+the old `GOEXPERIMENT=jsonv2` requirement is gone. The repo's `.envrc` still
+exports it via direnv — harmless on 1.27, required if anyone builds on 1.26.
 
 ## Build, test, lint
 
@@ -115,16 +115,12 @@ it is missing (verified empirically 2026-09-09: the step passes green on a tree
 with no `reports/` dir). No tracked placeholder file is needed — do not
 force-add files into `reports/`.
 
-## GOEXPERIMENT=jsonv2 (required)
+## GOEXPERIMENT=jsonv2 (historical; not required on go 1.27)
 
-go-finding (latest) imports `encoding/json/v2`, which is gated behind
-`//go:build goexperiment.jsonv2` in Go 1.26.x. The repo's `.envrc` contains
-`use_go_env` — a direnv helper from the LarsArtmann home-managed direnv lib
-that auto-detects `encoding/json/v2` imports in `.go` files and exports
-`GOEXPERIMENT=jsonv2` on `cd`.
-
-If direnv is unavailable (CI, containers), set the env var explicitly:
-`GOEXPERIMENT=jsonv2 go build ./...` or `GOEXPERIMENT=jsonv2 buildflow`.
+`encoding/json/v2` was gated behind `//go:build goexperiment.jsonv2` in Go
+1.26.x; the repo's `.envrc` exported `GOEXPERIMENT=jsonv2` via direnv for
+that era. On the go 1.27 floor (v0.3.0) jsonv2 is standard and the variable is
+inert; it only matters when building this module with a Go 1.26 toolchain.
 
 `go env -w GOEXPERIMENT=jsonv2` does NOT work on this NixOS host (read-only
 `~/.config/go/env`). The `.envrc` is the durable mechanism. Do not rely on
@@ -170,3 +166,8 @@ jsonv2 equivalent of v1's `json.SyntaxError`).
   a standalone directive on the line above does NOT suppress.
 - Exported symbols carry godoc comments (matches existing style; also keeps
   buildflow lint quiet).
+- All production `encoding/json/v2` marshals pass `json.Deterministic(true)`
+  (policy mirrors go-finding's `json.go` marshalOpts). Non-deterministic map
+  keys silently defeat `WriteIfChanged` idempotency — the 2026-09-22 audit
+  caught exactly that in `SaveJSON`. Any new jsonv2 output path gets the
+  option on day one.
