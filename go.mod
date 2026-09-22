@@ -1,11 +1,11 @@
 module github.com/larsartmann/linter-autoconfigure-sdk
 
-go 1.26.7
+go 1.27
 
 require (
 	github.com/larsartmann/go-atomic-write v0.5.1
-	github.com/larsartmann/go-finding v1.10.0
-	github.com/larsartmann/go-finding/toolsdk v1.10.0
+	github.com/larsartmann/go-finding v1.13.0
+	github.com/larsartmann/go-finding/toolsdk v1.13.0
 )
 
 require (
