@@ -304,18 +304,20 @@ func TestSaveJSON_DeterministicMapKeyOrdering(t *testing.T) {
 	}
 
 	for i := range 20 {
-		changed, err := SaveJSON(path, cfg)
-		if err != nil {
-			t.Fatalf("SaveJSON iteration %d: %v", i, err)
+		changed, saveErr := SaveJSON(path, cfg)
+		if saveErr != nil {
+			t.Fatalf("SaveJSON iteration %d: %v", i, saveErr)
 		}
+
 		if changed {
 			t.Fatalf("iteration %d rewrote the file: marshal output was not byte-stable", i)
 		}
 
-		current, err := os.ReadFile(path)
-		if err != nil {
-			t.Fatalf("read iteration %d: %v", i, err)
+		current, readErr := os.ReadFile(path)
+		if readErr != nil {
+			t.Fatalf("read iteration %d: %v", i, readErr)
 		}
+
 		if string(current) != string(reference) {
 			t.Fatalf("iteration %d produced different bytes:\nreference:\n%s\ngot:\n%s", i, reference, current)
 		}
