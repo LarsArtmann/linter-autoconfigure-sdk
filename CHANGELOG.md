@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [0.6.0] - 2026-09-23
+
+### Added
+
 - **Determinism enforcement**: `determinism.NewAnalyzer()` (new
   `determinism` subpackage) flags `encoding/json/v2` `Marshal` calls without
   an explicit `json.Deterministic` option — the bug class that made `SaveJSON`
@@ -18,10 +28,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `go run .../cmd/jsondeterminism ./...` — no golangci-lint plugin build.
   Bite-checked: the analysistest fixture reproduces the original bare-marshal
   gap and must be flagged. This repo self-enforces in CI.
-
-### Fixed
-
-- Nothing yet.
 
 ## [0.5.0] - 2026-09-23
 
