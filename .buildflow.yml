@@ -39,8 +39,13 @@ auto_fix: false
 # - license-check: go-licenses cannot parse the go 1.27 toolchain stdlib
 #   ("Package os/exec does not have module info"); documented SDK AGENTS.md.
 #   Re-enable when the tool learns go 1.27.
+# - go-structure-linter: flags the intentional flat layout (all files at
+#   root: the whole module is public API, documented in AGENTS.md "Flat
+#   layout is intentional" and the .golangci.yml header). Re-enable only if
+#   the layout decision is reversed.
 skip_steps:
   - license-check
+  - go-structure-linter
 
 # Logging
 verbose: false
