@@ -184,7 +184,8 @@ needed once); pkg.go.dev 404s for a fresh tag even after the proxy serves it
 (minutes-to-longer lag; the proxy is the source of truth). Tags are immutable
 once the proxy caches them — never re-tag, always cut a new version.
 Release history: v0.1.0, v0.2.0, v0.3.0 (go 1.27 floor), v0.3.1 (determinism
-fix), v0.4.0 (I/O matrix + diff engine + ConfigFiles), v0.4.1 (nil-ctx fix), v0.5.0 (bootstrap provider), v0.6.0 (determinism analyzer + vettool cmd).
+fix), v0.4.0 (I/O matrix + diff engine + ConfigFiles), v0.4.1 (nil-ctx fix),
+v0.5.0 (bootstrap provider), v0.6.0 (determinism analyzer + vettool cmd).
 
 ## `reports/` is buildflow-owned (nothing tracked inside)
 
