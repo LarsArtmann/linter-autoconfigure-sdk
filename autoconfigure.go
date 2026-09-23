@@ -10,6 +10,9 @@
 // What they reinvent identically is the surrounding plumbing:
 //   - Reading and writing YAML/JSON config files (round-trip)
 //   - Emitting findings for config issues (priority → Severity, fix → suggestion)
+//   - Diffing two configs into a typed change list (maps, sets, blobs)
+//   - Discovering which of several recognized config filenames exists
+//   - Deriving a generate-if-missing provider lifecycle from one spec (bootstrap)
 //   - Wiring into BuildFlow as a Detector + Repairer
 //
 // This package owns that plumbing once. Adding a third auto-configurer becomes
@@ -412,7 +415,10 @@ var (
 //   - Name, Description pass through verbatim; Name also becomes the tool name
 //     stamped onto every finding the Detect adapter emits.
 //   - ConfigFiles (falling back to ConfigFile alone) becomes Inputs: the
-//     config files are what the tool reads.
+//     config files are what the tool reads. Every recognized filename is an
+//     Input, not just the write target, so BuildFlow re-runs the tool when
+//     any of them appears or changes — including user-curated formats the
+//     tool must never stomp.
 //   - Analyze is wrapped as a finding.Detector that converts each ConfigIssue
 //     via FindingFromIssue.
 //   - A non-nil Repair is wrapped as a toolsdk.Repairer; a nil Repair stays nil,

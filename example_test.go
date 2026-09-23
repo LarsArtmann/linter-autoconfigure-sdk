@@ -170,6 +170,22 @@ func ExampleWorkingDir() {
 	// Output: /repo .
 }
 
+func ExampleFirstExisting() {
+	dir, _ := os.MkdirTemp("", "example")
+	defer func() { _ = os.RemoveAll(dir) }()
+
+	_ = os.WriteFile(filepath.Join(dir, ".oxlintrc.json"), []byte("{}"), 0o644)
+
+	path, found := FirstExisting(dir, ".oxlintrc.json", ".oxlintrc.jsonc")
+	fmt.Println(filepath.Base(path), found)
+
+	missing, found := FirstExisting(dir, ".eslintrc.json", ".eslintrc.jsonc")
+	fmt.Println(filepath.Base(missing), found)
+	// Output:
+	// .oxlintrc.json true
+	// .eslintrc.json false
+}
+
 func ExampleDiffMaps() {
 	before := map[string]string{"no-console": "off", "no-debugger": "off"}
 	after := map[string]string{"no-console": "warn"}
