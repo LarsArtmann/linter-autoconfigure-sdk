@@ -3,7 +3,7 @@
 Honest inventory of what this SDK does, by status. Statuses:
 `FULLY_FUNCTIONAL`, `PARTIALLY_FUNCTIONAL`, `BROKEN`, `PLANNED`.
 Evidence cites symbols (not line numbers, which rot); claims were verified
-against the test suite (green, 100.0% statement coverage, 2026-09-10).
+against the test suite (green, race-enabled, 2026-09-23).
 
 ## Config I/O
 

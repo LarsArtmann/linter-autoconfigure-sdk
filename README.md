@@ -270,7 +270,7 @@ directives remain in the fleet.
 
 ## Status
 
-v0.5.x — config round-trip, finding emission, the BuildFlow provider bridge,
+v0.6.x — config round-trip, finding emission, the BuildFlow provider bridge,
 the config diff engine, and the bootstrap provider lifecycle are stable in
 shape; breaking changes remain acceptable until v1 (pre-1.0).
 BuildFlow wiring is anchored to go-finding's canonical `toolsdk` contract

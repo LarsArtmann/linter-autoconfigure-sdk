@@ -38,12 +38,17 @@ Provider — `ProviderFromSpec` (+ `HasRepair()`), validation sentinels
 is the explicit opt-out; opaque `opts...` spreads are not flagged
 (conservative). Bite-check: `determinism/testdata` analysistest.
 
-**Consumer migration state (2026-09-23):** both consumers build against TAGS
-(no replace directives remain in the fleet). oxlint-auto-configure is fully
-migrated onto v0.4.1 (I/O helpers, diff engine aliases `Change`/`Kind`,
-`ConfigFiles` + `FirstExisting` discovery); golangci-lint-auto-configure uses
-`FindingFromIssue` + the diff engine (`ChangeType = autoconfigure.Kind` alias,
-int enum deleted). BuildFlow pins the SDK as indirect only.
+**Consumer migration state (2026-09-23, late):** both consumers build against
+TAGS (no replace directives remain in the fleet). oxlint-auto-configure
+(v0.9.1) is FULLY on the SDK: I/O helpers, diff engine aliases
+`Change`/`Kind`, `ConfigFiles`+`FirstExisting` discovery, AND the bootstrap
+provider lifecycle via `BootstrapProviderFromSpec` (its `validate` also runs a
+drift advisory); its gate + CI run `cmd/jsondeterminism`.
+golangci-lint-auto-configure (v0.10.0) uses `FindingFromIssue`, the diff
+engine (`ChangeType = autoconfigure.Kind`), atomic config/backup writes via
+go-atomic-write behind `config.NewOSFS()`, and `json.Deterministic(true)` on
+every marshal (enforced by the same analyzer in its gate + CI). BuildFlow
+pins the SDK v0.6.0 as indirect only.
 
 Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.27.1+
 (v0.3.1+ floor; dependency-imposed patch form — see gotcha below),
