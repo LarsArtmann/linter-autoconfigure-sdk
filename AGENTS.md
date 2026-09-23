@@ -80,11 +80,16 @@ This project is automated with **BuildFlow** (no Makefile, no flake.nix):
 - `buildflow` — full quality pipeline (detect mode). Exits 0 when healthy.
 - `buildflow --fix` — detect + auto-fix. Exits 0 when healthy.
 - `buildflow --fix --fail-on-findings` — strict; exits non-zero if ANY finding
-  remains. As of 2026-09-11 the only remaining findings are the 2
-  go-structure-linter warnings about the intentional flat layout (see the
-  note in `.golangci.yml`); everything else was driven to zero (the MD013
-  flood is gone, golangci-lint is at 0 issues), so strict is green up to
-  `--strict`'s treatment of those 2 warnings.
+  remains. As of 2026-09-23 the strict baseline is 9 known advisories (all
+  steps green, 38/38; plain mode exits 0):
+  branching-flow 5 (the nil-deref warning at `bootstrap.go` `return *parsed`
+  is a proven false positive — `ParseJSON` returns `new(T)`-backed non-nil on
+  success; the rest are phantom-type style suggestions for the plain-string
+  `Change.Old/New` and `FixCommand`/`CountLabel` fields, which are plain by
+  design), cqrs-lint 2 (false positives — this repo imports no go-cqrs-lite),
+  and go-auto-upgrade 2 (samber/lo adoption nudges; the SDK keeps third-party
+  deps to the larsartmann family). Revisit only if the advisories start
+  flagging real code.
 - `go test -race -count=1 ./...` — just the Go tests (covered by buildflow
   `test-race` and `test-coverage` steps).
 - Known tool bug (2026-09-22; SKIPPED via config since 2026-09-23):
@@ -106,6 +111,16 @@ is NOT possible yet: the BuildFlow repo is PRIVATE again (2026-09-23; the
 `BUILDFLOW_NO_RESULT_CACHE=1 buildflow ...` — the result cache has a 168h TTL
 and can serve stale green results after a tool upgrade changed the verdict
 (this masked a real golangci-lint-auto-configure gate failure on 2026-09-11).
+
+**buildflow in non-direnv shells** (AI tool shells, cron): the shell's
+`GOTOOLCHAIN=local` beats `.buildflow.yml` env, and the system go 1.26.7
+fails the go.mod floor. Working recipe (verified 2026-09-23):
+`env -u GOTOOLCHAIN BUILDFLOW_NO_RESULT_CACHE=1 PATH=<go127-bin>:/tmp/gv127:$PATH buildflow --fail-on-findings`
+where `<go127-bin>` is a nix-store `*-go-1.27*/bin` and `/tmp/gv127` holds a
+govulncheck BUILT WITH 1.27
+(`GOBIN=/tmp/gv127 go install golang.org/x/vuln/cmd/govulncheck@latest`) —
+the system govulncheck is built with 1.26 and fails against 1.27 stdlib
+with ~24 bogus "package requires newer Go version" findings.
 
 ## Lint configuration (2026-09-11 wave)
 
