@@ -152,61 +152,82 @@ flagged per skill contract, one-off, not propagated).
 
 **NOW (unblocked, this session's momentum):**
 
-1. You: upload the social preview (Settings → General → Social preview →
-   Edit) — closes T23; then I verify og:image live.
+1. ~~You: upload the social preview (Settings → General → Social preview →
+   Edit) — closes T23; then I verify og:image live.~~ done — uploaded +
+   byte-verified 2026-09-11
 2. Empirical animation test: post the GIF once in Discord/Slack and embed in
    the SDK README — converts documentation-grade claims into artifact-grade.
 3. Scratch-repo test for GitHub's own card-slot GIF animation (the last
    unverified matrix cell).
-4. Add the GIF embed snippet to the SDK README (needs your wording OK).
-5. `--verify <owner/repo>` on generate.sh: post-upload og:image check.
-6. `--audit` sweep: list LarsArtmann repos missing social previews.
-7. `--check-env` doctor: fc-list guards for JetBrains Mono/Noto Sans (the
-   0.6em math silently breaks under font substitution).
-8. Shell gate in SKILLS: `bash -n` + shellcheck over all `scripts/*.sh` in
-   check-skills.sh (the scripts surface keeps growing).
-9. File today's failure modes as `docs/feedback/new/` entries (SKILLS
-   feedback loop; constructed-URL + VHS time-box + the four animation bugs).
-10. Read SKILLS AGENTS.md §tooling conventions (shfmt/dprint) before next
-    file write; add a one-line pointer near the top for future sessions.
-11. SDK: fix markdownlint MD013 config → strict buildflow green.
-12. SDK: reformat TODO_LIST/CHANGELOG tables unpadded → kills the
-    whitespace-edit risk at the root.
-13. Convert the 07:45 report's three unanswered questions into defaults
-    with an expiry date (see g).
+4. ~~Add the GIF embed snippet to the SDK README (needs your wording OK).~~
+   done — width-640 hero embed under the intro
+5. ~~`--verify <owner/repo>` on generate.sh: post-upload og:image check.~~
+   done — shipped + tested 2026-09-11 (14:48 report a8)
+6. ~~`--audit` sweep: list LarsArtmann repos missing social previews.~~ done —
+   shipped 2026-09-11 (a8; pagination/`--limit` remain rough edges)
+7. ~~`--check-env` doctor: fc-list guards for JetBrains Mono/Noto Sans (the
+   0.6em math silently breaks under font substitution).~~ done — verified green
+   on this host 2026-09-11 (a8)
+8. ~~Shell gate in SKILLS: `bash -n` + shellcheck over all `scripts/*.sh` in
+   check-skills.sh (the scripts surface keeps growing).~~ done 2026-09-11 (a9)
+9. ~~File today's failure modes as `docs/feedback/new/` entries (SKILLS
+   feedback loop; constructed-URL + VHS time-box + the four animation bugs).~~
+   done 2026-09-11 (a13)
+10. ~~Read SKILLS AGENTS.md §tooling conventions (shfmt/dprint) before next
+    file write; add a one-line pointer near the top for future sessions.~~ done
+    2026-09-11 (14:48 report a13)
+11. ~~SDK: fix markdownlint MD013 config → strict buildflow green.~~ done at
+    `0cc2c2e`
+12. ~~SDK: reformat TODO_LIST/CHANGELOG tables unpadded → kills the
+    whitespace-edit risk at the root.~~ decided — keep padded (MD060 aligned
+    style is intended; 2026-09-11 14:48 e.10)
+13. ~~Convert the 07:45 report's three unanswered questions into defaults
+    with an expiry date (see g).~~ done — HARVEST ruling recorded in TODO_LIST
+    header (expiry re-check 2026-10-11)
 
 **NEXT (high value, bounded):**
 
-14. SDK: migrate golangci-lint-auto-configure onto the SDK (kills
-    "Imported by: 0" — the single biggest leverage item).
-15. SDK: migrate oxlint-auto-configure.
-16. Cut SDK v0.2.0 after the first consumer merge.
-17. Script the SDK release verification (clean-dir `go get` + consumer
-    compile).
-18. Guard README code snippets against drift (doc-snippet compile test).
-19. Dimension/size guard CI check for social-preview assets.
+14. ~~SDK: migrate golangci-lint-auto-configure onto the SDK (kills
+    "Imported by: 0" — the single biggest leverage item).~~ done — v0.2.0-era;
+    deep adoption through v0.10.0 (2026-09-23)
+15. ~~SDK: migrate oxlint-auto-configure.~~ done — v0.2.0-era; fully on the SDK
+    by v0.9.1 (2026-09-23)
+16. ~~Cut SDK v0.2.0 after the first consumer merge.~~ done 2026-09-11; ladder
+    through v0.6.0
+17. ~~Script the SDK release verification (clean-dir `go get` + consumer
+    compile).~~ done at `bcd9302`
+18. ~~Guard README code snippets against drift (doc-snippet compile test).~~
+    done at `bcd9302` — caught real drift on its first run
+19. ~~Dimension/size guard CI check for social-preview assets.~~ done at
+    `522c660`
 20. Extract website-launch's release/launch prose into checkbox runbooks.
 21. Protect `v*` tags via GitHub rulesets (tag immutability).
-22. Update README "Consumers" after each migration.
-23. CI + pkg.go.dev badges in the SDK README.
+22. ~~Update README "Consumers" after each migration.~~ done — kept current
+    (fixed again 2026-09-23)
+23. ~~CI + pkg.go.dev badges in the SDK README.~~ done
 24. Scheduled proxy-check job for BuildFlow publicity (automates T21).
 25. Cross-check T21 evidence via `go list -m github.com/larsartmann/buildflow@latest`.
 26. Post-release T+24h verification checklist as a runnable script.
-27. GOEXPERIMENT=jsonv2 teardown plan for Go 1.27.
-28. Upstream go-finding `go 1.26.7` patch-floor fix (verify-before-filing
-    first).
+27. ~~GOEXPERIMENT=jsonv2 teardown plan for Go 1.27.~~ done — fully retired
+    2026-09-23
+28. ~~Upstream go-finding `go 1.26.7` patch-floor fix (verify-before-filing
+    first).~~ moot — v1.13.0 moved to minor-form (CHANGELOG `[0.3.0]`)
 29. SKILLS: docs-health pass over docs/status/ (ANNOTATE/ARCHIVE the ten
     resolved reports; T35).
 30. Renovate config for SHA-pinned GitHub Actions.
 31. Coverage badge/threshold from the SDK's CI artifact.
 32. `ExampleFindingsFromIssues` (missing from pkg.go.dev example set).
 33. Check the README comparison table's narrow/mobile rendering.
-34. GitHub repo topics/description refresh across LarsArtmann repos.
-35. SECURITY.md for the SDK (cheap, pre-consumers).
-36. CODEOWNERS decision (probably skip; record it).
-37. HARVEST both reports' f-lists into TODO_LIST/ROADMAP properly (g3).
+34. ~~GitHub repo topics/description refresh across LarsArtmann repos.~~ done
+    for this repo 2026-09-10 (`4e86443` era)
+35. ~~SECURITY.md for the SDK (cheap, pre-consumers).~~ done at `4e86443`
+36. ~~CODEOWNERS decision (probably skip; record it).~~ done — kept
+    (`4e86443`)
+37. ~~HARVEST both reports' f-lists into TODO_LIST/ROADMAP properly (g3).~~
+    done — 2026-09-11 defaulted ruling, executed same day (T27-T30)
 38. Website-launch phase split (802 → sub-500 with references/).
-39. Status-report HTML-vs-md default: decide (recurred 3+ times).
+39. ~~Status-report HTML-vs-md default: decide (recurred 3+ times).~~ done —
+    defaulted permanently: explicit user instruction wins, flagged per report
 40. `how-to-write-skills.md` location decision (ROADMAP open question).
 
 **ROADMAP fuel (ideas, not commitments):**
@@ -244,3 +265,17 @@ flagged per skill contract, one-off, not propagated).
 ---
 
 **WAITING FOR INSTRUCTIONS.**
+
+---
+
+## Resolution (2026-09-23, docs-health pass)
+
+26 of 50 items resolved inline. SDK-side: consumers migrated (v0.2.0-era,
+deep adoption through v0.9.1/v0.10.0), MD013 at `0cc2c2e`, GOEXPERIMENT fully
+retired, guards at `bcd9302`/`522c660`, badges live. SKILLS-side items (5-10,
+20, 29-33, 38, 40, 46-50) shipped same-day per the 14:48 report and stay
+that repo's record. g1 (channels) defaulted to GitHub+README with expiry
+2026-10-11; g2 (scratch-repo animation test) = TODO_LIST T30; g3 (harvest)
+executed. Still open here: 2/3 (empirical animation validation — T30),
+21/24 (tag rulesets, publicity job), 25/31/32/33/34-fleet items, and the
+ROADMAP-fuel tail (41-45).

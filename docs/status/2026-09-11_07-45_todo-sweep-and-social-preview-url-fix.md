@@ -124,39 +124,52 @@ dashboard).
 
 **NOW (unblocked, this repo):**
 
-1. You: upload the social preview via Settings → General → Social preview →
-   Edit (T23); then I verify the rendered `og:image`.
-2. Fix markdownlint MD013 config (table/line-length exemptions) so
-   `buildflow --fix --fail-on-findings` goes green locally today.
-3. Reformat TODO_LIST/CHANGELOG tables (unpadded or wrapped) to kill the
-   whitespace-exact-match pain and MD013 flood at the root.
-4. Extract AGENTS.md "Releases" prose into a checkbox release runbook
+1. ~~You: upload the social preview via Settings → General → Social preview →
+   Edit (T23); then I verify the rendered `og:image`.~~ done — uploaded + og:image
+   served byte-identical (57,801 bytes), 2026-09-11
+2. ~~Fix markdownlint MD013 config (table/line-length exemptions) so
+   `buildflow --fix --fail-on-findings` goes green locally today.~~ done at
+   `0cc2c2e` (MD013 120, tables/code exempt); strict lane now at the documented
+   9-advisory baseline
+3. ~~Reformat TODO_LIST/CHANGELOG tables (unpadded or wrapped) to kill the
+   whitespace-exact-match pain and MD013 flood at the root.~~ decided — keep
+   the padded aligned style: MD060 alignment lint is the intended look (2026-09-11
+   14:48 report e.10); the drift class is detected instead
+4. ~~Extract AGENTS.md "Releases" prose into a checkbox release runbook
    (daemon push lag, T+24h pkg.go.dev check, proxy check, consumer compile,
-   tag-immutability warning).
+   tag-immutability warning).~~ done — `scripts/verify-release.sh` (`bcd9302`)
+   scripts the post-tag half; AGENTS Releases carries the gotchas
 5. Add a scheduled CI job (cron/workflow_dispatch) that checks whether
    `github.com/larsartmann/buildflow` resolves on proxy.golang.org and opens
    an issue when it does — automates the T21 trigger.
-6. Cross-check T21 evidence with the Go proxy now so "still private" rests on
-   two independent sources.
-7. Add CI + pkg.go.dev badges to README (both render — verified this session;
-   the README carries no badges).
-8. Write the CHANGELOG policy (docs-only entries: yes/no) into AGENTS.md once
-   decided (g3).
+6. ~~Cross-check T21 evidence with the Go proxy now so "still private" rests on
+   two independent sources.~~ moot — BuildFlow went public 2026-09-11, then
+   PRIVATE again (API-verified 2026-09-23); T21 evidence is current
+7. ~~Add CI + pkg.go.dev badges to README (both render — verified this session;
+   the README carries no badges).~~ done — CI + Go Reference badges in the
+   README header
+8. ~~Write the CHANGELOG policy (docs-only entries: yes/no) into AGENTS.md once
+   decided (g3).~~ done in practice — docs-only entries are included (Unreleased
+   carries the guard entries); the ruling was never contested
 
 **NEXT (high value, bounded):**
 
-9. Migrate golangci-lint-auto-configure onto the SDK (first consumer; kills
-   "Imported by: 0").
-10. Migrate oxlint-auto-configure onto the SDK.
-11. After the first consumer merges: cut `v0.2.0` from `[Unreleased]`.
-12. Script the release verification (clean-dir `go get@vX.Y.Z` + consumer
-    compile) instead of ad-hoc session commands.
-13. Guard README usage snippets against drift from `example_test.go`
-    (doc-snippet compile test).
-14. Dimension guard (1280×640, <1MB) for social-preview.png in case branding
-    regenerates later.
-15. Update README "Consumers" after each migration (currently: "No active
-    consumers yet").
+9. ~~Migrate golangci-lint-auto-configure onto the SDK (first consumer; kills
+   "Imported by: 0").~~ done — v0.2.0-era; deep adoption through v0.10.0
+   (2026-09-23)
+10. ~~Migrate oxlint-auto-configure onto the SDK.~~ done — v0.2.0-era; fully on
+    the SDK (I/O, diff, discovery, bootstrap) by v0.9.1 (2026-09-23)
+11. ~~After the first consumer merges: cut `v0.2.0` from `[Unreleased]`.~~ done —
+    v0.2.0 tagged 2026-09-11; ladder through v0.6.0
+12. ~~Script the release verification (clean-dir `go get@vX.Y.Z` + consumer
+    compile) instead of ad-hoc session commands.~~ done at `bcd9302`
+13. ~~Guard README usage snippets against drift from `example_test.go`
+    (doc-snippet compile test).~~ done at `bcd9302` — caught real drift on its
+    first run
+14. ~~Dimension guard (1280×640, <1MB) for social-preview.png in case branding
+    regenerates later.~~ done at `522c660` (`scripts/check-social-preview.sh`, in CI)
+15. ~~Update README "Consumers" after each migration (currently: "No active
+    consumers yet").~~ done — kept current through the 2026-09-23 fix
 16. Protect `v*` tags via GitHub rulesets so accidental re-tag becomes
     impossible (the proxy caches tags forever).
 
@@ -171,20 +184,28 @@ dashboard).
 19. biome-auto-configure as the third consumer (README "Future").
 20. T+24h post-release verification as a scheduled job instead of a manual
     checklist step.
-21. GOEXPERIMENT=jsonv2 teardown plan for Go 1.27 (jsonv2 standard): remove
-    .envrc, CI env var, and docs mentions.
-22. Upstream go-finding fix for the `go 1.26.7` patch-floor churn (file only
-    after a verify-before-filing pass).
-23. Docs-health pass over docs/status/: ten reports exist; ANNOTATE/ARCHIVE
-    the fully-resolved ones.
-24. Renovate config for the three SHA-pinned GitHub Actions.
+21. ~~GOEXPERIMENT=jsonv2 teardown plan for Go 1.27 (jsonv2 standard): remove
+    .envrc, CI env var, and docs mentions.~~ done — fully retired 2026-09-23
+    (ci.yml cleaned; `.envrc` never exported it directly; AGENTS rewritten)
+22. ~~Upstream go-finding fix for the `go 1.26.7` patch-floor churn (file only
+    after a verify-before-filing pass).~~ moot — go-finding v1.13.0 itself moved
+    to minor-form `go 1.27` (CHANGELOG `[0.3.0]`)
+23. ~~Docs-health pass over docs/status/: ten reports exist; ANNOTATE/ARCHIVE
+    the fully-resolved ones.~~ done — 2026-09-09 pass, extended by the 2026-09-23
+    pass (this one)
+24. ~~Renovate config for the three SHA-pinned GitHub Actions.~~ decided —
+    dependabot github-actions ecosystem instead (`4e86443`, weekly)
 25. Publish the CI coverage artifact as a README badge or threshold gate.
-26. Revisit the minimal golangci-lint v2 rule set (expand only when a real
-    consumer's needs justify it).
-27. Refresh GitHub repo description/topics for discoverability.
-28. SECURITY.md (cheap; low value pre-consumers).
-29. CODEOWNERS decision (single-maintainer: probably skip; record either way).
-30. HARVEST this list into TODO_LIST/ROADMAP properly (docs-health).
+26. ~~Revisit the minimal golangci-lint v2 rule set (expand only when a real
+    consumer's needs justify it).~~ done — regenerated by the auto-configurer at
+    `[0.2.0]` (~106 linters)
+27. ~~Refresh GitHub repo description/topics for discoverability.~~ done —
+    2026-09-10 (`4e86443` era)
+28. ~~SECURITY.md (cheap; low value pre-consumers).~~ done at `4e86443`
+29. ~~CODEOWNERS decision (single-maintainer: probably skip; record either way).~~
+    done — kept (file exists, `4e86443`)
+30. ~~HARVEST this list into TODO_LIST/ROADMAP properly (docs-health).~~ done —
+    2026-09-11 defaulted ruling (T27-T30); re-applied by later passes
 31. Add `ExampleFindingsFromIssues` (pkg.go.dev verified this session: only
     FindingFromIssue/LoadJSON/SaveJSON/ProviderFromSpec have examples).
 32. Check the README "Why?" comparison table's rendering on mobile/pkg.go.dev
@@ -192,8 +213,9 @@ dashboard).
 33. CI release smoke test: tiny module requiring `@latest` to guard the
     clean-dir `go get` step.
 34. Tag→release automation once public tooling allows it.
-35. Verify README.md itself carries the direnv/GOEXPERIMENT onboarding step
-    (it is in AGENTS.md and the published README; confirm the repo README).
+35. ~~Verify README.md itself carries the direnv/GOEXPERIMENT onboarding step
+    (it is in AGENTS.md and the published README; confirm the repo README).~~
+    moot — GOEXPERIMENT retired entirely; README documents Go 1.27+ only
 
 (35 items — stopping here rather than padding to 50; the remaining slots had
 no honest, non-filler candidates from this session's observations.)
@@ -214,3 +236,18 @@ no honest, non-filler candidates from this session's observations.)
 ---
 
 **WAITING FOR INSTRUCTIONS.**
+
+---
+
+## Resolution (2026-09-23, docs-health pass)
+
+24 of 35 items resolved inline: the NOW cluster (upload, MD013, runbook,
+badges) closed within a day; the NEXT cluster (consumers, v0.2.0, guard
+scripts) shipped across v0.2.0-v0.6.0; the GOEXPERIMENT teardown completed
+2026-09-23. g1 (BuildFlow ETA) stays open by circumstance (private again,
+T21), g2 was answered by execution (golangci first, then oxlint), g3 by
+practice (docs-only CHANGELOG entries are included). Still open: 5 (publicity
+detector job — folded into T21's unblock), 16 (tag rulesets), 17 (= T21),
+18 (= T20), 19 (biome — ROADMAP), 20 (T+24h scheduled check), 25 (coverage
+badge), 31 (`ExampleFindingsFromIssues`), 32 (mobile rendering), 33 (CI
+release smoke), 34 (tag→release automation).
