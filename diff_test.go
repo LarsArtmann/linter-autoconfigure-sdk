@@ -12,9 +12,9 @@ func TestDiffMaps_AddedRemovedModified(t *testing.T) {
 	after := map[string]string{"kept": "same", "changed": "new", "added": "y"}
 
 	want := []Change{
+		{Kind: KindAdded, Path: "prefix.added", New: "y"},
 		{Kind: KindModified, Path: "prefix.changed", Old: "old", New: "new"},
 		{Kind: KindRemoved, Path: "prefix.dropped", Old: "x"},
-		{Kind: KindAdded, Path: "prefix.added", New: "y"},
 	}
 
 	got := DiffMaps(before, after, "prefix.")
@@ -37,6 +37,7 @@ func TestDiffMaps_DeterministicAcrossRuns(t *testing.T) {
 
 	before := map[string]string{}
 	after := map[string]string{}
+
 	for _, key := range []string{"z", "a", "m", "b", "y"} {
 		before[key] = "old"
 		after[key] = "new"
@@ -57,8 +58,8 @@ func TestDiffSets_AddedRemovedDuplicateCollapsed(t *testing.T) {
 	after := []string{"import", "promise", "node"}
 
 	want := []Change{
-		{Kind: KindRemoved, Path: "plugin:unicorn", Old: "unicorn"},
 		{Kind: KindAdded, Path: "plugin:promise", New: "promise"},
+		{Kind: KindRemoved, Path: "plugin:unicorn", Old: "unicorn"},
 	}
 
 	got := DiffSets(before, after, "plugin:")
@@ -166,8 +167,8 @@ func TestFormatDiff_Golden(t *testing.T) {
 		{Kind: KindRemoved, Path: "category:style", Old: "warn"},
 	}
 
-	want := "+ plugin:import: import\n" +
-		"- category:style: warn\n" +
+	want := "- category:style: warn\n" +
+		"+ plugin:import: import\n" +
 		"~ rules.no-console: off → warn\n"
 
 	if got := FormatDiff(changes); got != want {

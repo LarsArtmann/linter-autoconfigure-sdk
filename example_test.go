@@ -180,6 +180,6 @@ func ExampleDiffMaps() {
 	fmt.Print(FormatDiff(changes))
 	// Output:
 	// Added: 0, Modified: 1, Removed: 1
-	// - rules.no-debugger: off
 	// ~ rules.no-console: off → warn
+	// - rules.no-debugger: off
 }

@@ -149,8 +149,8 @@ func FormatDiff(changes []Change) string {
 		return "No changes."
 	}
 
-	sorted := make([]Change, len(changes))
-	copy(sorted, changes)
+	sorted := make([]Change, 0, len(changes))
+	sorted = append(sorted, changes...)
 	sort.Slice(sorted, func(i, j int) bool {
 		if sorted[i].Path != sorted[j].Path {
 			return sorted[i].Path < sorted[j].Path
