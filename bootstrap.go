@@ -254,7 +254,6 @@ func (s BootstrapSpec[T]) healthCheck(ctx context.Context) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			//nolint:nilerr // a missing config is healthy: Detect owns that finding
 			return nil
 		}
 
@@ -312,6 +311,7 @@ func (s BootstrapSpec[T]) parse(data []byte) (T, *ConfigError) {
 	parsed, configErr := ParseJSON[T](data)
 	if configErr != nil {
 		var zero T
+
 		return zero, configErr
 	}
 

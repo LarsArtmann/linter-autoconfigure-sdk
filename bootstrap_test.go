@@ -19,13 +19,13 @@ import (
 // absorbed.
 func testBootstrapSpec() BootstrapSpec[map[string]string] {
 	return BootstrapSpec[map[string]string]{
-		Name:          "fake-auto-configure",
-		Description:   "generates .fakerc.json for recognizable projects",
-		ConfigFile:    ".fakerc.json",
-		ConfigFiles:   []finding.FilePath{".fakerc.json", ".fakerc.jsonc"},
-		MissingRule:   "FAKE_CONFIG_MISSING",
-		FixCommand:    "fake-auto-configure configure",
-		CountLabel:    "rules",
+		Name:        "fake-auto-configure",
+		Description: "generates .fakerc.json for recognizable projects",
+		ConfigFile:  ".fakerc.json",
+		ConfigFiles: []finding.FilePath{".fakerc.json", ".fakerc.jsonc"},
+		MissingRule: "FAKE_CONFIG_MISSING",
+		FixCommand:  "fake-auto-configure configure",
+		CountLabel:  "rules",
 		Recognizable: func(ctx context.Context) (bool, error) {
 			_, err := os.Stat(filepath.Join(WorkingDir(ctx), "package.json"))
 
@@ -85,22 +85,27 @@ func TestBootstrapProviderFromSpec_Validation(t *testing.T) {
 	}{
 		{"missing name", func(s BootstrapSpec[map[string]string]) BootstrapSpec[map[string]string] {
 			s.Name = ""
+
 			return s
 		}, ErrNameRequired},
 		{"missing description", func(s BootstrapSpec[map[string]string]) BootstrapSpec[map[string]string] {
 			s.Description = ""
+
 			return s
 		}, ErrDescriptionRequired},
 		{"missing config file", func(s BootstrapSpec[map[string]string]) BootstrapSpec[map[string]string] {
 			s.ConfigFile = ""
+
 			return s
 		}, ErrConfigFileRequired},
 		{"missing generate", func(s BootstrapSpec[map[string]string]) BootstrapSpec[map[string]string] {
 			s.Generate = nil
+
 			return s
 		}, ErrGenerateRequired},
 		{"missing compare", func(s BootstrapSpec[map[string]string]) BootstrapSpec[map[string]string] {
 			s.Compare = nil
+
 			return s
 		}, ErrCompareRequired},
 	}
@@ -126,6 +131,7 @@ func TestBootstrapProviderFromSpec_InputsDeriveFromConfigFiles(t *testing.T) {
 	if len(spec.Inputs) != len(want) {
 		t.Fatalf("Inputs = %v, want %v", spec.Inputs, want)
 	}
+
 	for i, input := range want {
 		if spec.Inputs[i] != input {
 			t.Fatalf("Inputs = %v, want %v", spec.Inputs, want)
@@ -134,10 +140,12 @@ func TestBootstrapProviderFromSpec_InputsDeriveFromConfigFiles(t *testing.T) {
 
 	single := testBootstrapSpec()
 	single.ConfigFiles = nil
+
 	singleSpec, err := BootstrapProviderFromSpec(single)
 	if err != nil {
 		t.Fatalf("BootstrapProviderFromSpec: %v", err)
 	}
+
 	if len(singleSpec.Inputs) != 1 || singleSpec.Inputs[0] != ".fakerc.json" {
 		t.Fatalf("Inputs = %v, want [.fakerc.json]", singleSpec.Inputs)
 	}
@@ -153,6 +161,7 @@ func TestBootstrapDetect_MissingConfigInRecognizableProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Detect: %v", err)
 	}
+
 	if len(findings) != 1 {
 		t.Fatalf("findings = %d, want 1", len(findings))
 	}
@@ -161,15 +170,19 @@ func TestBootstrapDetect_MissingConfigInRecognizableProject(t *testing.T) {
 	if f.Rule != "FAKE_CONFIG_MISSING" {
 		t.Errorf("Rule = %q, want FAKE_CONFIG_MISSING", f.Rule)
 	}
+
 	if f.ToolName != "fake-auto-configure" {
 		t.Errorf("ToolName = %q, want fake-auto-configure", f.ToolName)
 	}
+
 	if f.Severity != finding.SeverityWarning {
 		t.Errorf("Severity = %v, want warning", f.Severity)
 	}
+
 	if f.Position.File != ".fakerc.json" {
 		t.Errorf("Position.File = %q, want .fakerc.json", f.Position.File)
 	}
+
 	if f.FixStrategy != finding.FixStrategySuggest {
 		t.Errorf("FixStrategy = %v, want suggest", f.FixStrategy)
 	}
@@ -183,6 +196,7 @@ func TestBootstrapDetect_DefaultRuleName(t *testing.T) {
 
 	spec := testBootstrapSpec()
 	spec.MissingRule = ""
+
 	provider, err := BootstrapProviderFromSpec(spec)
 	if err != nil {
 		t.Fatalf("BootstrapProviderFromSpec: %v", err)
@@ -192,6 +206,7 @@ func TestBootstrapDetect_DefaultRuleName(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Detect: %v", err)
 	}
+
 	if len(findings) != 1 || findings[0].Rule != "CONFIG_MISSING" {
 		t.Fatalf("rule = %v, want CONFIG_MISSING", findings)
 	}
@@ -208,6 +223,7 @@ func TestBootstrapDetect_ExistingConfigNeverFlagged(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Detect: %v", err)
 	}
+
 	if len(findings) != 0 {
 		t.Fatalf("an existing config must never be flagged for regeneration, got %v", findings)
 	}
@@ -224,6 +240,7 @@ func TestBootstrapDetect_ExistingShadowConfigNeverFlagged(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Detect: %v", err)
 	}
+
 	if len(findings) != 0 {
 		t.Fatalf(
 			"an existing .fakerc.jsonc is a config too — flagging it would make repair generate a shadowing .fakerc.json, got %v",
@@ -239,6 +256,7 @@ func TestBootstrapDetect_UnrecognizableProjectSkipped(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Detect: %v", err)
 	}
+
 	if len(findings) != 0 {
 		t.Fatalf("a directory without any project marker must not be flagged, got %v", findings)
 	}
@@ -255,9 +273,11 @@ func TestBootstrapRepair_DryRunHoldsBackWrite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Repair: %v", err)
 	}
+
 	if !strings.Contains(result.Description, "dry-run") {
 		t.Errorf("description = %q, want it to mention dry-run", result.Description)
 	}
+
 	if _, err := os.Stat(filepath.Join(dir, ".fakerc.json")); !os.IsNotExist(err) {
 		t.Fatalf("dry-run must not write the config")
 	}
@@ -273,9 +293,11 @@ func TestBootstrapRepair_WritesConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Repair: %v", err)
 	}
+
 	if !strings.Contains(result.Description, "wrote") {
 		t.Errorf("description = %q, want it to mention wrote", result.Description)
 	}
+
 	if !strings.Contains(result.Description, "(3 rules)") {
 		t.Errorf("description = %q, want the count label (3 rules)", result.Description)
 	}
@@ -284,6 +306,7 @@ func TestBootstrapRepair_WritesConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read written config: %v", err)
 	}
+
 	if len(data) == 0 || data[len(data)-1] != '\n' {
 		t.Errorf("written config must carry the Marshal hook's trailing newline")
 	}
@@ -292,6 +315,7 @@ func TestBootstrapRepair_WritesConfig(t *testing.T) {
 	if configErr != nil {
 		t.Fatalf("written config must round-trip: %v", configErr)
 	}
+
 	if len(*parsed) != 2 {
 		t.Errorf("parsed = %v, want the 2 generated settings", parsed)
 	}
@@ -308,6 +332,7 @@ func TestBootstrapRepair_ExistingConfigUntouched(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Repair: %v", err)
 	}
+
 	if !strings.Contains(result.Description, "already exists") {
 		t.Errorf("description = %q, want it to mention already exists", result.Description)
 	}
@@ -316,6 +341,7 @@ func TestBootstrapRepair_ExistingConfigUntouched(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read config: %v", err)
 	}
+
 	if string(data) != `{"rules":"off"}` {
 		t.Fatalf("repair must never overwrite an existing config, got %q", data)
 	}
@@ -332,9 +358,11 @@ func TestBootstrapRepair_ExistingShadowConfigNotShadowed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Repair: %v", err)
 	}
+
 	if !strings.Contains(result.Description, "already exists") {
 		t.Errorf("description = %q, want it to mention already exists", result.Description)
 	}
+
 	if _, err := os.Stat(filepath.Join(dir, ".fakerc.json")); !os.IsNotExist(err) {
 		t.Fatalf("generating .fakerc.json next to a curated .fakerc.jsonc would shadow it")
 	}
@@ -350,6 +378,7 @@ func TestBootstrapRepair_GenerateErrorPropagates(t *testing.T) {
 	spec.Generate = func(ctx context.Context) (map[string]string, int, error) {
 		return nil, 0, errors.New("registry unavailable")
 	}
+
 	provider, err := BootstrapProviderFromSpec(spec)
 	if err != nil {
 		t.Fatalf("BootstrapProviderFromSpec: %v", err)
@@ -395,6 +424,7 @@ func TestBootstrapHealth_FreshRepairIsHealthy(t *testing.T) {
 	if _, err := provider.Repair.Repair(ctx); err != nil {
 		t.Fatalf("Repair: %v", err)
 	}
+
 	if err := provider.HealthCheck(ctx); err != nil {
 		t.Fatalf("a config this tool just wrote must match what it would generate: %v", err)
 	}
@@ -411,9 +441,11 @@ func TestBootstrapHealth_DriftReportedAdvisory(t *testing.T) {
 	if err == nil {
 		t.Fatalf("a drifted config must be reported")
 	}
+
 	if !errors.Is(err, errConfigDrift) {
 		t.Errorf("error must wrap the drift sentinel, got %v", err)
 	}
+
 	for _, want := range []string{"drifted", "fake-auto-configure configure", "advisory only"} {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("error %q must contain %q", err.Error(), want)
@@ -424,6 +456,7 @@ func TestBootstrapHealth_DriftReportedAdvisory(t *testing.T) {
 	if readErr != nil {
 		t.Fatalf("read config: %v", readErr)
 	}
+
 	if string(data) != `{"plugins":"react","rules":"off"}` {
 		t.Fatalf("the health check is report-only and must never touch the config, got %q", data)
 	}
@@ -440,6 +473,7 @@ func TestBootstrapHealth_MalformedConfigReported(t *testing.T) {
 	if err == nil {
 		t.Fatalf("a malformed config must be reported")
 	}
+
 	for _, want := range []string{"malformed", "fake-auto-configure configure"} {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("error %q must contain %q", err.Error(), want)
@@ -464,6 +498,7 @@ func TestBootstrapHealth_NormalizeExpectedSuppressesDrift(t *testing.T) {
 
 		return expected
 	}
+
 	provider, err := BootstrapProviderFromSpec(spec)
 	if err != nil {
 		t.Fatalf("BootstrapProviderFromSpec: %v", err)
