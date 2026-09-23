@@ -125,25 +125,25 @@ tests (ROADMAP).
 
 ## f) Next up to 50 (impact-sorted; 1-6 are this session's direct debt)
 
-1. Confirm the daemon pushed the CI `mkdir -p reports` fix and the re-run is GREEN (T24b).
-2. T4: owner API-freeze call on ROADMAP Q2 → cut `v0.1.0` tag + GitHub Release (go-release skill flow; annotated tag, CHANGELOG section cut).
-3. T24: pkg.go.dev renders the post-T16 snapshot (two-value `SaveJSON`, new example output).
-4. T22: add required status checks ("Build, vet, test") to master protection after first green run.
-5. T23: upload `assets/branding/social-preview.png` via Settings UI (owner hands; visually check it for text overflow first — I generated it but could not view it).
-6. Re-check the README CI badge resolves now that the workflow file is on GitHub (lychee's only error was this 404).
-7. Fix FEATURES.md stale `autoconfigure.go:NN` citations → switch to symbol-name citations (d5).
-8. Re-measure coverage % and update the FEATURES.md header claim (still says 97.6% / 2026-09-09).
-9. Decide MD013 policy: line-length 120 + `tables: false`, or reformat; zero the flood (e).
+1. ~~Confirm the daemon pushed the CI `mkdir -p reports` fix and the re-run is GREEN (T24b).~~ done — CI green since; runs on every push
+2. ~~T4: owner API-freeze call on ROADMAP Q2 → cut `v0.1.0` tag + GitHub Release (go-release skill flow; annotated tag, CHANGELOG section cut).~~ done — `ae510be`, 2026-09-10
+3. ~~T24: pkg.go.dev renders the post-T16 snapshot (two-value `SaveJSON`, new example output).~~ done — verified 2026-09-11; every version v0.1.0–v0.6.0 fetched 2026-09-23
+4. ~~T22: add required status checks ("Build, vet, test") to master protection after first green run.~~ done — added at the v0.1.0 release, 2026-09-10
+5. ~~T23: upload `assets/branding/social-preview.png` via Settings UI (owner hands; visually check it for text overflow first — I generated it but could not view it).~~ done — redesigned card uploaded and og:image byte-verified live 2026-09-11
+6. ~~Re-check the README CI badge resolves now that the workflow file is on GitHub (lychee's only error was this 404).~~ done — badge green since
+7. ~~Fix FEATURES.md stale `autoconfigure.go:NN` citations → switch to symbol-name citations (d5).~~ done — symbol citations since the v0.1.0 release prep
+8. ~~Re-measure coverage % and update the FEATURES.md header claim (still says 97.6% / 2026-09-09).~~ done — 100.0% at v0.1.0; header number-free since
+9. ~~Decide MD013 policy: line-length 120 + `tables: false`, or reformat; zero the flood (e).~~ done at `0cc2c2e` (CHANGELOG `[0.2.0]`)
 10. Add `golangci-lint run` to CI (portable subset currently lacks it; config already exists and is locally green).
-11. Investigate the pkg.go.dev "not the latest version / Go to latest" banner seen at `ede40ee` (harmless but unexplained).
-12. Explain buildflow vs direct go-structure-linter finding counts (7 vs 4) in AGENTS.md.
+11. ~~Investigate the pkg.go.dev "not the latest version / Go to latest" banner seen at `ede40ee` (harmless but unexplained).~~ done — artifact of pre-tag pseudo-versions; every tag page since renders clean (2026-09-23)
+12. ~~Explain buildflow vs direct go-structure-linter finding counts (7 vs 4) in AGENTS.md.~~ done — superseded: the step is skipped with a documented reason and the strict-mode baseline (9 advisories) is enumerated in AGENTS.md (2026-09-23)
 13. Check goreportcard actually grades (it builds with default Go — `GOEXPERIMENT=jsonv2` may make the badge permanently broken; if so, drop or replace the badge).
-14. ROADMAP split-brain fix: delete the "ProviderFromSpec BuildFlow adapter (future helper)" candidate — it shipped.
-15. CONTRIBUTING.md: mention CI, `.golangci.yml`, dependabot, SECURITY.md reporting path.
-16. README: link SECURITY.md from the footer/nav area.
+14. ~~ROADMAP split-brain fix: delete the "ProviderFromSpec BuildFlow adapter (future helper)" candidate — it shipped.~~ done at the v0.1.0 release prep; graduation note re-corrected 2026-09-23
+15. ~~CONTRIBUTING.md: mention CI, `.golangci.yml`, dependabot, SECURITY.md reporting path.~~ done at `e46c225` (buildflow + direnv documented; CI/golangci/dependabot/SECURITY present since `4e86443`)
+16. ~~README: link SECURITY.md from the footer/nav area.~~ done — Security section added 2026-09-23
 17. T21: switch CI to `buildflow --fix --fail-on-findings` once BuildFlow is installable on runners.
 18. T20 at v1: remove deprecated `ErrNoRepair` (compile-compat shim).
-19. First consumer migration (golangci-lint-auto-configure onto the SDK) — the real validation milestone.
+19. ~~First consumer migration (golangci-lint-auto-configure onto the SDK) — the real validation milestone.~~ done — both consumers live (v0.2.0-era); deep SDK adoption through v0.9.1/v0.10.0 (2026-09-23)
 20. Fuzz tests for `LoadJSON`/`SaveJSON` (no panics on arbitrary input).
 21. Property-based Save→Load round-trip invariant tests.
 22. `ReadConfigWithFingerprint` for read-modify-write transactions (ROADMAP).
@@ -157,24 +157,24 @@ tests (ROADMAP).
 30. Go-public checklist as a reusable skill (ROADMAP; this session executed it partially in the right order).
 31. Consider GitHub Rulesets instead of legacy branch protection (modern API, same guarantees).
 32. Enable secret scanning + push protection via API (repo security settings sweep).
-33. Dependabot: add `groups` so go-finding + toolsdk bump together in one PR (they must move in lockstep).
+33. ~~Dependabot: add `groups` so go-finding + toolsdk bump together in one PR (they must move in lockstep).~~ done (CHANGELOG `[0.2.0]`)
 34. Add `rebase`/`squash`-only merge policy decision to branch settings once PRs from externals become real.
-35. Verify dependabot's gomod PRs will pass CI (they run without GOEXPERIMENT? — they DO: env is workflow-level, applies to PR runs too; verify once the first bump PR arrives).
+35. ~~Verify dependabot's gomod PRs will pass CI (they run without GOEXPERIMENT? — they DO: env is workflow-level, applies to PR runs too; verify once the first bump PR arrives).~~ done — fleet bumps landed green through the v0.6.0 wave; GOEXPERIMENT itself retired 2026-09-23
 36. Clean up the daemon's false commit-message history (write-if-changed report g1 — owner decision, repo now public).
 37. ROADMAP Q1 decision: fate of `docs/` (keep / forward-delete / rewrite).
-38. codespell: fix the two typos in the historical HTML review or add targeted ignores (currently documented-accepted).
+38. ~~codespell: fix the two typos in the historical HTML review or add targeted ignores (currently documented-accepted).~~ done — typos no longer present (grep-verified 2026-09-23)
 39. `ExampleProviderFromSpec`/`ExampleSaveJSON`: consider adding a `// Output`-less doc-comment variant showing the changed-bool idiom in prose.
 40. Pin `actions/dependency-review` or add `go list -m all | govim...` supply-chain check? (only if wanted; low priority).
-41. Add a `Makefile`-free `go generate` check? No — non-goal (BuildFlow owns pipeline); skip.
-42. Session retro → AGENTS.md: "rehearse CI commands in a sandbox" as an enduring rule (from e).
-43. Sweep `docs/status/*` older reports via docs-health ANNOTATE if their claims went stale after this session.
+41. ~~Add a `Makefile`-free `go generate` check? No — non-goal (BuildFlow owns pipeline); skip.~~ NOT-DO — per the item's own verdict
+42. ~~Session retro → AGENTS.md: "rehearse CI commands in a sandbox" as an enduring rule (from e).~~ done — encoded as the pre-tag adversarial smoke (AGENTS Releases section + `scripts/verify-release.sh`)
+43. ~~Sweep `docs/status/*` older reports via docs-health ANNOTATE if their claims went stale after this session.~~ done — 2026-09-09 pass, extended by the 2026-09-23 pass (this one)
 44. Consider `.github/FUNDING.yml` (probably no — internal tooling).
 45. Add `golangci-lint` version pin comment in `.golangci.yml` (local 2.13.2; runners get latest v2 — behavior drift risk).
-46. Re-run brutal review after T4 (v0.1.0) ships — pre-freeze sanity pass.
-47. Check whether `pkg.go.dev` imports-tab (10 imports) and license detection stay green after the Go 1.27 transition (jsonv2 standard) — then drop the GOEXPERIMENT requirement everywhere (README/AGENTS/CI).
-48. Delete `/tmp/sdk-fetchcheck` scratch (trivial hygiene).
+46. ~~Re-run brutal review after T4 (v0.1.0) ships — pre-freeze sanity pass.~~ done — the 2026-09-23 13:26 masterplan wrap-up is exactly that
+47. ~~Check whether `pkg.go.dev` imports-tab (10 imports) and license detection stay green after the Go 1.27 transition (jsonv2 standard) — then drop the GOEXPERIMENT requirement everywhere (README/AGENTS/CI).~~ done — GOEXPERIMENT fully retired 2026-09-23 (ci.yml cleaned, AGENTS rewritten); pkg.go.dev renders fully for v0.6.0
+48. ~~Delete `/tmp/sdk-fetchcheck` scratch (trivial hygiene).~~ done — gone (verified 2026-09-23)
 49. Measure CI runtime; cache `$GOMODCACHE` via `setup-go` `cache: true` (default on; verify hit).
-50. Close the loop: run docs-health HARVEST so items 7-16 above land in TODO_LIST/ROADMAP properly instead of living only in this snapshot.
+50. ~~Close the loop: run docs-health HARVEST so items 7-16 above land in TODO_LIST/ROADMAP properly instead of living only in this snapshot.~~ done — subsequent harvests covered them; open residue now lives in TODO_LIST (T21, T44) / ROADMAP
 
 ## g) Questions I cannot figure out myself (max 3)
 
@@ -198,3 +198,16 @@ tests (ROADMAP).
 
 *Point-in-time snapshot; goes stale. Report committed by the auto-commit
 daemon (no manual commit made, per repo policy). WAITING FOR INSTRUCTIONS.*
+
+---
+
+## Resolution (2026-09-23, docs-health pass)
+
+25 of 50 items resolved inline: 1-9 (the session's direct debt) closed within
+days; 11/12/14/15/33/38/42-48 landed with the v0.1.0/v0.2.0 waves, the
+GOEXPERIMENT retirement, and the 2026-09-23 polish sweep; 16 (README Security
+link) and 19 (first consumers) were the long stragglers, closed by 2026-09-23.
+Still open: 10 (golangci-lint in CI), 13 (goreportcard badge health), 17 (=
+T21), 18 (= T20), 20-32/34 (fuzz/property/write-variant/review/hardening
+ideas — ROADMAP fuel), 36-37 (owner decisions), 39-40/44-45/49 (low polish).
+None of the open items is tracked in TODO_LIST except T20/T21 by design.
