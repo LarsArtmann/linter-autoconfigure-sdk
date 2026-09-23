@@ -91,9 +91,10 @@ Single step: `buildflow -s <step> -v`. Release verification is scripted:
 `./scripts/verify-release.sh vX.Y.Z` (proxy check + clean-dir go get +
 compile-every-API smoke — run it after every tag). CI also runs the
 jsondeterminism analyzer, the README snippet compile guard
-(`readme_snippets_test.go` — caught real snippet drift on first run), the
-social-preview guard (`scripts/check-social-preview.sh`), and a BuildFlow
-pipeline job (T21; license-check skipped via config). Disable result cache during debugging:
+(`readme_snippets_test.go` — caught real snippet drift on first run), and the
+social-preview guard (`scripts/check-social-preview.sh`). A BuildFlow CI job
+is NOT possible yet: the BuildFlow repo is PRIVATE again (2026-09-23; the
+2026-09-11 public verification is stale) — T21. Disable result cache during debugging:
 `BUILDFLOW_NO_RESULT_CACHE=1 buildflow ...` — the result cache has a 168h TTL
 and can serve stale green results after a tool upgrade changed the verdict
 (this masked a real golangci-lint-auto-configure gate failure on 2026-09-11).

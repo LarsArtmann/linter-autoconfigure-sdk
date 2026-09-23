@@ -62,23 +62,3 @@ jobs:
         with:
           name: coverage
           path: reports/coverage.out
-
-  buildflow:
-    name: BuildFlow pipeline
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go.mod
-
-      # The full BuildFlow pipeline (superset of the portable job above) in
-      # detect mode: no --fix, CI must not mutate the checkout. license-check
-      # is skipped via .buildflow.yml (go-licenses cannot parse go 1.27
-      # stdlib). TODO_LIST T21: promote to a required check after this job
-      # proves stable.
-      - name: Run BuildFlow
-        run: go run github.com/larsartmann/buildflow@v0.6.0
