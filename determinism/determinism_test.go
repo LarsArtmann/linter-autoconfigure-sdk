@@ -3,9 +3,8 @@ package determinism_test
 import (
 	"testing"
 
-	"golang.org/x/tools/go/analysis/analysistest"
-
 	"github.com/larsartmann/linter-autoconfigure-sdk/determinism"
+	"golang.org/x/tools/go/analysis/analysistest"
 )
 
 // TestAnalyzer bites: the `want` comments in testdata/src/a encode the

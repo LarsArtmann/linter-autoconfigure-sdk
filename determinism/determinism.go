@@ -78,7 +78,7 @@ func run(pass *analysis.Pass) (any, error) {
 		})
 	}
 
-	return nil, nil
+	return nil, nil //nolint:nilnil // the canonical go/analysis Run result: no fact graph, no error
 }
 
 // isJSONV2Marshal reports whether call is pkg.Marshal where pkg resolves to

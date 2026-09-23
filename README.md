@@ -195,6 +195,24 @@ dead state.
 | `BootstrapSpec[T]` | `{Name, Description, ConfigFile, ConfigFiles, MissingRule, FixCommand, CountLabel, Recognizable, Generate, Marshal, Parse, NormalizeExpected, Compare}` — generate-if-missing lifecycle declaration (see below) |
 | `Change`       | `{Kind, Path, Old, New}` — one config difference; `Kind` is `KindAdded`/`KindRemoved`/`KindModified`                                                                    |
 
+### Determinism enforcement (analyzer)
+
+`determinism.NewAnalyzer()` is a go/analysis analyzer flagging `encoding/json/v2`
+`Marshal` calls without an explicit `json.Deterministic` option — the bug class
+that made `SaveJSON` byte-unstable until v0.3.1 (json/v2 map-key order changes
+between calls). `json.Deterministic(false)` is the deliberate, self-documenting
+opt-out; opaque `opts...` spreads are not flagged (the analyzer catches the
+accidental class, not every hazard).
+
+Run it without any golangci-lint plugin build via the bundled vettool command:
+
+```bash
+go run github.com/larsartmann/linter-autoconfigure-sdk/cmd/jsondeterminism ./...
+```
+
+This module self-enforces the rule in CI; consumers can wire the same line into
+their gates.
+
 ---
 
 ## Design notes

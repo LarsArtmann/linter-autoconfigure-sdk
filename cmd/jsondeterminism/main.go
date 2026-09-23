@@ -8,9 +8,8 @@
 package main
 
 import (
-	"golang.org/x/tools/go/analysis/singlechecker"
-
 	"github.com/larsartmann/linter-autoconfigure-sdk/determinism"
+	"golang.org/x/tools/go/analysis/singlechecker"
 )
 
 func main() {

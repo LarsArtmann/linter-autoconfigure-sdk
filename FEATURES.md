@@ -43,6 +43,13 @@ against the test suite (green, 100.0% statement coverage, 2026-09-10).
 | Multi-candidate discovery (`ConfigFiles`) | FULLY_FUNCTIONAL | `ProviderSpec.ConfigFiles` derives `Inputs` from all candidates; `ConfigFile` stays the write target (tests `TestProviderFromSpec_ConfigFiles*`) |
 | First-existing lookup (`FirstExisting`)   | FULLY_FUNCTIONAL | Returns the first existing candidate, or the first path + `false` when none exists (test `TestFirstExisting`)                                    |
 
+## Determinism enforcement
+
+| Feature                                                     | Status           | Notes / Evidence                                                                                                                              |
+| ----------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| jsondeterminism analyzer (`determinism.NewAnalyzer`)        | FULLY_FUNCTIONAL | `determinism/determinism.go`; flags bare json/v2 Marshal, honors Deterministic(true/false) and opts... spreads (analysistest `TestAnalyzer`) |
+| Vettool command (`cmd/jsondeterminism`)                     | FULLY_FUNCTIONAL | singlechecker main; `go run .../cmd/jsondeterminism ./...` wired into this repo's CI; `go vet -vettool` compatible                            |
+
 ## BuildFlow integration
 
 | Feature                                                            | Status                        | Notes / Evidence                                                                                                                                                                                        |

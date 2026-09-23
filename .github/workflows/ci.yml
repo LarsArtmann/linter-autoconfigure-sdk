@@ -45,6 +45,9 @@ jobs:
       - name: Vet
         run: go vet ./...
 
+      - name: Deterministic-marshal enforcement
+        run: go run ./cmd/jsondeterminism ./...
+
       - name: Test
         run: |
           mkdir -p reports

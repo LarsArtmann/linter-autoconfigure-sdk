@@ -31,6 +31,13 @@ Provider — `ProviderFromSpec` (+ `HasRepair()`), validation sentinels
 `ErrNameRequired`/`ErrDescriptionRequired`/`ErrAnalyzeRequired`, deprecated
 `ErrNoRepair` (removal at v1 = TODO T20).
 
+**Determinism enforcement (v0.6.0):** the `determinism` subpackage +
+`cmd/jsondeterminism` vettool flag bare `encoding/json/v2` Marshal calls
+(the pre-v0.3.1 `SaveJSON` bug class). CI runs
+`go run ./cmd/jsondeterminism ./...` after vet. `json.Deterministic(false)`
+is the explicit opt-out; opaque `opts...` spreads are not flagged
+(conservative). Bite-check: `determinism/testdata` analysistest.
+
 **Consumer migration state (2026-09-23):** both consumers build against TAGS
 (no replace directives remain in the fleet). oxlint-auto-configure is fully
 migrated onto v0.4.1 (I/O helpers, diff engine aliases `Change`/`Kind`,
@@ -136,7 +143,7 @@ needed once); pkg.go.dev 404s for a fresh tag even after the proxy serves it
 (minutes-to-longer lag; the proxy is the source of truth). Tags are immutable
 once the proxy caches them — never re-tag, always cut a new version.
 Release history: v0.1.0, v0.2.0, v0.3.0 (go 1.27 floor), v0.3.1 (determinism
-fix), v0.4.0 (I/O matrix + diff engine + ConfigFiles), v0.4.1 (nil-ctx fix).
+fix), v0.4.0 (I/O matrix + diff engine + ConfigFiles), v0.4.1 (nil-ctx fix), v0.5.0 (bootstrap provider), v0.6.0 (determinism analyzer + vettool cmd).
 
 ## `reports/` is buildflow-owned (nothing tracked inside)
 
