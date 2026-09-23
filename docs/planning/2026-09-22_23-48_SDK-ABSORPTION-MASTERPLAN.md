@@ -76,29 +76,29 @@ Sorted: release-unblocking first, then duplication-kill by leverage, then riskie
 
 | ID | Task | Repo | Importance | Impact | Effort | Time | Depends on |
 |----|------|------|-----------|--------|--------|------|------------|
-| P01 | v0.3.1 release train: CHANGELOG `Unreleased→Fixed` determinism entry + backfill `[0.3.0]`; AGENTS marshal-policy line + go 1.27 refresh; push master; annotated tag `v0.3.1`; proxy + clean-dir `go get` verify | SDK | Critical | High | S | 60m | owner OK (§7 Q1) |
-| P02 | Bump to SDK v0.3.1: `go get` + flake input tag + `vendorHash` + vendor regen + `validatePrivateDeps` + pre-release gate (unblocks v0.7.0) | oxlint | Critical | High | M | 60m | P01 |
-| P03 | Drop local `replace`, `go get` v0.3.1, verify `FindingFromIssue` validate path | golangci | High | Medium | S | 30m | P01 |
-| P04 | Bump indirect SDK v0.3.1 (tools + execution go.mod), verify provider resolution | BuildFlow | Medium | Medium | S | 30m | P01 |
-| P05 | SDK I/O matrix: `MarshalJSONIndented(v)` (shared opts var), `ParseJSON[T](data)`, `SaveJSONBytes(path, data)` (WriteIfChanged + trailing-newline contract, `Op` coverage); refactor `SaveJSON` onto the shared helper; unit tests + 3 godoc examples | SDK | Critical | High | M | 90m | — |
-| P06 | SDK `WorkingDir(ctx) string` helper (`WorkingDirFromContext` + `"."` fallback) + tests + example | SDK | High | Medium | S | 30m | — |
-| P07 | Migrate oxlint I/O onto P05/P06: `ToJSON`→SDK marshal, `FromJSON`→`ParseJSON`, `writeConfig` + `writeConfigFile`→`SaveJSONBytes`; drop direct go-atomic-write import; golden-byte test pins output BEFORE migration | oxlint | Critical | High | M | 75m | P05 |
-| P08 | SDK generic diff engine: `Change{Kind,Path,Old,New}` (drop `Unchanged` dead state), `DiffMaps`, `DiffSets`, value stringify (bare strings / deterministic JSON), order-insensitive blob-set compare, `Summary`, `FormatDiff` (+/-/~); golden tests | SDK | Critical | High | L | 100m | — |
-| P09 | Migrate oxlint `pkg/diff` onto engine: `Differ` becomes ~40-line field projection; `Change.Rule`→`Path` rename ripple (provider `healthCheckDrift`, `cmd_configure` diff view, tests); delete local comparators | oxlint | High | High | M | 75m | P08 |
-| P10 | Migrate golangci `pkg/diff` onto engine: int `ChangeType`→SDK `Kind`, `Description`→derived formatting; fix consumers (`cmd_configure_fixer.go`, report paths) | golangci | High | Medium | M | 90m | P08, P14 |
-| P11 | SDK `ProviderSpec.ConfigFiles []FilePath` + `FirstExisting(root)` helper + `Inputs` derivation; single `ConfigFile` deprecation path decided for v1; validation + tests | SDK | High | Medium | M | 60m | — |
-| P12 | Oxlint provider onto `ConfigFiles`: delete `oxlintConfigFiles`/`hasConfig` + forced `Inputs` override | oxlint | Medium | Medium | S | 30m | P11 |
-| P13 | SDK docs wave 1: README API tables + design notes, `FEATURES.md`, `example_test.go` for all new APIs, TODO_LIST refresh (close T26 remainder), ROADMAP graduation | SDK | High | Medium | S | 60m | P05-P11 |
-| P14 | SDK `v0.4.0` release: changelog cut, tag, proxy verify, oxlint + golangci bumps | SDK | Critical | High | S | 60m | P05-P13 |
-| P15 | SDK `Generate`-hook provider pattern: `ProviderSpec.Generate func(ctx)`; SDK owns Detect-missing / never-overwrite Repair (dry-run aware) / advisory drift HealthCheck (built on P08); decide drift-sentinel export (oxlint g3); contract tests ported from oxlint `provider_test.go` | SDK | High | High | L | 100m | P08, P11 |
-| P16 | Oxlint provider onto Generate-hook: delete ~150 lines; keep Trigger layering; `provider_test.go` must pass semantically unchanged | oxlint | High | High | M | 75m | P15, P14 |
-| P17 | Golangci atomic-write migration: audit `os.WriteFile` sites (loader backups 0600, report writers); migrate config-affecting writes to SDK `SaveJSONBytes`/`WriteWithPerm`; preserve perms + fs-abstraction; crash-safety test | golangci | Medium | High | L | 100m | P05, P14 |
-| P18 | `Deterministic(true)` enforcement: go/analysis analyzer flagging `json.Marshal` without the option (or shared helper + policy); wire into SDK + both consumers' golangci configs; bite-check it catches the original SDK gap | cross | Medium | High | L | 100m | P14 |
-| P19 | SDK `v0.5.0` release (Generate-hook) + oxlint bump + BuildFlow indirect bump | SDK | High | High | S | 60m | P15, P16 |
-| P20 | `pkg/format` disposition: decision matrix (upstream to go-finding vs absorb into SDK vs keep local); draft go-finding issue/PR for `FindingView`/`PrintSummary`/`PrintFindingsTable` + exported marshal-opts helper | cross | Low | Medium | M | 60m | P14 |
-| P21 | Carried SDK TODOs: T27 release-verify script, T28 README snippet compile guard, T29 social-preview CI guard, T21 CI→buildflow workflow swap (needs watched run) | SDK | Medium | Medium | S | 60m | — |
-| P22 | Synergy harvest in oxlint: validate-side drift advisory (its f15, trivial after P09) + README rule-stats/FEATURES rows for shared engine | oxlint | Medium | Medium | S | 45m | P09 |
-| P23 | Final cross-repo verification wave: `buildflow --fix --fail-on-findings` in SDK; full gates in oxlint + golangci; TODO_LIST/ROADMAP closing sweep + status report | cross | High | Medium | S | 45m | all |
+| ~~P01~~ | ~~v0.3.1 release train: CHANGELOG `Unreleased→Fixed` determinism entry + backfill `[0.3.0]`; AGENTS marshal-policy line + go 1.27 refresh; push master; annotated tag `v0.3.1`; proxy + clean-dir `go get` verify~~ done — v0.3.1 train shipped (CHANGELOG `[0.3.1]`) | ~~SDK~~ | ~~Critical~~ | ~~High~~ | ~~S~~ | ~~60m~~ | ~~owner OK (§7 Q1)~~ |
+| ~~P02~~ | ~~Bump to SDK v0.3.1: `go get` + flake input tag + `vendorHash` + vendor regen + `validatePrivateDeps` + pre-release gate (unblocks v0.7.0)~~ done — oxlint bumped (ladder continued to v0.9.1) | ~~oxlint~~ | ~~Critical~~ | ~~High~~ | ~~M~~ | ~~60m~~ | ~~P01~~ |
+| ~~P03~~ | ~~Drop local `replace`, `go get` v0.3.1, verify `FindingFromIssue` validate path~~ done — replace dropped; ladder continued to v0.10.0 | ~~golangci~~ | ~~High~~ | ~~Medium~~ | ~~S~~ | ~~30m~~ | ~~P01~~ |
+| ~~P04~~ | ~~Bump indirect SDK v0.3.1 (tools + execution go.mod), verify provider resolution~~ done — indirect pins walked to v0.6.0 | ~~BuildFlow~~ | ~~Medium~~ | ~~Medium~~ | ~~S~~ | ~~30m~~ | ~~P01~~ |
+| ~~P05~~ | ~~SDK I/O matrix: `MarshalJSONIndented(v)` (shared opts var), `ParseJSON[T](data)`, `SaveJSONBytes(path, data)` (WriteIfChanged + trailing-newline contract, `Op` coverage); refactor `SaveJSON` onto the shared helper; unit tests + 3 godoc examples~~ done — v0.4.0 | ~~SDK~~ | ~~Critical~~ | ~~High~~ | ~~M~~ | ~~90m~~ | ~~—~~ |
+| ~~P06~~ | ~~SDK `WorkingDir(ctx) string` helper (`WorkingDirFromContext` + `"."` fallback) + tests + example~~ done — v0.4.0 | ~~SDK~~ | ~~High~~ | ~~Medium~~ | ~~S~~ | ~~30m~~ | ~~—~~ |
+| ~~P07~~ | ~~Migrate oxlint I/O onto P05/P06: `ToJSON`→SDK marshal, `FromJSON`→`ParseJSON`, `writeConfig` + `writeConfigFile`→`SaveJSONBytes`; drop direct go-atomic-write import; golden-byte test pins output BEFORE migration~~ done — golden-byte-pinned migration | ~~oxlint~~ | ~~Critical~~ | ~~High~~ | ~~M~~ | ~~75m~~ | ~~P05~~ |
+| ~~P08~~ | ~~SDK generic diff engine: `Change{Kind,Path,Old,New}` (drop `Unchanged` dead state), `DiffMaps`, `DiffSets`, value stringify (bare strings / deterministic JSON), order-insensitive blob-set compare, `Summary`, `FormatDiff` (+/-/~); golden tests~~ done — v0.4.0 diff engine | ~~SDK~~ | ~~Critical~~ | ~~High~~ | ~~L~~ | ~~100m~~ | ~~—~~ |
+| ~~P09~~ | ~~Migrate oxlint `pkg/diff` onto engine: `Differ` becomes ~40-line field projection; `Change.Rule`→`Path` rename ripple (provider `healthCheckDrift`, `cmd_configure` diff view, tests); delete local comparators~~ done — oxlint pkg/diff onto the engine | ~~oxlint~~ | ~~High~~ | ~~High~~ | ~~M~~ | ~~75m~~ | ~~P08~~ |
+| ~~P10~~ | ~~Migrate golangci `pkg/diff` onto engine: int `ChangeType`→SDK `Kind`, `Description`→derived formatting; fix consumers (`cmd_configure_fixer.go`, report paths)~~ done — `ChangeType = Kind` alias (golangci v0.9.0) | ~~golangci~~ | ~~High~~ | ~~Medium~~ | ~~M~~ | ~~90m~~ | ~~P08, P14~~ |
+| ~~P11~~ | ~~SDK `ProviderSpec.ConfigFiles []FilePath` + `FirstExisting(root)` helper + `Inputs` derivation; single `ConfigFile` deprecation path decided for v1; validation + tests~~ done — v0.4.0 | ~~SDK~~ | ~~High~~ | ~~Medium~~ | ~~M~~ | ~~60m~~ | ~~—~~ |
+| ~~P12~~ | ~~Oxlint provider onto `ConfigFiles`: delete `oxlintConfigFiles`/`hasConfig` + forced `Inputs` override~~ done — oxlint v0.8.0-era | ~~oxlint~~ | ~~Medium~~ | ~~Medium~~ | ~~S~~ | ~~30m~~ | ~~P11~~ |
+| ~~P13~~ | ~~SDK docs wave 1: README API tables + design notes, `FEATURES.md`, `example_test.go` for all new APIs, TODO_LIST refresh (close T26 remainder), ROADMAP graduation~~ done — v0.4.0 docs wave | ~~SDK~~ | ~~High~~ | ~~Medium~~ | ~~S~~ | ~~60m~~ | ~~P05-P11~~ |
+| ~~P14~~ | ~~SDK `v0.4.0` release: changelog cut, tag, proxy verify, oxlint + golangci bumps~~ done — v0.4.0 + v0.4.1 released | ~~SDK~~ | ~~Critical~~ | ~~High~~ | ~~S~~ | ~~60m~~ | ~~P05-P13~~ |
+| ~~P15~~ | ~~SDK `Generate`-hook provider pattern: `ProviderSpec.Generate func(ctx)`; SDK owns Detect-missing / never-overwrite Repair (dry-run aware) / advisory drift HealthCheck (built on P08); decide drift-sentinel export (oxlint g3); contract tests ported from oxlint `provider_test.go`~~ done — v0.5.0 `BootstrapSpec[T]` | ~~SDK~~ | ~~High~~ | ~~High~~ | ~~L~~ | ~~100m~~ | ~~P08, P11~~ |
+| ~~P16~~ | ~~Oxlint provider onto Generate-hook: delete ~150 lines; keep Trigger layering; `provider_test.go` must pass semantically unchanged~~ done — oxlint v0.9.0 | ~~oxlint~~ | ~~High~~ | ~~High~~ | ~~M~~ | ~~75m~~ | ~~P15, P14~~ |
+| ~~P17~~ | ~~Golangci atomic-write migration: audit `os.WriteFile` sites (loader backups 0600, report writers); migrate config-affecting writes to SDK `SaveJSONBytes`/`WriteWithPerm`; preserve perms + fs-abstraction; crash-safety test~~ done — golangci v0.10.0 | ~~golangci~~ | ~~Medium~~ | ~~High~~ | ~~L~~ | ~~100m~~ | ~~P05, P14~~ |
+| ~~P18~~ | ~~`Deterministic(true)` enforcement: go/analysis analyzer flagging `json.Marshal` without the option (or shared helper + policy); wire into SDK + both consumers' golangci configs; bite-check it catches the original SDK gap~~ done — v0.6.0 analyzer | ~~cross~~ | ~~Medium~~ | ~~High~~ | ~~L~~ | ~~100m~~ | ~~P14~~ |
+| ~~P19~~ | ~~SDK `v0.5.0` release (Generate-hook) + oxlint bump + BuildFlow indirect bump~~ done — v0.5.0 released | ~~SDK~~ | ~~High~~ | ~~High~~ | ~~S~~ | ~~60m~~ | ~~P15, P16~~ |
+| ~~P20~~ | ~~`pkg/format` disposition: decision matrix (upstream to go-finding vs absorb into SDK vs keep local); draft go-finding issue/PR for `FindingView`/`PrintSummary`/`PrintFindingsTable` + exported marshal-opts helper~~ done — disposition matrix + verified draft (`2026-09-23_pkg-format-disposition.md`); filing owner-gated (13-26 g1) | ~~cross~~ | ~~Low~~ | ~~Medium~~ | ~~M~~ | ~~60m~~ | ~~P14~~ |
+| ~~P21~~ | ~~Carried SDK TODOs: T27 release-verify script, T28 README snippet compile guard, T29 social-preview CI guard, T21 CI→buildflow workflow swap (needs watched run)~~ PARTIAL — T27/T28/T29 shipped (`bcd9302`/`522c660`); the T21 CI swap is blocked (BuildFlow private again, TODO_LIST T21) | ~~SDK~~ | ~~Medium~~ | ~~Medium~~ | ~~S~~ | ~~60m~~ | ~~—~~ |
+| ~~P22~~ | ~~Synergy harvest in oxlint: validate-side drift advisory (its f15, trivial after P09) + README rule-stats/FEATURES rows for shared engine~~ done — oxlint `--fail-on-drift` (v0.9.0) | ~~oxlint~~ | ~~Medium~~ | ~~Medium~~ | ~~S~~ | ~~45m~~ | ~~P09~~ |
+| ~~P23~~ | ~~Final cross-repo verification wave: `buildflow --fix --fail-on-findings` in SDK; full gates in oxlint + golangci; TODO_LIST/ROADMAP closing sweep + status report~~ done — 05-30 report; final gates green / dispositioned | ~~cross~~ | ~~High~~ | ~~Medium~~ | ~~S~~ | ~~45m~~ | ~~all~~ |
 
 **Deferred by design (owner-gated, not scheduled):** SDK T20 (`ErrNoRepair` removal at v1), T30 (GIF empirical validation — needs owner's hands), oxlint v0.7.0 tag timing (owner question g1).
 
@@ -108,99 +108,99 @@ Sorted: release-unblocking first, then duplication-kill by leverage, then riskie
 
 | ID | Task (≤12 min each) | Parent |
 |----|---------------------|--------|
-| F01 | CHANGELOG: add `Unreleased/Fixed` entry for `SaveJSON` determinism (map-key churn silently defeated idempotency) | P01 |
-| F02 | CHANGELOG: backfill `[0.3.0] - 2026-09-22` section (go 1.27 floor, go-finding v1.13.0, GOEXPERIMENT no longer required) from `a4f9203` | P01 |
-| F03 | AGENTS.md: add policy line "all production jsonv2 marshals pass `json.Deterministic(true)`" (mirror go-finding `json.go:12`) | P01 |
-| F04 | AGENTS.md: refresh `go 1.26.7`/GOEXPERIMENT sections to go 1.27 reality (jsonv2 standard; `.envrc` harmless) | P01 |
-| F05 | `git push origin master` (ship the daemon-committed fix `fc9aacf`+`d872d1e`) | P01 |
-| F06 | Pre-tag gate: `go test -race ./...` + `golangci-lint run` + `buildflow` green | P01 |
-| F07 | Ask owner: tag v0.3.1 now? (§7 Q1) — block F08-F11 until yes | P01 |
-| F08 | `git tag -a v0.3.1` + push tag | P01 |
-| F09 | Verify proxy serves v0.3.1 (`go list -m -versions`) | P01 |
-| F10 | Clean-dir `go get@v0.3.1` + consumer compile smoke | P01 |
-| F11 | CHANGELOG: cut `[0.3.1]` section from Unreleased | P01 |
-| F12 | oxlint: `go get sdk@v0.3.1` + `go mod tidy` | P02 |
-| F13 | oxlint: flake input tag bump + `vendorHash` update | P02 |
-| F14 | oxlint: `go mod vendor` regen + `validatePrivateDeps` pass | P02 |
-| F15 | oxlint: `scripts/pre-release-check.sh` full gate | P02 |
-| F16 | golangci: delete `replace` line (`go.mod:68`) + `go get sdk@v0.3.1` + tidy | P03 |
-| F17 | golangci: build + `cmd_validate` tests green (only `FindingFromIssue` path) | P03 |
-| F18 | BuildFlow: bump `tools/go.mod` + `execution/go.mod` to v0.3.1 + tidy | P04 |
-| F19 | BuildFlow: build + blank-import provider resolution check | P04 |
-| F20 | SDK: write design note for I/O matrix (newline contract: who appends; `Op` reuse for bytes ops; naming) | P05 |
-| F21 | SDK: `MarshalJSONIndented(v any) ([]byte, *ConfigError)` + shared `marshalOpts` var (Deterministic + 2-space indent) | P05 |
-| F22 | SDK: `ParseJSON[T any](data []byte) (*T, *ConfigError)` (Op=OpUnmarshal) | P05 |
-| F23 | SDK: `SaveJSONBytes(path string, data []byte) (bool, *ConfigError)` (MkdirAll + WriteIfChanged; document newline as caller contract) | P05 |
-| F24 | SDK: refactor `SaveJSON` to marshal via F21 helper (byte-identical output) | P05 |
-| F25 | SDK: unit tests — parse errors, save-if-changed, marshal errors, determinism carry-over | P05 |
-| F26 | SDK: godoc examples `ExampleMarshalJSONIndented`, `ExampleParseJSON`, `ExampleSaveJSONBytes` | P05 |
-| F27 | SDK: lint + race green on P05 additions | P05 |
-| F28 | SDK: `WorkingDir(ctx context.Context) string` helper + doc (fallback `.`) | P06 |
-| F29 | SDK: tests — context value wins, empty falls back | P06 |
-| F30 | oxlint: golden-byte test pinning current `.oxlintrc.json` output (incl. trailing newline) BEFORE any migration | P07 |
-| F31 | oxlint: `ToJSON` → thin wrapper over `autoconfigure.MarshalJSONIndented` | P07 |
-| F32 | oxlint: `FromJSON` → `autoconfigure.ParseJSON[OxlintConfig]` | P07 |
-| F33 | oxlint: CLI `writeConfig` → `SaveJSONBytes` (delete hand `'\n'` append) | P07 |
-| F34 | oxlint: provider `writeConfigFile` → `SaveJSONBytes` | P07 |
-| F35 | oxlint: drop direct `go-atomic-write` import (if no other site) + tidy | P07 |
-| F36 | oxlint: golden test + full suite + lint green (byte-identical config output proven) | P07 |
-| F37 | SDK: data-model decision note for `Change` (Kind/Path/Old/New; no Unchanged; why: unrepresentable dead state) | P08 |
-| F38 | SDK: `DiffMaps(before, after map[string]string, prefix string) []Change` | P08 |
-| F39 | SDK: `DiffSets(before, after []string, prefix string) []Change` | P08 |
-| F40 | SDK: `StringValue(v any) string` stringify (bare string / deterministic compact JSON / `%v` fallback) | P08 |
-| F41 | SDK: `DiffBlobs(before, after []string, prefix string) []Change` — order-insensitive canonical-set compare | P08 |
-| F42 | SDK: `Summary(changes []Change) string` + `FormatDiff(changes []Change) string` (+/-/~) | P08 |
-| F43 | SDK: tests — golden outputs, empty diff, reorder-only = no change, mixed kinds | P08 |
-| F44 | SDK: godoc example `ExampleDiffMaps` + package-section doc | P08 |
-| F45 | oxlint: `Differ.Diff()` → projection over SDK comparators (plugins/jsPlugins/categories/rules/env/settings/overrides) | P09 |
-| F46 | oxlint: `Change.Rule`→`Path` rename ripple (`healthCheckDrift`, `showDiffIfExisting`, tests) | P09 |
-| F47 | oxlint: delete local comparators + `KindUnchanged`; `HasChanges` stays (report item 4 already shipped it) | P09 |
-| F48 | oxlint: suite + lint green; `FormatDiff` output byte-checked against old render | P09 |
-| F49 | golangci: adapter mapping `ChangeType`→SDK `Kind` (added/removed/modified) | P10 |
-| F50 | golangci: migrate `Differ.Compare` internals onto SDK comparators | P10 |
-| F51 | golangci: `Description` → derived formatter helper (keep user-visible strings stable) | P10 |
-| F52 | golangci: consumers (`cmd_configure_fixer`, report paths) + suite + lint green | P10 |
-| F53 | SDK: `ProviderSpec.ConfigFiles []FilePath` field + `Inputs` derivation (all candidates) | P11 |
-| F54 | SDK: `FirstExisting(root string, candidates ...string) (string, bool)` helper + tests | P11 |
-| F55 | SDK: validation tests + v1 deprecation note for single `ConfigFile` | P11 |
-| F56 | oxlint: provider → `ConfigFiles`; delete `oxlintConfigFiles`/`hasConfig` + `Inputs` override | P12 |
-| F57 | oxlint: provider tests (shadow-config `.jsonc` case!) still green | P12 |
-| F58 | SDK: README — API tables + design notes rows for all new exports | P13 |
-| F59 | SDK: `FEATURES.md` rows (I/O matrix, diff engine, ConfigFiles) | P13 |
-| F60 | SDK: TODO_LIST — close T26 (superseded by T31/T32), add T31-T43 harvest IDs | P13 |
-| F61 | SDK: ROADMAP — graduate absorbed items, add format-package + analyzer as candidates | P13 |
-| F62 | SDK: `v0.4.0` changelog cut + release commit | P14 |
-| F63 | SDK: tag + push + proxy verify + clean-dir smoke | P14 |
-| F64 | oxlint + golangci bumps to v0.4.0 (go get / flake / vendor as needed) | P14 |
-| F65 | SDK: `ProviderSpec.Generate` design note (contract: bytes + rule count?; interplay with Analyze/Repair; sentinel decision) | P15 |
-| F66 | SDK: Detect-missing adapter (exists-check via FirstExisting + delegate Generate) | P15 |
-| F67 | SDK: Repair adapter — never-overwrite + dry-run (`toolsdk.DryRunFromContext`) | P15 |
-| F68 | SDK: advisory drift HealthCheck (read existing → ParseJSON → Generate → engine diff → wrap) | P15 |
-| F69 | SDK: contract tests ported from oxlint `provider_test.go` (no-overwrite, dry-run, drift-advisory, shadow-config) | P15 |
-| F70 | SDK: godoc example `ExampleProviderFromSpec_Generate` | P15 |
-| F71 | oxlint: provider onto Generate-hook; delete `detectMissingConfig`/`repairConfig`/`healthCheckDrift` bodies | P16 |
-| F72 | oxlint: verify `provider_test.go` semantics unchanged (same findings/messages) | P16 |
-| F73 | golangci: audit all `os.WriteFile` sites → table (site, perms, crash-safety today, migration target) | P17 |
-| F74 | golangci: migrate primary config write to `SaveJSONBytes`/`WriteWithPerm` (perms preserved) | P17 |
-| F75 | golangci: backups (0600) migration or documented-keep decision | P17 |
-| F76 | golangci: crash-safety test (temp+rename semantics; no partial files) | P17 |
-| F77 | cross: decide analyzer vs shared-helper for Deterministic enforcement (effort/FP tradeoff) | P18 |
-| F78 | cross: implement `json.Marshal`-without-Deterministic detector (go/analysis) | P18 |
-| F79 | cross: wire into SDK + oxlint + golangci lint configs | P18 |
-| F80 | cross: bite-check — analyzer flags the reverted SDK gap (red without fix) | P18 |
-| F81 | SDK: `v0.5.0` changelog cut + tag + proxy verify | P19 |
-| F82 | oxlint bump v0.5.0 + BuildFlow indirect bump + version-pairing check | P19 |
-| F83 | cross: decision matrix for `pkg/format` (go-finding vs SDK vs local) | P20 |
-| F84 | cross: draft go-finding issue/PR (FindingView/PrintSummary/Table + exported marshal-opts helper) | P20 |
-| F85 | SDK: T27 release-verify script (one command clean-dir check) | P21 |
-| F86 | SDK: T28 README snippet compile-guard test | P21 |
-| F87 | SDK: T29 social-preview CI guard (svg→png, 1280x640, <1MB) | P21 |
-| F88 | SDK: T21 CI workflow swap to buildflow job + watched CI run | P21 |
-| F89 | oxlint: validate-side drift advisory (f15) using shared engine + PreserveExternal | P22 |
-| F90 | oxlint: README/FEATURES rows for shared engine + drift advisory | P22 |
-| F91 | cross: `buildflow --fix --fail-on-findings` in SDK | P23 |
-| F92 | oxlint + golangci full gates green | P23 |
-| F93 | docs sweep: TODO_LIST/ROADMAP/FEATURES closing + session status report | P23 |
+| ~~F01~~ | ~~CHANGELOG: add `Unreleased/Fixed` entry for `SaveJSON` determinism (map-key churn silently defeated idempotency)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P01~~ |
+| ~~F02~~ | ~~CHANGELOG: backfill `[0.3.0] - 2026-09-22` section (go 1.27 floor, go-finding v1.13.0, GOEXPERIMENT no longer required) from `a4f9203`~~ done (with its train, 2026-09-23 — see closing reports) | ~~P01~~ |
+| ~~F03~~ | ~~AGENTS.md: add policy line "all production jsonv2 marshals pass `json.Deterministic(true)`" (mirror go-finding `json.go:12`)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P01~~ |
+| ~~F04~~ | ~~AGENTS.md: refresh `go 1.26.7`/GOEXPERIMENT sections to go 1.27 reality (jsonv2 standard; `.envrc` harmless)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P01~~ |
+| ~~F05~~ | ~~`git push origin master` (ship the daemon-committed fix `fc9aacf`+`d872d1e`)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P01~~ |
+| ~~F06~~ | ~~Pre-tag gate: `go test -race ./...` + `golangci-lint run` + `buildflow` green~~ done (with its train, 2026-09-23 — see closing reports) | ~~P01~~ |
+| ~~F07~~ | ~~Ask owner: tag v0.3.1 now? (§7 Q1) — block F08-F11 until yes~~ done (with its train, 2026-09-23 — see closing reports) | ~~P01~~ |
+| ~~F08~~ | ~~`git tag -a v0.3.1` + push tag~~ done (with its train, 2026-09-23 — see closing reports) | ~~P01~~ |
+| ~~F09~~ | ~~Verify proxy serves v0.3.1 (`go list -m -versions`)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P01~~ |
+| ~~F10~~ | ~~Clean-dir `go get@v0.3.1` + consumer compile smoke~~ done (with its train, 2026-09-23 — see closing reports) | ~~P01~~ |
+| ~~F11~~ | ~~CHANGELOG: cut `[0.3.1]` section from Unreleased~~ done (with its train, 2026-09-23 — see closing reports) | ~~P01~~ |
+| ~~F12~~ | ~~oxlint: `go get sdk@v0.3.1` + `go mod tidy`~~ done (with its train, 2026-09-23 — see closing reports) | ~~P02~~ |
+| ~~F13~~ | ~~oxlint: flake input tag bump + `vendorHash` update~~ done (with its train, 2026-09-23 — see closing reports) | ~~P02~~ |
+| ~~F14~~ | ~~oxlint: `go mod vendor` regen + `validatePrivateDeps` pass~~ done (with its train, 2026-09-23 — see closing reports) | ~~P02~~ |
+| ~~F15~~ | ~~oxlint: `scripts/pre-release-check.sh` full gate~~ done (with its train, 2026-09-23 — see closing reports) | ~~P02~~ |
+| ~~F16~~ | ~~golangci: delete `replace` line (`go.mod:68`) + `go get sdk@v0.3.1` + tidy~~ done (with its train, 2026-09-23 — see closing reports) | ~~P03~~ |
+| ~~F17~~ | ~~golangci: build + `cmd_validate` tests green (only `FindingFromIssue` path)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P03~~ |
+| ~~F18~~ | ~~BuildFlow: bump `tools/go.mod` + `execution/go.mod` to v0.3.1 + tidy~~ done (with its train, 2026-09-23 — see closing reports) | ~~P04~~ |
+| ~~F19~~ | ~~BuildFlow: build + blank-import provider resolution check~~ done (with its train, 2026-09-23 — see closing reports) | ~~P04~~ |
+| ~~F20~~ | ~~SDK: write design note for I/O matrix (newline contract: who appends; `Op` reuse for bytes ops; naming)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P05~~ |
+| ~~F21~~ | ~~SDK: `MarshalJSONIndented(v any) ([]byte, *ConfigError)` + shared `marshalOpts` var (Deterministic + 2-space indent)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P05~~ |
+| ~~F22~~ | ~~SDK: `ParseJSON[T any](data []byte) (*T, *ConfigError)` (Op=OpUnmarshal)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P05~~ |
+| ~~F23~~ | ~~SDK: `SaveJSONBytes(path string, data []byte) (bool, *ConfigError)` (MkdirAll + WriteIfChanged; document newline as caller contract)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P05~~ |
+| ~~F24~~ | ~~SDK: refactor `SaveJSON` to marshal via F21 helper (byte-identical output)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P05~~ |
+| ~~F25~~ | ~~SDK: unit tests — parse errors, save-if-changed, marshal errors, determinism carry-over~~ done (with its train, 2026-09-23 — see closing reports) | ~~P05~~ |
+| ~~F26~~ | ~~SDK: godoc examples `ExampleMarshalJSONIndented`, `ExampleParseJSON`, `ExampleSaveJSONBytes`~~ done (with its train, 2026-09-23 — see closing reports) | ~~P05~~ |
+| ~~F27~~ | ~~SDK: lint + race green on P05 additions~~ done (with its train, 2026-09-23 — see closing reports) | ~~P05~~ |
+| ~~F28~~ | ~~SDK: `WorkingDir(ctx context.Context) string` helper + doc (fallback `.`)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P06~~ |
+| ~~F29~~ | ~~SDK: tests — context value wins, empty falls back~~ done (with its train, 2026-09-23 — see closing reports) | ~~P06~~ |
+| ~~F30~~ | ~~oxlint: golden-byte test pinning current `.oxlintrc.json` output (incl. trailing newline) BEFORE any migration~~ done (with its train, 2026-09-23 — see closing reports) | ~~P07~~ |
+| ~~F31~~ | ~~oxlint: `ToJSON` → thin wrapper over `autoconfigure.MarshalJSONIndented`~~ done (with its train, 2026-09-23 — see closing reports) | ~~P07~~ |
+| ~~F32~~ | ~~oxlint: `FromJSON` → `autoconfigure.ParseJSON[OxlintConfig]`~~ done (with its train, 2026-09-23 — see closing reports) | ~~P07~~ |
+| ~~F33~~ | ~~oxlint: CLI `writeConfig` → `SaveJSONBytes` (delete hand `'\n'` append)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P07~~ |
+| ~~F34~~ | ~~oxlint: provider `writeConfigFile` → `SaveJSONBytes`~~ done (with its train, 2026-09-23 — see closing reports) | ~~P07~~ |
+| ~~F35~~ | ~~oxlint: drop direct `go-atomic-write` import (if no other site) + tidy~~ done (with its train, 2026-09-23 — see closing reports) | ~~P07~~ |
+| ~~F36~~ | ~~oxlint: golden test + full suite + lint green (byte-identical config output proven)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P07~~ |
+| ~~F37~~ | ~~SDK: data-model decision note for `Change` (Kind/Path/Old/New; no Unchanged; why: unrepresentable dead state)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P08~~ |
+| ~~F38~~ | ~~SDK: `DiffMaps(before, after map[string]string, prefix string) []Change`~~ done (with its train, 2026-09-23 — see closing reports) | ~~P08~~ |
+| ~~F39~~ | ~~SDK: `DiffSets(before, after []string, prefix string) []Change`~~ done (with its train, 2026-09-23 — see closing reports) | ~~P08~~ |
+| ~~F40~~ | ~~SDK: `StringValue(v any) string` stringify (bare string / deterministic compact JSON / `%v` fallback)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P08~~ |
+| ~~F41~~ | ~~SDK: `DiffBlobs(before, after []string, prefix string) []Change` — order-insensitive canonical-set compare~~ done (with its train, 2026-09-23 — see closing reports) | ~~P08~~ |
+| ~~F42~~ | ~~SDK: `Summary(changes []Change) string` + `FormatDiff(changes []Change) string` (+/-/~)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P08~~ |
+| ~~F43~~ | ~~SDK: tests — golden outputs, empty diff, reorder-only = no change, mixed kinds~~ done (with its train, 2026-09-23 — see closing reports) | ~~P08~~ |
+| ~~F44~~ | ~~SDK: godoc example `ExampleDiffMaps` + package-section doc~~ done (with its train, 2026-09-23 — see closing reports) | ~~P08~~ |
+| ~~F45~~ | ~~oxlint: `Differ.Diff()` → projection over SDK comparators (plugins/jsPlugins/categories/rules/env/settings/overrides)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P09~~ |
+| ~~F46~~ | ~~oxlint: `Change.Rule`→`Path` rename ripple (`healthCheckDrift`, `showDiffIfExisting`, tests)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P09~~ |
+| ~~F47~~ | ~~oxlint: delete local comparators + `KindUnchanged`; `HasChanges` stays (report item 4 already shipped it)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P09~~ |
+| ~~F48~~ | ~~oxlint: suite + lint green; `FormatDiff` output byte-checked against old render~~ done (with its train, 2026-09-23 — see closing reports) | ~~P09~~ |
+| ~~F49~~ | ~~golangci: adapter mapping `ChangeType`→SDK `Kind` (added/removed/modified)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P10~~ |
+| ~~F50~~ | ~~golangci: migrate `Differ.Compare` internals onto SDK comparators~~ done (with its train, 2026-09-23 — see closing reports) | ~~P10~~ |
+| ~~F51~~ | ~~golangci: `Description` → derived formatter helper (keep user-visible strings stable)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P10~~ |
+| ~~F52~~ | ~~golangci: consumers (`cmd_configure_fixer`, report paths) + suite + lint green~~ done (with its train, 2026-09-23 — see closing reports) | ~~P10~~ |
+| ~~F53~~ | ~~SDK: `ProviderSpec.ConfigFiles []FilePath` field + `Inputs` derivation (all candidates)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P11~~ |
+| ~~F54~~ | ~~SDK: `FirstExisting(root string, candidates ...string) (string, bool)` helper + tests~~ done (with its train, 2026-09-23 — see closing reports) | ~~P11~~ |
+| ~~F55~~ | ~~SDK: validation tests + v1 deprecation note for single `ConfigFile`~~ done (with its train, 2026-09-23 — see closing reports) | ~~P11~~ |
+| ~~F56~~ | ~~oxlint: provider → `ConfigFiles`; delete `oxlintConfigFiles`/`hasConfig` + `Inputs` override~~ done (with its train, 2026-09-23 — see closing reports) | ~~P12~~ |
+| ~~F57~~ | ~~oxlint: provider tests (shadow-config `.jsonc` case!) still green~~ done (with its train, 2026-09-23 — see closing reports) | ~~P12~~ |
+| ~~F58~~ | ~~SDK: README — API tables + design notes rows for all new exports~~ done (with its train, 2026-09-23 — see closing reports) | ~~P13~~ |
+| ~~F59~~ | ~~SDK: `FEATURES.md` rows (I/O matrix, diff engine, ConfigFiles)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P13~~ |
+| ~~F60~~ | ~~SDK: TODO_LIST — close T26 (superseded by T31/T32), add T31-T43 harvest IDs~~ done (with its train, 2026-09-23 — see closing reports) | ~~P13~~ |
+| ~~F61~~ | ~~SDK: ROADMAP — graduate absorbed items, add format-package + analyzer as candidates~~ done (with its train, 2026-09-23 — see closing reports) | ~~P13~~ |
+| ~~F62~~ | ~~SDK: `v0.4.0` changelog cut + release commit~~ done (with its train, 2026-09-23 — see closing reports) | ~~P14~~ |
+| ~~F63~~ | ~~SDK: tag + push + proxy verify + clean-dir smoke~~ done (with its train, 2026-09-23 — see closing reports) | ~~P14~~ |
+| ~~F64~~ | ~~oxlint + golangci bumps to v0.4.0 (go get / flake / vendor as needed)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P14~~ |
+| ~~F65~~ | ~~SDK: `ProviderSpec.Generate` design note (contract: bytes + rule count?; interplay with Analyze/Repair; sentinel decision)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P15~~ |
+| ~~F66~~ | ~~SDK: Detect-missing adapter (exists-check via FirstExisting + delegate Generate)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P15~~ |
+| ~~F67~~ | ~~SDK: Repair adapter — never-overwrite + dry-run (`toolsdk.DryRunFromContext`)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P15~~ |
+| ~~F68~~ | ~~SDK: advisory drift HealthCheck (read existing → ParseJSON → Generate → engine diff → wrap)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P15~~ |
+| ~~F69~~ | ~~SDK: contract tests ported from oxlint `provider_test.go` (no-overwrite, dry-run, drift-advisory, shadow-config)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P15~~ |
+| ~~F70~~ | ~~SDK: godoc example `ExampleProviderFromSpec_Generate`~~ done (with its train, 2026-09-23 — see closing reports) | ~~P15~~ |
+| ~~F71~~ | ~~oxlint: provider onto Generate-hook; delete `detectMissingConfig`/`repairConfig`/`healthCheckDrift` bodies~~ done (with its train, 2026-09-23 — see closing reports) | ~~P16~~ |
+| ~~F72~~ | ~~oxlint: verify `provider_test.go` semantics unchanged (same findings/messages)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P16~~ |
+| ~~F73~~ | ~~golangci: audit all `os.WriteFile` sites → table (site, perms, crash-safety today, migration target)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P17~~ |
+| ~~F74~~ | ~~golangci: migrate primary config write to `SaveJSONBytes`/`WriteWithPerm` (perms preserved)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P17~~ |
+| ~~F75~~ | ~~golangci: backups (0600) migration or documented-keep decision~~ done (with its train, 2026-09-23 — see closing reports) | ~~P17~~ |
+| ~~F76~~ | ~~golangci: crash-safety test (temp+rename semantics; no partial files)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P17~~ |
+| ~~F77~~ | ~~cross: decide analyzer vs shared-helper for Deterministic enforcement (effort/FP tradeoff)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P18~~ |
+| ~~F78~~ | ~~cross: implement `json.Marshal`-without-Deterministic detector (go/analysis)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P18~~ |
+| ~~F79~~ | ~~cross: wire into SDK + oxlint + golangci lint configs~~ done (with its train, 2026-09-23 — see closing reports) | ~~P18~~ |
+| ~~F80~~ | ~~cross: bite-check — analyzer flags the reverted SDK gap (red without fix)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P18~~ |
+| ~~F81~~ | ~~SDK: `v0.5.0` changelog cut + tag + proxy verify~~ done (with its train, 2026-09-23 — see closing reports) | ~~P19~~ |
+| ~~F82~~ | ~~oxlint bump v0.5.0 + BuildFlow indirect bump + version-pairing check~~ done (with its train, 2026-09-23 — see closing reports) | ~~P19~~ |
+| ~~F83~~ | ~~cross: decision matrix for `pkg/format` (go-finding vs SDK vs local)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P20~~ |
+| ~~F84~~ | ~~cross: draft go-finding issue/PR (FindingView/PrintSummary/Table + exported marshal-opts helper)~~ done — draft verified ready; the `gh issue create` filing is owner-gated (13-26 report g1) | ~~P20~~ |
+| ~~F85~~ | ~~SDK: T27 release-verify script (one command clean-dir check)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P21~~ |
+| ~~F86~~ | ~~SDK: T28 README snippet compile-guard test~~ done (with its train, 2026-09-23 — see closing reports) | ~~P21~~ |
+| ~~F87~~ | ~~SDK: T29 social-preview CI guard (svg→png, 1280x640, <1MB)~~ done (with its train, 2026-09-23 — see closing reports) | ~~P21~~ |
+| ~~F88~~ | ~~SDK: T21 CI workflow swap to buildflow job + watched CI run~~ open — blocked: BuildFlow private again (TODO_LIST T21) | ~~P21~~ |
+| ~~F89~~ | ~~oxlint: validate-side drift advisory (f15) using shared engine + PreserveExternal~~ done (with its train, 2026-09-23 — see closing reports) | ~~P22~~ |
+| ~~F90~~ | ~~oxlint: README/FEATURES rows for shared engine + drift advisory~~ done (with its train, 2026-09-23 — see closing reports) | ~~P22~~ |
+| ~~F91~~ | ~~cross: `buildflow --fix --fail-on-findings` in SDK~~ done (with its train, 2026-09-23 — see closing reports) | ~~P23~~ |
+| ~~F92~~ | ~~oxlint + golangci full gates green~~ done (with its train, 2026-09-23 — see closing reports) | ~~P23~~ |
+| ~~F93~~ | ~~docs sweep: TODO_LIST/ROADMAP/FEATURES closing + session status report~~ done (with its train, 2026-09-23 — see closing reports) | ~~P23~~ |
 
 ---
 
@@ -278,3 +278,19 @@ Parallelism: P05+P06, P08, P11 are independent — three streams. P02/P03/P04 ar
 ## 8. Harvest
 
 SDK-repo tasks from this plan are harvested into `TODO_LIST.md` as T31-T43 (2026-09-22). Consumer-repo tasks (P02, P03, P07, P09, P10, P12, P16, P17, P19-bumps, P22) stay recorded here; their repos' TODO_LISTs get them when each train starts (docs-health HARVEST).
+
+---
+
+## Resolution (2026-09-23, docs-health pass)
+
+The plan fully executed the night of 2026-09-23 (see the three closing
+reports linked in the header): Train 1 → v0.3.1, Train 2 → v0.4.0/v0.4.1
+(I/O matrix, diff engine, ConfigFiles, consumer migrations), Train 3 →
+v0.5.0 (bootstrap lifecycle) + v0.6.0 (determinism analyzer) + golangci
+v0.9.0/v0.10.0 + oxlint v0.8.0-v0.9.1. All 23 P-rows and 93 F-rows resolved
+inline. The two non-`done` verdicts: **F88** (the T21 CI swap) is blocked —
+BuildFlow went private again — and lives on as TODO_LIST T21; **F84**'s
+`gh issue create` filing (P20's last 10%) is deliberately owner-gated
+(13-26 report g1). Owner decisions Q1-Q3 were all resolved: tag now (v0.3.1),
+sentinel unexported, newline caller-owned. Plan complete; not archived only
+because F88/F84-verdicts remain open in TODO_LIST.

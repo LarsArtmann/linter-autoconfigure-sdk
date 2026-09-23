@@ -308,3 +308,17 @@ tests, consumer milestone, write variants). Items e11-e14 are process/meta
 observations, deliberately left unannotated. The g-questions map to: Q1 →
 open (erraudit still reports 2 findings), Q2 → moot (no tag cut yet, commit
 stands alone), Q3 → ROADMAP "first consumer migration" milestone.
+
+## Second resolution (2026-09-23, docs-health pass)
+
+23 more items resolved above: erraudit zeroed with the tool-name wrap
+(`d674922`), flat layout and `.golangci.yml` settled, both consumers live,
+the masterplan executed the Pareto pass, pkg.go.dev/CI/examples all shipped,
+validation sentinels landed (v0.2.0/v0.5.0), and the compatibility policy is
+documented (README + AGENTS + per-release Dependencies entries). Q1 is
+therefore answered and Q3 long since moot. Still open: #11 (v1-json-type lint
+rule — the jsondeterminism analyzer covers determinism, not v1-vs-v2 type
+refs), #15 (Save→Load→Malformed-Load cycle test), #17 (BDD), #26-30
+(review-skill passes), #34-39 (README aliases, gitleaks, benchmarks, fuzz,
+property), #43 (semver 1.0.0 policy), #46-49 (configerr, Must variants,
+WithIndent, LoadJSONWith — all ROADMAP candidates).
