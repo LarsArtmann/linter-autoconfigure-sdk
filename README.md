@@ -255,9 +255,13 @@ their gates.
 Active:
 
 - [`oxlint-auto-configure`](https://github.com/LarsArtmann/oxlint-auto-configure)
-  — builds its BuildFlow provider via `ProviderFromSpec` (first migrated consumer, 2026-09-11).
+  — builds its BuildFlow provider via `BootstrapProviderFromSpec` (first migrated
+  consumer, 2026-09-11; bootstrap lifecycle since its v0.9.0). Its config I/O,
+  discovery, and diff run on the SDK's helpers too.
 - [`golangci-lint-auto-configure`](https://github.com/LarsArtmann/golangci-lint-auto-configure)
-  — emits validate-command health findings via `FindingFromIssue` (2026-09-11).
+  — emits validate-command health findings via `FindingFromIssue` and diffs
+  configs with the SDK's `Change`/`Kind` vocabulary; its gate enforces
+  deterministic marshals via `cmd/jsondeterminism`.
   Its linter-recommendation conversion (`missing-linter` findings with
   per-linter categories/tags) intentionally stays app-side: those carry
   domain metadata ConfigIssue does not model.

@@ -5,8 +5,6 @@
 # subset: gofmt, vet, and race-enabled tests with coverage uploaded as an
 # artifact. Swap this for a buildflow job once BuildFlow is public.
 #
-# GOEXPERIMENT=jsonv2 is required on Go 1.26 because go-finding imports
-# encoding/json/v2 (standard in Go 1.27).
 name: CI
 
 on:
@@ -16,9 +14,6 @@ on:
 
 permissions:
   contents: read
-
-env:
-  GOEXPERIMENT: jsonv2
 
 jobs:
   check:

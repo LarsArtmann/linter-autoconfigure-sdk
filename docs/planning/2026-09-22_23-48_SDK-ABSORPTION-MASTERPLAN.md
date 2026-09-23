@@ -3,6 +3,7 @@
 _Date: 2026-09-22 23:48 CEST · Repo: `linter-autoconfigure-sdk` (master, v0.3.0 tagged, 2 unpushed daemon commits)_
 _Trigger: owner demanded actual research + proper plan for absorbing what `oxlint-auto-configure` (and `golangci-lint-auto-configure`) still hand-roll._
 _Evidence base: full reads of both consumer repos, BuildFlow go.mods, go-finding v1.13 + go-atomic-write v0.5.1 API surfaces, SDK git history/tags, oxlint session report 2026-09-22_23-16._
+_Closing reports: `docs/status/2026-09-23_03-14_execution-trains-1-2-shipped.md` · `docs/status/2026-09-23_05-30_masterplan-complete-all-trains-shipped.md` · `docs/status/2026-09-23_13-26_masterplan-wrapup-self-review.md`_
 
 ---
 
