@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [0.5.0] - 2026-09-23
+
+### Added
+
 - **Bootstrap-mode providers** (`BootstrapSpec[T]` + `BootstrapProviderFromSpec`):
   the generate-if-missing lifecycle oxlint-auto-configure hand-rolled — a
   Detect that flags only a MISSING config (existing configs under ANY
@@ -22,10 +32,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   lifecycles, and one struct offering both would invite ambiguous specs.
   Validation sentinels: `ErrConfigFileRequired`, `ErrGenerateRequired`,
   `ErrCompareRequired` (plus the existing name/description ones).
-
-### Fixed
-
-- Nothing yet.
 
 ## [0.4.1] - 2026-09-23
 
