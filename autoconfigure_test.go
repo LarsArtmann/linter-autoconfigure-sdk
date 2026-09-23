@@ -1181,7 +1181,7 @@ func TestWorkingDir_FallsBackToDot(t *testing.T) {
 func TestWorkingDir_NilContextFallsBackToDot(t *testing.T) {
 	t.Parallel()
 
-	if got := WorkingDir(nil); got != "." {
+	if got := WorkingDir(nil); got != "." { //nolint:staticcheck // nil ctx is the exact regression under test
 		t.Errorf("expected \".\" fallback for nil context, got %q", got)
 	}
 }

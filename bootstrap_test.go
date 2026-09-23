@@ -12,6 +12,9 @@ import (
 	toolsdk "github.com/larsartmann/go-finding/toolsdk"
 )
 
+// errRegistryUnavailable is a static test failure for the Generate hook.
+var errRegistryUnavailable = errors.New("registry unavailable")
+
 // testBootstrapSpec is a minimal fake domain over a settings map: the project
 // is "recognizable" when a package.json marker exists, Generate produces a
 // fixed optimal config, and Compare projects onto DiffMaps. Its lifecycle
@@ -166,25 +169,25 @@ func TestBootstrapDetect_MissingConfigInRecognizableProject(t *testing.T) {
 		t.Fatalf("findings = %d, want 1", len(findings))
 	}
 
-	f := findings[0]
-	if f.Rule != "FAKE_CONFIG_MISSING" {
-		t.Errorf("Rule = %q, want FAKE_CONFIG_MISSING", f.Rule)
+	missing := findings[0]
+	if missing.Rule != "FAKE_CONFIG_MISSING" {
+		t.Errorf("Rule = %q, want FAKE_CONFIG_MISSING", missing.Rule)
 	}
 
-	if f.ToolName != "fake-auto-configure" {
-		t.Errorf("ToolName = %q, want fake-auto-configure", f.ToolName)
+	if missing.ToolName != "fake-auto-configure" {
+		t.Errorf("ToolName = %q, want fake-auto-configure", missing.ToolName)
 	}
 
-	if f.Severity != finding.SeverityWarning {
-		t.Errorf("Severity = %v, want warning", f.Severity)
+	if missing.Severity != finding.SeverityWarning {
+		t.Errorf("Severity = %v, want warning", missing.Severity)
 	}
 
-	if f.Position.File != ".fakerc.json" {
-		t.Errorf("Position.File = %q, want .fakerc.json", f.Position.File)
+	if missing.Position.File != ".fakerc.json" {
+		t.Errorf("Position.File = %q, want .fakerc.json", missing.Position.File)
 	}
 
-	if f.FixStrategy != finding.FixStrategySuggest {
-		t.Errorf("FixStrategy = %v, want suggest", f.FixStrategy)
+	if missing.FixStrategy != finding.FixStrategySuggest {
+		t.Errorf("FixStrategy = %v, want suggest", missing.FixStrategy)
 	}
 }
 
@@ -243,7 +246,7 @@ func TestBootstrapDetect_ExistingShadowConfigNeverFlagged(t *testing.T) {
 
 	if len(findings) != 0 {
 		t.Fatalf(
-			"an existing .fakerc.jsonc is a config too — flagging it would make repair generate a shadowing .fakerc.json, got %v",
+			"an existing .fakerc.jsonc is a config too: flagging it would make repair generate a shadowing .fakerc.json; got %v",
 			findings,
 		)
 	}
@@ -376,7 +379,7 @@ func TestBootstrapRepair_GenerateErrorPropagates(t *testing.T) {
 
 	spec := testBootstrapSpec()
 	spec.Generate = func(ctx context.Context) (map[string]string, int, error) {
-		return nil, 0, errors.New("registry unavailable")
+		return nil, 0, errRegistryUnavailable
 	}
 
 	provider, err := BootstrapProviderFromSpec(spec)
