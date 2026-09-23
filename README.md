@@ -25,14 +25,14 @@ presets). Those differences are legitimate and stay in each tool.
 
 What they reinvent identically is the surrounding plumbing:
 
-| Concern                                    | Before (per tool)                                             | After (this SDK)                                               |
-| ------------------------------------------ | ------------------------------------------------------------- | -------------------------------------------------------------- |
-| Read/write config files                    | Each tool hand-wraps `os.ReadFile` + parse + error handling   | `ReadConfig(path)` / `LoadJSON[T](path)` / `SaveJSON(path, v)` |
-| Marshal/parse/write raw config bytes       | Marshal options copied per tool; atomic writes hand-rolled     | `MarshalJSONIndented(v)` / `ParseJSON[T](data)` / `SaveJSONBytes(path, data)` |
-| Diff two config versions                   | Two incompatible Change types (string vs int kinds)            | `DiffMaps` / `DiffSets` / `DiffBlobs` + `Summary` / `FormatDiff` |
-| Discover the config file                   | Per-tool candidate lists and exists-checks                     | `ProviderSpec.ConfigFiles` + `FirstExisting(root, candidates...)` |
-| Emit findings for config issues            | Each tool maps priority → Severity, fix → Suggestion, by hand | `FindingFromIssue(tool, ConfigIssue{...})`                     |
-| Wire into BuildFlow as Detector + Repairer | Each tool writes its own adapter                              | `ProviderFromSpec` → canonical `toolsdk.Spec` (go-finding)     |
+| Concern                                    | Before (per tool)                                             | After (this SDK)                                                              |
+| ------------------------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Read/write config files                    | Each tool hand-wraps `os.ReadFile` + parse + error handling   | `ReadConfig(path)` / `LoadJSON[T](path)` / `SaveJSON(path, v)`                |
+| Marshal/parse/write raw config bytes       | Marshal options copied per tool; atomic writes hand-rolled    | `MarshalJSONIndented(v)` / `ParseJSON[T](data)` / `SaveJSONBytes(path, data)` |
+| Diff two config versions                   | Two incompatible Change types (string vs int kinds)           | `DiffMaps` / `DiffSets` / `DiffBlobs` + `Summary` / `FormatDiff`              |
+| Discover the config file                   | Per-tool candidate lists and exists-checks                    | `ProviderSpec.ConfigFiles` + `FirstExisting(root, candidates...)`             |
+| Emit findings for config issues            | Each tool maps priority → Severity, fix → Suggestion, by hand | `FindingFromIssue(tool, ConfigIssue{...})`                                    |
+| Wire into BuildFlow as Detector + Repairer | Each tool writes its own adapter                              | `ProviderFromSpec` → canonical `toolsdk.Spec` (go-finding)                    |
 
 `linter-autoconfigure-sdk` owns that plumbing once. Adding a third auto-configurer (e.g.
 `biome-auto-configure`) becomes a config-schema exercise, not a from-scratch build.
@@ -129,15 +129,15 @@ provider, err := autoconfigure.ProviderFromSpec(spec)
 
 ### Config I/O
 
-| Function                       | Signature                      | Purpose                                                                                                                                                        |
-| ------------------------------ | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ReadConfig(path)`             | `([]byte, *ConfigError)`       | Read raw bytes; YAML parsing stays tool-specific                                                                                                               |
-| `LoadJSON[T](path)`            | `(*T, *ConfigError)`           | Read + unmarshal a JSON config                                                                                                                                 |
-| `ParseJSON[T](data)`           | `(*T, *ConfigError)`           | Unmarshal JSON bytes you already hold; errors carry no `Path`                                                                                                  |
-| `MarshalJSONIndented(v)`       | `([]byte, *ConfigError)`       | Canonical marshal: deterministic map keys, 2-space indent, no trailing newline                                                                                 |
-| `SaveJSON(path, v)`            | `(changed bool, *ConfigError)` | Idempotent + crash-durable atomic write of indented JSON; creates parent dirs, skips the write when content is unchanged, and reports whether a write happened |
-| `SaveJSONBytes(path, data)`    | `(changed bool, *ConfigError)` | Byte-faithful `SaveJSON` for raw bytes: the trailing newline is the caller's contract                                                                          |
-| `WorkingDir(ctx)`              | `string`                       | `finding.WorkingDirFromContext` with the `"."` fallback BuildFlow providers hand-roll                                                                          |
+| Function                    | Signature                      | Purpose                                                                                                                                                        |
+| --------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ReadConfig(path)`          | `([]byte, *ConfigError)`       | Read raw bytes; YAML parsing stays tool-specific                                                                                                               |
+| `LoadJSON[T](path)`         | `(*T, *ConfigError)`           | Read + unmarshal a JSON config                                                                                                                                 |
+| `ParseJSON[T](data)`        | `(*T, *ConfigError)`           | Unmarshal JSON bytes you already hold; errors carry no `Path`                                                                                                  |
+| `MarshalJSONIndented(v)`    | `([]byte, *ConfigError)`       | Canonical marshal: deterministic map keys, 2-space indent, no trailing newline                                                                                 |
+| `SaveJSON(path, v)`         | `(changed bool, *ConfigError)` | Idempotent + crash-durable atomic write of indented JSON; creates parent dirs, skips the write when content is unchanged, and reports whether a write happened |
+| `SaveJSONBytes(path, data)` | `(changed bool, *ConfigError)` | Byte-faithful `SaveJSON` for raw bytes: the trailing newline is the caller's contract                                                                          |
+| `WorkingDir(ctx)`           | `string`                       | `finding.WorkingDirFromContext` with the `"."` fallback BuildFlow providers hand-roll                                                                          |
 
 All I/O helpers return a `*ConfigError` (implements `error`) whose `Op` (typed:
 `OpRead`, `OpUnmarshal`, `OpMarshal`, `OpMkdir`, `OpWrite`), `Path`, and
@@ -148,14 +148,14 @@ from parse or I/O failures without parsing error strings.
 
 ### Config diff
 
-| Function                       | Purpose                                                                        |
-| ------------------------------ | ------------------------------------------------------------------------------ |
-| `DiffMaps(before, after, prefix)`      | One `Change` per added/removed/modified map key, sorted by path        |
-| `DiffSets(before, after, prefix)`      | Set compare of slices: order ignored, duplicates collapse               |
-| `DiffBlobs(before, after, prefix)`     | Canonical-set compare for overrides-style blocks (reorder is not drift) |
-| `StringValue(v)`               | Bare strings as-is; structured values as deterministic compact JSON            |
-| `Summary(changes)`             | `"Added: 1, Modified: 2, Removed: 3"`                                          |
-| `FormatDiff(changes)`          | `+`/`-`/`~` lines sorted by path; `"No changes."` when empty                  |
+| Function                           | Purpose                                                                 |
+| ---------------------------------- | ----------------------------------------------------------------------- |
+| `DiffMaps(before, after, prefix)`  | One `Change` per added/removed/modified map key, sorted by path         |
+| `DiffSets(before, after, prefix)`  | Set compare of slices: order ignored, duplicates collapse               |
+| `DiffBlobs(before, after, prefix)` | Canonical-set compare for overrides-style blocks (reorder is not drift) |
+| `StringValue(v)`                   | Bare strings as-is; structured values as deterministic compact JSON     |
+| `Summary(changes)`                 | `"Added: 1, Modified: 2, Removed: 3"`                                   |
+| `FormatDiff(changes)`              | `+`/`-`/`~` lines sorted by path; `"No changes."` when empty            |
 
 `Change` is `{Kind, Path, Old, New}` with `Kind` one of `KindAdded`,
 `KindRemoved`, `KindModified` — there is deliberately no `unchanged` kind:
@@ -164,10 +164,10 @@ dead state.
 
 ### Config discovery
 
-| Function                                | Purpose                                                                       |
-| --------------------------------------- | ----------------------------------------------------------------------------- |
-| `ProviderSpec.ConfigFiles`              | Discovery candidates in priority order (`ConfigFile` stays the write target)  |
-| `FirstExisting(root, candidates...)`    | First existing candidate; falls back to the first path + `false` when none    |
+| Function                             | Purpose                                                                      |
+| ------------------------------------ | ---------------------------------------------------------------------------- |
+| `ProviderSpec.ConfigFiles`           | Discovery candidates in priority order (`ConfigFile` stays the write target) |
+| `FirstExisting(root, candidates...)` | First existing candidate; falls back to the first path + `false` when none   |
 
 ### Finding emission
 
@@ -185,12 +185,12 @@ dead state.
 
 ### Types
 
-| Type           | Purpose                                                                                                                                                    |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ConfigError`  | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal                         |
-| `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                                           |
+| Type           | Purpose                                                                                                                                                                 |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ConfigError`  | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal                                      |
+| `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                                                        |
 | `ProviderSpec` | `{Name, Description, ConfigFile, ConfigFiles, Analyze, Repair}` — auto-configurer declaration; `ConfigFile` is `finding.FilePath`; `HasRepair()` reports repair support |
-| `Change`       | `{Kind, Path, Old, New}` — one config difference; `Kind` is `KindAdded`/`KindRemoved`/`KindModified`                                                      |
+| `Change`       | `{Kind, Path, Old, New}` — one config difference; `Kind` is `KindAdded`/`KindRemoved`/`KindModified`                                                                    |
 
 ---
 

@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [0.4.0] - 2026-09-23
+
+### Added
+
 - Generic config-diff engine: `Change{Kind, Path, Old, New}` (Kind is
   `added`/`removed`/`modified` — deliberately no dead `unchanged` state),
   `DiffMaps`, `DiffSets` (order-insensitive, duplicates collapse),
@@ -38,10 +48,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   provider hand-rolls
 - `*ConfigError.Error()` now renders cleanly without a `Path` (byte-level
   operations): `autoconfigure: marshal: <cause>` instead of a double space
-
-### Fixed
-
-- Nothing yet.
 
 ## [0.3.1] - 2026-09-23
 
