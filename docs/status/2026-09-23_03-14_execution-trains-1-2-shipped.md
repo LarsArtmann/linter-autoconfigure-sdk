@@ -67,55 +67,88 @@ Owner said: "GET SHIT DONE! The WHOLE TODO LIST!" — full execution of the harv
 ## f) NEXT — up to 50 things (ordered: finish Train 2 → close session debt → Train 3)
 
 **Finish Train 2 (minutes)**
-1. Re-run oxlint `scripts/pre-release-check.sh --race` once (post-lint-fix), then push the 5 unpushed commits [T35/T37a/T38]. Impact Critical · S
-2. Close TODO_LIST T35/T37/T38 rows (work complete once pushed). Impact Medium · S
-3. SDK AGENTS.md: new API inventory, prerelease-vs-Latest API constraint, v0.4.x floors, consumer-migration state. Impact High · S
-4. Verify pkg.go.dev renders v0.3.1/v0.4.0/v0.4.1 (fetch retry; lag was minutes for v0.1.0). Impact Medium · S
+1. ~~Re-run oxlint `scripts/pre-release-check.sh --race` once (post-lint-fix), then push the 5 unpushed commits [T35/T37a/T38].~~ done —
+   daemon had pushed by the next session (05-30 report g1); gate re-ran green
+   before v0.8.0. Impact Critical · S
+2. ~~Close TODO_LIST T35/T37/T38 rows (work complete once pushed).~~ done. Impact Medium · S
+3. ~~SDK AGENTS.md: new API inventory, prerelease-vs-Latest API constraint, v0.4.x floors, consumer-migration state.~~ done —
+   AGENTS updated through the 14:45 session. Impact High · S
+4. ~~Verify pkg.go.dev renders v0.3.1/v0.4.0/v0.4.1 (fetch retry; lag was minutes for v0.1.0).~~ done —
+   all versions fetched directly 2026-09-23 (14:45 session f#10). Impact Medium · S
 
 **Consumer releases carrying the migrations**
-5. oxlint release (see g2 for version): cut changelog from Unreleased, gate, tag, goreleaser, GitHub release. Impact Critical · M
-6. golangci release carrying the diff-engine migration (Unreleased already loaded). Impact High · S
-7. BuildFlow: after the other session lands its go-version-auto-configure pairing fix, re-verify `nix build` + bump SDK indirect pins to v0.4.1. Impact Medium · S
+5. ~~oxlint release (see g2 for version): cut changelog from Unreleased, gate, tag, goreleaser, GitHub release.~~ done —
+   v0.8.0 (minor, matching g2's lean). Impact Critical · M
+6. ~~golangci release carrying the diff-engine migration (Unreleased already loaded).~~ done —
+   v0.9.0. Impact High · S
+7. ~~BuildFlow: after the other session lands its go-version-auto-configure pairing fix, re-verify `nix build` + bump SDK indirect pins to v0.4.1.~~ done —
+   pairing landed; pins walked to v0.6.0 (05-30 report). Impact Medium · S
 
 **Train 3 — T40 (Generate hook)**
-8. SDK design note: `ProviderSpec.Generate` contract (bytes + rule count? interplay with Analyze/Repair; drift sentinel stays unexported per plan Q2 default). Impact High · S
-9. SDK Detect-missing adapter (FirstExisting exists-check → delegate Generate). Impact High · M
-10. SDK never-overwrite + dry-run-aware Repair adapter (`toolsdk.DryRunFromContext`). Impact High · M
-11. SDK advisory drift HealthCheck (ParseJSON → Generate → PreserveExternal-equivalent → engine diff → wrapped sentinel error). Impact High · M
-12. Contract tests ported from oxlint `provider_test.go` (no-overwrite, dry-run, drift-advisory, `.jsonc` shadow). Impact High · M
-13. Godoc example `ExampleProviderFromSpec_Generate`. Impact Medium · S
-14. Oxlint provider migration onto the hook (~150 lines deleted; `provider_test.go` semantics unchanged). Impact High · M
-15. Release SDK v0.5.0 + oxlint/BuildFlow bumps. Impact Critical · S
+8. ~~SDK design note: `ProviderSpec.Generate` contract (bytes + rule count? interplay with Analyze/Repair; drift sentinel stays unexported per plan Q2 default).~~ done —
+   decided as separate `BootstrapSpec[T]` (v0.5.0); sentinel stays unexported
+   (README design note). Impact High · S
+9. ~~SDK Detect-missing adapter (FirstExisting exists-check → delegate Generate).~~ done —
+   `BootstrapProviderFromSpec` (v0.5.0). Impact High · M
+10. ~~SDK never-overwrite + dry-run-aware Repair adapter (`toolsdk.DryRunFromContext`).~~ done —
+    v0.5.0 contract tests. Impact High · M
+11. ~~SDK advisory drift HealthCheck (ParseJSON → Generate → PreserveExternal-equivalent → engine diff → wrapped sentinel error).~~ done —
+    v0.5.0. Impact High · M
+12. ~~Contract tests ported from oxlint `provider_test.go` (no-overwrite, dry-run, drift-advisory, `.jsonc` shadow).~~ done —
+    18 tests (v0.5.0). Impact High · M
+13. ~~Godoc example `ExampleProviderFromSpec_Generate`.~~ done — as
+    `ExampleBootstrapProviderFromSpec` (v0.5.0). Impact Medium · S
+14. ~~Oxlint provider migration onto the hook (~150 lines deleted; `provider_test.go` semantics unchanged).~~ done —
+    304→194 lines, tests semantically unchanged (oxlint v0.9.0). Impact High · M
+15. ~~Release SDK v0.5.0 + oxlint/BuildFlow bumps.~~ done — v0.5.0 + v0.6.0 +
+    bumps. Impact Critical · S
 
 **Train 3 — T41 (Deterministic analyzer)**
-16. Decide analyzer vs shared-helper (effort/FP tradeoff) — write the one-paragraph decision. Impact Medium · S
-17. Implement the `json.Marshal`-without-`Deterministic` go/analysis checker. Impact Medium · L
-18. Wire into SDK + oxlint + golangci lint configs. Impact Medium · M
-19. Bite-check: analyzer must flag the reverted original `SaveJSON` gap (red without fix). Impact Medium · S
+16. ~~Decide analyzer vs shared-helper (effort/FP tradeoff) — write the one-paragraph decision.~~ done —
+    analyzer + vettool cmd (05-30 report T41). Impact Medium · S
+17. ~~Implement the `json.Marshal`-without-`Deterministic` go/analysis checker.~~ done —
+    `determinism` subpackage (v0.6.0, `3ca9585`). Impact Medium · L
+18. ~~Wire into SDK + oxlint + golangci lint configs.~~ done — all three gates + CI
+    (oxlint v0.9.1, golangci v0.10.0). Impact Medium · M
+19. ~~Bite-check: analyzer must flag the reverted original `SaveJSON` gap (red without fix).~~ done —
+    analysistest fixture (05-30 report T41). Impact Medium · S
 
 **Train 3 — T42 (golangci atomic writes)**
-20. Audit every `os.WriteFile` site → table (site, perms, crash-safety today, migration target). Impact Medium · S
-21. Migrate primary config write to `SaveJSONBytes`/`WriteWithPerm` (0600 preserved). Impact Medium · M
-22. Backups (0600) migration or documented-keep decision. Impact Medium · S
-23. Crash-safety test (temp+rename semantics, no partial files). Impact Medium · S
+20. ~~Audit every `os.WriteFile` site → table (site, perms, crash-safety today, migration target).~~ done —
+    audit table in golangci CHANGELOG (v0.10.0). Impact Medium · S
+21. ~~Migrate primary config write to `SaveJSONBytes`/`WriteWithPerm` (0600 preserved).~~ done —
+    golangci v0.10.0. Impact Medium · M
+22. ~~Backups (0600) migration or documented-keep decision.~~ done — documented-keep
+    with reasons (golangci v0.10.0 audit table). Impact Medium · S
+23. ~~Crash-safety test (temp+rename semantics, no partial files).~~ done — golangci
+    v0.10.0. Impact Medium · S
 
 **Train 3 — T43 (format disposition)**
-24. Decision matrix for oxlint `pkg/format` (go-finding vs SDK vs local). Impact Low · S
-25. Draft + file the go-finding issue/PR (FindingView/PrintSummary/PrintFindingsTable + exported marshal-opts helper). Impact Low · M
+24. ~~Decision matrix for oxlint `pkg/format` (go-finding vs SDK vs local).~~ done —
+    `docs/planning/2026-09-23_pkg-format-disposition.md`. Impact Low · S
+25. ~~Draft + file the go-finding issue/PR (FindingView/PrintSummary/PrintFindingsTable + exported marshal-opts helper).~~ done —
+    draft verified and ready; filing deliberately owner-gated (13-26 g1).
+    Impact Low · M
 
 **Carried smalls (P21)**
-26. T27 release-verify script — now including the pre-tag adversarial smoke (e1). Impact Medium · S
-27. T28 README snippet compile guard. Impact Medium · S
-28. T29 social-preview CI guard (svg→png, 1280x640, <1MB). Impact Low · S
+26. ~~T27 release-verify script — now including the pre-tag adversarial smoke (e1).~~ done at
+    `bcd9302`. Impact Medium · S
+27. ~~T28 README snippet compile guard.~~ done at `bcd9302`. Impact Medium · S
+28. ~~T29 social-preview CI guard (svg→png, 1280x640, <1MB).~~ done at `522c660`.
+    Impact Low · S
 29. T21 CI→buildflow workflow swap + watched run. Impact High · S
 
 **P22 synergy**
-30. Oxlint validate-side drift advisory using the shared engine + PreserveExternal. Impact Medium · M
-31. Oxlint README/FEATURES rows for the shared diff engine + SDK I/O adoption. Impact Medium · S
+30. ~~Oxlint validate-side drift advisory using the shared engine + PreserveExternal.~~ done —
+    `--fail-on-drift` (oxlint v0.9.0). Impact Medium · M
+31. ~~Oxlint README/FEATURES rows for the shared diff engine + SDK I/O adoption.~~ done
+    (oxlint v0.9.0 wave). Impact Medium · S
 
 **P23 closing**
-32. Final gates: `buildflow --fix --fail-on-findings` in SDK; full gates in oxlint + golangci. Impact High · S
-33. Docs closing sweep: TODO_LIST/FEATURES/ROADMAP end-state + final status report. Impact High · S
+32. ~~Final gates: `buildflow --fix --fail-on-findings` in SDK; full gates in oxlint + golangci.~~ done —
+    SDK strict baseline documented (9 advisories); consumer gates green. Impact High · S
+33. ~~Docs closing sweep: TODO_LIST/FEATURES/ROADMAP end-state + final status report.~~ done —
+    05-30 + 13-26 + 14:45 reports; extended by this pass. Impact High · S
 34. Cross-cutting: record the "smoke-before-tag" + "parallel-session repo entry" lessons in crush-config `references/lessons.md` (by commit). Impact Medium · S
 
 **Smaller polish noticed en route (35–41)**
@@ -124,7 +157,8 @@ Owner said: "GET SHIT DONE! The WHOLE TODO LIST!" — full execution of the harv
 37. golangci `sortChangesByPath` now redundant when DiffSets output is pre-sorted (FormatChanges still sorts defensively — keep, but comment why). Impact Low · S
 38. SDK `unionKeys` generic: consider `slices.Sorted(maps.Keys(...))` when floor allows — cosmetic. Impact Low · S
 39. BuildFlow flake comment at the SDK input still says "v0.2.0 adds..." — updated for v0.3.1, will need a v0.4.x pass at next bump. Impact Low · S
-40. Add `ExampleFirstExisting` godoc example (only new export without one). Impact Low · S
+40. ~~Add `ExampleFirstExisting` godoc example (only new export without one).~~ done at
+    `39cd908` (14:45 session f#2). Impact Low · S
 41. CHANGELOG [0.4.1] could cross-link the v0.4.0 smoke finding (nice-to-have prose). Impact Low · S
 
 (42–50 intentionally unassigned: reserved for T40's fine-grained breakdown when Train 3 starts — the masterplan's F65–F93 table owns them.)
@@ -140,3 +174,16 @@ Owner said: "GET SHIT DONE! The WHOLE TODO LIST!" — full execution of the harv
 **Verification state at report time:** SDK clean, pushed, v0.4.1 Latest on GitHub, proxy serves v0.1.0–v0.4.1 · oxlint: migration green, 5 commits unpushed · golangci: migration green, pushed · BuildFlow: pins pushed, nix build blocked by parallel session's API mismatch (not SDK-related, nix-log-verified) · buildflow SDK gate green except documented go-licenses/go-1.27 tool bug · T40–T43, P21, P22 not started.
 
 **Format note:** status-report skill canonical output is a styled HTML dashboard; owner explicitly demanded `.md` — honored, override flagged per skill rule.
+
+---
+
+## Resolution (2026-09-23, docs-health pass)
+
+33 of 41 f-items resolved inline: the 05-30 session shipped everything the
+next morning (v0.5.0/v0.6.0, consumer releases v0.8.0-v0.9.1 and v0.9.0/v0.10.0,
+T27/T28/T29 guards, P22 drift advisory, final gates, closing docs), and the
+14:45 sweep closed the pkg.go.dev render checks and ExampleFirstExisting.
+Still open: 29 (= T21 CI swap, blocked), 34 (crush-config lessons entry — not
+yet in `references/lessons.md`), 35 (golden-byte pin as a README design note),
+36/37/39 (consumer-repo polish), 38 (`unionKeys` → `slices.Sorted`, cosmetic),
+41 (changelog crosslink, nice-to-have). Items 42-50 reserved-by-design.

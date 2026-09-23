@@ -58,16 +58,23 @@
 
 ## f) NEXT — up to 50, roughly priority-ordered
 
-1. Fix README Consumers section (done on master? — verify; it was NOT edited this session — do it).
-2. Add `ExampleFirstExisting` godoc example (carried polish item).
-3. Add SDK CHANGELOG Unreleased entries for guards + skip_steps (b/#2).
+1. ~~Fix README Consumers section (done on master? — verify; it was NOT edited this session — do it).~~ done —
+   14:45 session f#1 (grep-verified claims)
+2. ~~Add `ExampleFirstExisting` godoc example (carried polish item).~~ done at
+   `39cd908`
+3. ~~Add SDK CHANGELOG Unreleased entries for guards + skip_steps (b/#2).~~ done —
+   14:45 session f#3 (four Added entries)
 4. Update oxlint AGENTS.md: provider is now SDK-derived; Deterministic section's site list changed; validate drift advisory + `--fail-on-drift`; jsondeterminism gate in pre-release-check + CI.
 5. Update golangci AGENTS.md: atomic `config.NewOSFS()` FS, jsondeterminism gate, SDK v0.6.0, go-atomic-write now direct.
-6. Inspect golangci daemon commit `96b0afc` (pushed after the v0.10.0 tag, content never reviewed by me).
-7. Run `buildflow --fix --fail-on-findings` (strict) on the SDK to prove the "fully green" claim in strict mode too.
+6. ~~Inspect golangci daemon commit `96b0afc` (pushed after the v0.10.0 tag, content never reviewed by me).~~ done —
+   14:45 session: 2-line go.sum prune, build green
+7. ~~Run `buildflow --fix --fail-on-findings` (strict) on the SDK to prove the "fully green" claim in strict mode too.~~ done —
+   14:45 session: strict is NOT green but dispositioned (9 advisories, all
+   steps 38/38); documented as the known baseline in AGENTS.md
 8. Curate golangci v0.9.0/v0.10.0 GitHub release notes from CHANGELOG (runbook step 7) — pending g2 answer below.
 9. File the T43 go-finding issue (pending g1 answer below).
-10. Direct pkg.go.dev render checks for v0.3.1 / v0.4.0 / v0.5.0.
+10. ~~Direct pkg.go.dev render checks for v0.3.1 / v0.4.0 / v0.5.0.~~ done — 14:45
+    session f#10 (all fetched, full render)
 11. Watch BuildFlow CI on `60ab644be` (pushed unwatched).
 12. Decide T21 unblock path (pending g3 below): BuildFlow public again / PAT-credentialed job / drop.
 13. Extend the analyzer: `json.MarshalWrite`, `jsontext.Append/Marshal`, legacy `encoding/json` (as a separate rule), `Deterministic(false)` reporting option.
@@ -75,8 +82,10 @@
 15. Consider restoring the domain suffix in the missing-config Detect message ("for the detected project type") via an optional Message hook on BootstrapSpec — product wording decision.
 16. Add a golden test pinning the bootstrap Repair/HealthCheck description strings in the SDK (message contracts are currently only tested via contains).
 17. Export the bootstrap drift sentinel if/when a consumer needs `errors.Is` (owner decision, demand-driven).
-18. SDK `doc.go`/package comment refresh — still lists only the original three plumbing bullets; add diff engine + bootstrap + discovery.
-19. SDK: Go Reference badge on README (library-appropriate; consumers use application badge set).
+18. ~~SDK `doc.go`/package comment refresh — still lists only the original three plumbing bullets; add diff engine + bootstrap + discovery.~~ done —
+    14:45 session f#18
+19. ~~SDK: Go Reference badge on README (library-appropriate; consumers use application badge set).~~ done —
+    verified already present (14:45 session f#19)
 20. golangci: revisit documented-keep sites (JSON report writers could adopt `SaveJSONBytes`/`WriteWithPerm` now that it's proven).
 21. golangci: pre-release gate check for stranded Unreleased content (see e/#6).
 22. Fleet: standardize the "verify-release" script pattern into oxlint/golangci (they have post-release-verify; the pre-tag clean-dir smoke is SDK-only).
@@ -90,21 +99,28 @@
 30. `brutal-self-review` as a standing end-of-train ritual (this report is one; make it policy).
 31. Delete oxlint `pkg/format` once go-finding ships view helpers (T43 follow-through).
 32. biome-auto-configure spike as the third consumer (the README's stated purpose; proves the bootstrap abstraction generalizes).
-33. Owner: promote required status checks (nothing new required this session; the analyzer steps run inside existing jobs).
+33. ~~Owner: promote required status checks (nothing new required this session; the analyzer steps run inside existing jobs).~~ moot —
+    nothing to promote (the item's own finding)
 34. Owner: social/announcement for v0.6.0 + oxlint v0.9.x (channels unknown — GitHub is the default surface).
 35. SDK: benchmark the diff engine on large configs (rules maps of 800+ keys) for headroom evidence.
 36. Verify oxlint release-notes convention (are GoReleaser-generated notes acceptable there, or curate too?).
 37. golangci: evaluate `BootstrapSpec`-style provider for any future toolsdk exposure (currently CLI-only; N/A until wanted).
-38. Add `changesets`-style automation? — recommend NO (manual runbook is working; revisit at fleet size >6 repos).
+38. ~~Add `changesets`-style automation? — recommend NO (manual runbook is working; revisit at fleet size >6 repos).~~ NOT-DO —
+    per the item's own recommendation
 39. SDK: consider `internal/` split if the flat-layout decision is ever revisited (go-structure-linter skip would be reverted then).
 40. Run `deduplicate-code` skill across SDK + oxlint (post-migration hygiene; the differ projection may have leftovers).
 41. Run `code-quality-scan` on the new `bootstrap.go`/`determinism/` code specifically.
-42. Link this report and the 05-30 report from the masterplan doc header (traceability).
-43. Check whether `.envrc`'s GOEXPERIMENT export should be retired entirely now (documented harmless; cleanliness).
-44. SDK ci.yml still sets `GOEXPERIMENT: jsonv2` (inert on 1.27) — remove with the .envrc cleanup.
+42. ~~Link this report and the 05-30 report from the masterplan doc header (traceability).~~ done —
+    14:45 session f#42
+43. ~~Check whether `.envrc`'s GOEXPERIMENT export should be retired entirely now (documented harmless; cleanliness).~~ done —
+    14:45 session f#43: the `.envrc` never exported it directly (`use_go_env`
+    helper did); nothing to retire in-repo
+44. ~~SDK ci.yml still sets `GOEXPERIMENT: jsonv2` (inert on 1.27) — remove with the .envrc cleanup.~~ done —
+    14:45 session f#44 (env block removed)
 45. oxlint: the Inputs-derivation rationale comment + test assert the 4-entry contract; add the same comment to the SDK's `ProviderFromSpec` godoc for future consumers.
 46. golangci FEATURES.md row for the atomic-write + determinism work (CHANGELOG has it; FEATURES evidence column not updated).
-47. Add `FirstExisting` + `WorkingDir` to verify-release.sh's compile-all surface (currently covers them? — verify; extend if not).
+47. ~~Add `FirstExisting` + `WorkingDir` to verify-release.sh's compile-all surface (currently covers them? — verify; extend if not).~~ done —
+    verified already covered (14:45 session f#47)
 48. Consider a `Makefile`-free "make release" wrapper script per repo (changelog-cut → commit → push → CI-wait → tag → push → verify → release → notes) to encode the whole ceremony; would have prevented d/#1 and d/#5.
 49. T30 (GIF empirical validation) — owner's hands, still open by design.
 50. T20 (ErrNoRepair removal at v1) — plan the v1 milestone when the first external consumer appears.
@@ -118,3 +134,16 @@
 ---
 
 *Assisted-by: Crush <crush@charm.land>*
+
+---
+
+## Resolution (2026-09-23, docs-health pass)
+
+14 of 50 f-items resolved inline — the same day's 14:45 polish sweep executed
+1/2/3/6/7/10/18/19/42/43/44/47, and 33/38 were self-answering no-ops. Still
+open: 4/5 (consumer AGENTS.md syncs — their repos), 8/9 (owner-gated g2/g1),
+11 (BuildFlow CI watch), 12 (= T21), 13-17 (SDK polish: analyzer extension,
+oxlint DRY, Message hook, golden message test, sentinel export on demand),
+20-32 (consumer/fleet/ROADMAP-class items), 34/35 (owner/benchmark),
+36/37/39-41/45/46 (their repos / open as written), 48 (release wrapper),
+49 (= T30), 50 (= T20).

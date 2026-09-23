@@ -40,9 +40,9 @@ I committed a refactor that resolves the `hierarchical-errors` critical findings
 
 ## c) NOT STARTED
 
-1. **`ProviderSpec.Analyze` and `Repair` field types still return bare `error`.** The hierarchical-errors check did not flag them (they are function-typed struct fields, not function declarations), but they are now stylistically inconsistent with the typed-error helpers right next to them. Nobody has decided what to do here.
-2. **`ErrNoRepair`** is exported but has no test, no example, and no consumer in-repo. Dead-ish.
-3. **`ProviderFromSpec(spec)` helper** mentioned in README as "future" — not started, not even sketched.
+1. ~~**`ProviderSpec.Analyze` and `Repair` field types still return bare `error`.** The hierarchical-errors check did not flag them (they are function-typed struct fields, not function declarations), but they are now stylistically inconsistent with the typed-error helpers right next to them. Nobody has decided what to do here.~~ decided — closures keep plain `error` (the provider contract's shape); SDK-side validation errors became exported sentinels (v0.2.0)
+2. ~~**`ErrNoRepair`** is exported but has no test, no example, and no consumer in-repo. Dead-ish.~~ resolved — documented deprecated alias (v0.1.0→v0.2.0 era, `d674922`); removal at v1 = TODO_LIST T20
+3. ~~**`ProviderFromSpec(spec)` helper** mentioned in README as "future" — not started, not even sketched.~~ done — shipped in v0.1.0 (`ae510be`)
 4. **Splitting the single commit** into logical units (gitignore / refactor / docs / readme). Done as one blob.
 5. **Filing an upstream issue** against `hierarchical-errors` for the `Unwrap() error` false positive (and against `buildflow` for the `//nolint`-not-honored-in-pipeline-mode issue). Both are real bugs in tooling I worked around rather than fixed.
 
@@ -92,14 +92,14 @@ I verified the suppression does not work in pipeline mode and then jumped straig
    1. `chore: track buildflow-managed .gitignore`
    2. `refactor: introduce *ConfigError for config I/O` (code + tests)
    3. `docs: add AGENTS.md and update README signatures`
-5. **Decide on `ProviderSpec.Analyze` / `Repair` error typing.** Either type them too (a generic `*ConfigError` may not fit `Repair`'s "description of what changed" path), or document why helpers are typed but provider closures are not.
+5. ~~**Decide on `ProviderSpec.Analyze` / `Repair` error typing.** Either type them too (a generic `*ConfigError` may not fit `Repair`'s "description of what changed" path), or document why helpers are typed but provider closures are not.~~ decided — documented exception; closures stay plain `error` by contract
 
 ### Medium-impact
 
 6. ~~**Decide whether `ReadConfig` should exist at all.** It is now `os.ReadFile` + `&ConfigError{...}` wrapping. If the SDK's value is the typed error, consider exposing `func WrapError(op, path string, err error) *ConfigError` and letting consumers call `os.ReadFile` directly. Smaller surface.~~ done (decided — keep; the typed-error wrapping is the value prop)
 7. ~~**Coverage is 88.9%.** Identify the uncovered branches (likely `FindingFromIssue` builder-error path returning `finding.Finding{}` and `SaveJSON` mkdir/marshal/write error paths). Add tests.~~ done (97.6% as of 2026-09-09; the SaveJSON write-error branch remains the known gap)
 8. **`ErrNoRepair` needs at least one test** asserting `errors.Is(ErrNoRepair, ErrNoRepair)` and that it is sentinel (not wrapped).
-9. **AGENTS.md duplicates the `Is`/`As` rationale** that also lives in the godoc comment on `ConfigError`. Pick one source of truth; the other should link.
+9. ~~**AGENTS.md duplicates the `Is`/`As` rationale** that also lives in the godoc comment on `ConfigError`. Pick one source of truth; the other should link.~~ done — converged: godoc owns the contract, AGENTS.md links context (both updated through v0.6.0)
 10. ~~**No `example_test.go`.** Public SDK packages benefit from `ExampleLoadJSON` / `ExampleSaveJSON` functions that godoc renders. The README has prose; the package has none.~~ done at `e6f1eef`
 
 ### Low-impact / polish
@@ -125,12 +125,12 @@ Ordered roughly by impact, not strictly:
 8. ~~Apply the gopls `errorsastype` hint in `autoconfigure_test.go:157`.~~ done at `e57053a`, `f0c244a`
 9. ~~Push the branch (pending user approval — global rule: never push unprompted).~~ done (master pushed long ago; repo public since 23e74f1)
 10. ~~Add tests covering the `FindingFromIssue` builder-error → empty-finding branch.~~ done at `e6f1eef`
-11. Add tests covering `SaveJSON` mkdir / marshal / write error branches.
+11. ~~Add tests covering `SaveJSON` mkdir / marshal / write error branches.~~ done (CHANGELOG `[0.1.0]`)
 12. ~~Add tests covering `LoadJSON` marshal error vs read error distinction (Op label).~~ done at `e6f1eef`
 13. ~~Push coverage from 88.9% to ≥95%.~~ done (coverage 97.6% as of 2026-09-09)
 14. ~~Add `ExampleLoadJSON`, `ExampleSaveJSON`, `ExampleFindingFromIssue` in `example_test.go`.~~ done at `e6f1eef`
-15. Decide and document the `ProviderSpec.Analyze`/`Repair` error-type policy.
-16. Add a test for `ErrNoRepair` (sentinel equality).
+15. ~~Decide and document the `ProviderSpec.Analyze`/`Repair` error-type policy.~~ decided — see (e)5 above
+16. ~~Add a test for `ErrNoRepair` (sentinel equality).~~ superseded — alias documented for pre-v1 compat; removal at v1 (T20)
 17. ~~Either use `ErrNoRepair` somewhere in the package or mark it consumer-only with a doc comment + example.~~ done (godoc documents ErrNoRepair as the consumer contract (autoconfigure.go:227-239))
 18. ~~Resolve `ReadConfig`-vs-`os.ReadFile`+`WrapError` design question.~~ done (decided — ReadConfig kept; typed-error wrapping is the value prop)
 19. ~~Add a `CHANGELOG.md` (project docs table says one belongs here; none exists).~~ done at `1c72b36`
@@ -138,13 +138,13 @@ Ordered roughly by impact, not strictly:
 21. ~~Add a `FEATURES.md` (project docs table says one belongs here; none exists).~~ done at `e46c225`
 22. ~~Add a `ROADMAP.md` (project docs table says one belongs here; none exists).~~ done at `e46c225`
 23. ~~Consider `docs/DOMAIN_LANGUAGE.md` for the auto-configurer vocabulary (ConfigIssue, Severity, Suggestion, Analyze, Repair).~~ done at `e46c225`
-24. Remove AGENTS.md/`ConfigError`-godoc duplication; keep one as source of truth.
-25. Run `golangci-lint run` standalone and confirm 0 issues on the new code (buildflow says 0, but a direct run is belt-and-braces).
-26. Run `go vet ./...` standalone.
+24. ~~Remove AGENTS.md/`ConfigError`-godoc duplication; keep one as source of truth.~~ done — see (e)9 above
+25. ~~Run `golangci-lint run` standalone and confirm 0 issues on the new code (buildflow says 0, but a direct run is belt-and-braces).~~ done — 0 issues since the `[0.2.0]` wave (83→0)
+26. ~~Run `go vet ./...` standalone.~~ done — runs in CI on every push
 27. ~~Delete `reports/coverage.out` from the working tree.~~ **Won't implement — moot — reports/ is gitignored and regenerated by buildflow.**
 28. ~~Add a `.editorconfig` if the ecosystem expects one.~~ done (.editorconfig exists at repo root)
 29. ~~Add a `LICENSE` file (README links to a template repo; no `LICENSE` is tracked).~~ done at `23e74f1`
-30. Add GitHub Actions / CI config (none present in repo).
+30. ~~Add GitHub Actions / CI config (none present in repo).~~ done at `4e86443` (portable subset; required status check since v0.1.0)
 31. ~~Add a `pkg.go.dev`-ready package example to surface well on the registry.~~ done at `e6f1eef`
 32. Benchmark `LoadJSON` / `SaveJSON` if performance matters for large configs (probably does not, but document the assumption).
 33. ~~Decide on JSON indentation in `SaveJSON` — current `json.Marshal` produces compact output; many linter configs are human-edited and want pretty-printed. At minimum, document the choice.~~ done (decided — indented output, documented in SaveJSON godoc)
@@ -158,13 +158,13 @@ Ordered roughly by impact, not strictly:
 41. ~~Audit the README "Design notes" — still accurate post-refactor? "Keeps the SDK decoupled from finding's branded types" — `*ConfigError` honors this, but worth re-reading.~~ done at `1818692`
 42. ~~Confirm the README "Status" section ("config round-trip and finding-emission helpers are stable") is still true after the signature change — it is a **breaking** change to any pre-existing consumer.~~ done (README Status section states breaking changes acceptable pre-v1)
 43. ~~Since the README admits there are no active consumers, document the signature break as v0 → v0 (acceptable) or bump to v0.1.~~ done (documented as acceptable v0 change in README Status section)
-44. Add `go version` check / CI matrix (1.26+ required).
-45. Consider whether `ProviderSpec` should carry a `Schema` or `Validate` field for config validation.
-46. Sketch `ProviderFromSpec(spec)` — the README promises it.
+44. ~~Add `go version` check / CI matrix (1.26+ required).~~ done — CI builds with `go-version-file: go.mod`
+45. ~~Consider whether `ProviderSpec` should carry a `Schema` or `Validate` field for config validation.~~ done (differently) — validation lives in `ProviderFromSpec`/`BootstrapProviderFromSpec` (sentinels, v0.2.0/v0.5.0)
+46. ~~Sketch `ProviderFromSpec(spec)` — the README promises it.~~ done — shipped v0.1.0
 47. Write a `biome-auto-configure` proof-of-concept to validate the SDK shape (the README's own success criterion).
-48. Wire this SDK into `golangci-lint-auto-configure` (the first real consumer).
-49. Wire this SDK into `oxlint-auto-configure` (the second real consumer).
-50. Revisit whether the SDK should exist at all yet (README's own words: "value over stdlib is modest until a second auto-configurer lands"). The `*ConfigError` change adds modest value; a second consumer would validate or kill the abstraction.
+48. ~~Wire this SDK into `golangci-lint-auto-configure` (the first real consumer).~~ done — v0.2.0-era; deep adoption through v0.10.0
+49. ~~Wire this SDK into `oxlint-auto-configure` (the second real consumer).~~ done — v0.2.0-era; fully on the SDK by v0.9.1
+50. ~~Revisit whether the SDK should exist at all yet (README's own words: "value over stdlib is modest until a second auto-configurer lands"). The `*ConfigError` change adds modest value; a second consumer would validate or kill the abstraction.~~ answered — two consumers live; the README's duplication table is now SDK-owned row by row
 
 ---
 
@@ -195,6 +195,18 @@ and branded types shipped (`c5d84b1`), coverage 97.6%, examples exist
 (TODO_LIST/FEATURES/ROADMAP/DOMAIN_LANGUAGE) were built in `e46c225`. Still
 open: CI, first tag, errcheck fixes, `ErrNoRepair` test, commit-split history
 questions (owner).
+
+## Second resolution (2026-09-23, docs-health pass)
+
+18 more items resolved above: `ProviderFromSpec` shipped (v0.1.0), CI landed
+(`4e86443`), both consumers are live (v0.2.0 era), the error-typing policy
+was decided (closures stay plain `error`; sentinels for validation), and
+`ErrNoRepair` settled as the documented deprecated alias with removal at v1
+(TODO_LIST T20). The existence question (#50) is answered by two consumers.
+Still open: #2/#3/#4 (upstream hierarchical-errors/buildflow issue filings —
+never confirmed filed), #7 (amend the `reports/.gitkeep` commit-message claim
+— owner history call), and the low-polish tail (#32, #35-38, #40, #47 —
+benchmarks, fuzz, perms/umask, `%+v` stability, biome PoC — ROADMAP-class).
 
 ### Q2. Should I revert the `Is`/`As`-instead-of-`Unwrap` workaround?
 
