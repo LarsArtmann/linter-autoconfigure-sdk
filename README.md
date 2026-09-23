@@ -28,6 +28,9 @@ What they reinvent identically is the surrounding plumbing:
 | Concern                                    | Before (per tool)                                             | After (this SDK)                                               |
 | ------------------------------------------ | ------------------------------------------------------------- | -------------------------------------------------------------- |
 | Read/write config files                    | Each tool hand-wraps `os.ReadFile` + parse + error handling   | `ReadConfig(path)` / `LoadJSON[T](path)` / `SaveJSON(path, v)` |
+| Marshal/parse/write raw config bytes       | Marshal options copied per tool; atomic writes hand-rolled     | `MarshalJSONIndented(v)` / `ParseJSON[T](data)` / `SaveJSONBytes(path, data)` |
+| Diff two config versions                   | Two incompatible Change types (string vs int kinds)            | `DiffMaps` / `DiffSets` / `DiffBlobs` + `Summary` / `FormatDiff` |
+| Discover the config file                   | Per-tool candidate lists and exists-checks                     | `ProviderSpec.ConfigFiles` + `FirstExisting(root, candidates...)` |
 | Emit findings for config issues            | Each tool maps priority → Severity, fix → Suggestion, by hand | `FindingFromIssue(tool, ConfigIssue{...})`                     |
 | Wire into BuildFlow as Detector + Repairer | Each tool writes its own adapter                              | `ProviderFromSpec` → canonical `toolsdk.Spec` (go-finding)     |
 
@@ -126,18 +129,45 @@ provider, err := autoconfigure.ProviderFromSpec(spec)
 
 ### Config I/O
 
-| Function            | Signature                      | Purpose                                                                                                                                                        |
-| ------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ReadConfig(path)`  | `([]byte, *ConfigError)`       | Read raw bytes; YAML parsing stays tool-specific                                                                                                               |
-| `LoadJSON[T](path)` | `(*T, *ConfigError)`           | Read + unmarshal a JSON config                                                                                                                                 |
-| `SaveJSON(path, v)` | `(changed bool, *ConfigError)` | Idempotent + crash-durable atomic write of indented JSON; creates parent dirs, skips the write when content is unchanged, and reports whether a write happened |
+| Function                       | Signature                      | Purpose                                                                                                                                                        |
+| ------------------------------ | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ReadConfig(path)`             | `([]byte, *ConfigError)`       | Read raw bytes; YAML parsing stays tool-specific                                                                                                               |
+| `LoadJSON[T](path)`            | `(*T, *ConfigError)`           | Read + unmarshal a JSON config                                                                                                                                 |
+| `ParseJSON[T](data)`           | `(*T, *ConfigError)`           | Unmarshal JSON bytes you already hold; errors carry no `Path`                                                                                                  |
+| `MarshalJSONIndented(v)`       | `([]byte, *ConfigError)`       | Canonical marshal: deterministic map keys, 2-space indent, no trailing newline                                                                                 |
+| `SaveJSON(path, v)`            | `(changed bool, *ConfigError)` | Idempotent + crash-durable atomic write of indented JSON; creates parent dirs, skips the write when content is unchanged, and reports whether a write happened |
+| `SaveJSONBytes(path, data)`    | `(changed bool, *ConfigError)` | Byte-faithful `SaveJSON` for raw bytes: the trailing newline is the caller's contract                                                                          |
+| `WorkingDir(ctx)`              | `string`                       | `finding.WorkingDirFromContext` with the `"."` fallback BuildFlow providers hand-roll                                                                          |
 
-All three return a `*ConfigError` (implements `error`) whose `Op` (typed:
+All I/O helpers return a `*ConfigError` (implements `error`) whose `Op` (typed:
 `OpRead`, `OpUnmarshal`, `OpMarshal`, `OpMkdir`, `OpWrite`), `Path`, and
 `Err` fields describe the failure. The wrapped cause is reachable via
 `errors.Is` / `errors.AsType` / `errors.Unwrap` against a `*ConfigError` (e.g.
 `errors.Is(err, fs.ErrNotExist)`), so callers can distinguish missing files
 from parse or I/O failures without parsing error strings.
+
+### Config diff
+
+| Function                       | Purpose                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| `DiffMaps(before, after, prefix)`      | One `Change` per added/removed/modified map key, sorted by path        |
+| `DiffSets(before, after, prefix)`      | Set compare of slices: order ignored, duplicates collapse               |
+| `DiffBlobs(before, after, prefix)`     | Canonical-set compare for overrides-style blocks (reorder is not drift) |
+| `StringValue(v)`               | Bare strings as-is; structured values as deterministic compact JSON            |
+| `Summary(changes)`             | `"Added: 1, Modified: 2, Removed: 3"`                                          |
+| `FormatDiff(changes)`          | `+`/`-`/`~` lines sorted by path; `"No changes."` when empty                  |
+
+`Change` is `{Kind, Path, Old, New}` with `Kind` one of `KindAdded`,
+`KindRemoved`, `KindModified` — there is deliberately no `unchanged` kind:
+an unchanged setting is the absence of a `Change`, not a `Change` with a
+dead state.
+
+### Config discovery
+
+| Function                                | Purpose                                                                       |
+| --------------------------------------- | ----------------------------------------------------------------------------- |
+| `ProviderSpec.ConfigFiles`              | Discovery candidates in priority order (`ConfigFile` stays the write target)  |
+| `FirstExisting(root, candidates...)`    | First existing candidate; falls back to the first path + `false` when none    |
 
 ### Finding emission
 
@@ -159,7 +189,8 @@ from parse or I/O failures without parsing error strings.
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ConfigError`  | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal                         |
 | `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                                           |
-| `ProviderSpec` | `{Name, Description, ConfigFile, Analyze, Repair}` — auto-configurer declaration; `ConfigFile` is `finding.FilePath`; `HasRepair()` reports repair support |
+| `ProviderSpec` | `{Name, Description, ConfigFile, ConfigFiles, Analyze, Repair}` — auto-configurer declaration; `ConfigFile` is `finding.FilePath`; `HasRepair()` reports repair support |
+| `Change`       | `{Kind, Path, Old, New}` — one config difference; `Kind` is `KindAdded`/`KindRemoved`/`KindModified`                                                      |
 
 ---
 
@@ -177,6 +208,12 @@ from parse or I/O failures without parsing error strings.
   file-level position (`finding.FilePos`) is used instead of fabricating a line number.
 - **No `ProjectType` enum.** The two existing tools have incompatible concepts (Go shape vs JS framework);
   sharing one enum would force false convergence. Each tool keeps its own detection layer.
+- **The diff engine has no `unchanged` kind.** An unchanged setting is the absence of a `Change`, not a
+  `Change` carrying a dead state; comparators only emit real differences, sorted by path for
+  deterministic output regardless of map iteration order.
+- **`SaveJSONBytes` is byte-faithful.** The trailing-newline decision is the caller's contract: tools that
+  end configs with a newline combine `MarshalJSONIndented` + `append(data, '\n')`; `SaveJSON` itself never
+  appends one (its contract since v0.1.0).
 
 ---
 

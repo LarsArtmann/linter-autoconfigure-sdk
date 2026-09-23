@@ -13,20 +13,24 @@ everything about the abstraction is provisional. The package doc in
 
 ## Candidate directions (raw ideas)
 
-- **First consumer migration.** Wire `golangci-lint-auto-configure` or
-  `oxlint-auto-configure` onto `ConfigError`, `ConfigIssue`,
-  `FindingFromIssue`, and `ProviderSpec` end-to-end. This is the SDK's real
-  validation milestone; it will settle which exports are stable.
-- **`ProviderFromSpec(spec)` BuildFlow adapter.** The README promises it as a
-  future helper. Build it when a consumer exists, not before (avoiding
-  speculative API design against BuildFlow's tool-sdk).
+_Graduated 2026-09-23 (v0.4.0): first consumer migration, the `ProviderFromSpec`
+BuildFlow adapter, and `ProviderSpec` validation (exported sentinels) are shipped —
+see FEATURES.md and CHANGELOG. The candidates below are still raw._
+
+- **`Generate`-hook provider pattern.** SDK-owned Detect-missing /
+  never-overwrite Repair / advisory drift HealthCheck built on the diff engine,
+  extracted from oxlint-auto-configure's ~150-line bootstrap (TODO_LIST T40).
 - **Write variants.** `SaveYAML` counterpart (per-tool YAML libs make this
   tricky), `SaveJSONCompact` for machine-only configs,
   `ReadConfigWithFingerprint` for read-modify-write transactions,
   `WithIndent` option for `SaveJSON`, `LoadJSONWith[T]` accepting
   `jsontext.Options` (e.g. `RejectUnknownMembers`).
-- **`ProviderSpec` validation helper** catching obvious misconfiguration
-  (empty Name, missing Analyze, Repair contract violations).
+- **`Deterministic(true)` enforcement analyzer.** go/analysis checker flagging
+  `json.Marshal` without the option, wired into the SDK and both consumers'
+  lint configs (TODO_LIST T41; the original `SaveJSON` gap is its bite test).
+- **`pkg/format` disposition.** oxlint's FindingView/PrintSummary/PrintFindingsTable
+  are go-finding-generic; propose upstream + an exported marshal-opts helper
+  (TODO_LIST T43; go-finding's own opts are unexported).
 - **`MustLoadJSON` / `MustSaveJSON`** panic-on-error variants for fixtures.
 - **Extract `configerr` sub-package** (`ConfigError`, `Op`, `Unwrap/Is/As`)
   if non-autoconfigure packages want the error machinery without the domain
@@ -64,9 +68,9 @@ everything about the abstraction is provisional. The package doc in
   irreversibly in public git history, gitleaks ran clean at the flip, and
   redacting working-tree copies would be cosmetic. Deletion remains covered
   by this open question._
-- **Q2 — first tag timing.** Zero tags exist; pkg.go.dev serves only
-  pseudo-versions until `v0.1.0` is cut. Is the current API surface ready to
-  freeze, or should planned breaking changes land first?
+- **Q2 — first tag timing.** _Resolved 2026-09-10: `v0.1.0` cut; the surface
+  froze then and evolves via SemVer 0.x minor bumps (v0.4.0 adds the I/O
+  matrix, diff engine, and ConfigFiles)._
 - **Q3 — will the consumer tools ever go public?** The README justifies the
   SDK by referencing two repos. _Resolved 2026-09-10: both
   `golangci-lint-auto-configure` and `oxlint-auto-configure` are public

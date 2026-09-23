@@ -8,6 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Generic config-diff engine: `Change{Kind, Path, Old, New}` (Kind is
+  `added`/`removed`/`modified` — deliberately no dead `unchanged` state),
+  `DiffMaps`, `DiffSets` (order-insensitive, duplicates collapse),
+  `DiffBlobs` (canonical-set compare for overrides-style blocks),
+  `StringValue` (bare string / deterministic compact JSON / `%v` fallback),
+  `Summary`, and `FormatDiff` (`+`/`-`/`~` lines sorted by path). Kills the
+  oxlint↔golangci diff split brain: one engine, deterministic ordering
+- `ProviderSpec.ConfigFiles []finding.FilePath` — multi-candidate config
+  discovery (e.g. `.oxlintrc.json`, `.oxlintrc.jsonc`, `oxlint.config.json`);
+  `ProviderFromSpec` derives `Inputs` from all candidates, falling back to
+  `ConfigFile` alone. Both fields stay: `ConfigFile` names the canonical
+  write target, `ConfigFiles` the discovery set
+- `FirstExisting(root, candidates...)` — first existing candidate, or the
+  first joined path and `false` when none exists (a usable default write
+  target either way)
 - `MarshalJSONIndented(v any) ([]byte, *ConfigError)` — the SDK's canonical
   marshal options (deterministic map keys, 2-space indent) as a reusable
   helper; `SaveJSON` now builds on it (byte-identical output)
