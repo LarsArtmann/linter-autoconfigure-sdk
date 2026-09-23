@@ -459,17 +459,24 @@ func ProviderFromSpec(spec ProviderSpec) (toolsdk.Spec, error) {
 // discoveryCandidates returns the config filenames a run should watch:
 // ConfigFiles when set, otherwise the single ConfigFile.
 func (s ProviderSpec) discoveryCandidates() []string {
-	if len(s.ConfigFiles) > 0 {
-		candidates := make([]string, 0, len(s.ConfigFiles))
-		for _, candidate := range s.ConfigFiles {
+	return discoveryCandidateStrings(s.ConfigFile, s.ConfigFiles)
+}
+
+// discoveryCandidateStrings is the shared Inputs derivation behind
+// ProviderSpec.discoveryCandidates and BootstrapSpec: configFiles when set,
+// otherwise the single configFile.
+func discoveryCandidateStrings(configFile finding.FilePath, configFiles []finding.FilePath) []string {
+	if len(configFiles) > 0 {
+		candidates := make([]string, 0, len(configFiles))
+		for _, candidate := range configFiles {
 			candidates = append(candidates, string(candidate))
 		}
 
 		return candidates
 	}
 
-	if s.ConfigFile != "" {
-		return []string{string(s.ConfigFile)}
+	if configFile != "" {
+		return []string{string(configFile)}
 	}
 
 	return nil
