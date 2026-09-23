@@ -285,13 +285,17 @@ is clean apart from the last report-adjacent edits).
 
 **NOW (unblocked, direct continuation):**
 
-1. You: review + run T26 — cut v0.2.0 (tag/push is yours), then I drop
-   both consumers' `replace` directives and `go get` the tag.
+1. ~~You: review + run T26 — cut v0.2.0 (tag/push is yours), then I drop
+   both consumers' `replace` directives and `go get` the tag.~~ done — v0.2.0
+   tagged 2026-09-11 (`5dec8d9`); replaces long gone (no replace directives in
+   the fleet since the 2026-09-23 masterplan trains)
 2. Re-run `generate.sh --audit LarsArtmann` with the fixed HEAD handling;
    add a `--limit` flag first so a run is 5 repos, not 100 requests.
-3. T21: write the buildflow CI job (`go install
+3. ~~T21: write the buildflow CI job (`go install
    github.com/larsartmann/buildflow@v0.6.0` + `buildflow --fix
-   --fail-on-findings`) and watch the first push together.
+   --fail-on-findings`) and watch the first push together.~~ attempted 2026-09-23 —
+   failed on anonymous fetch (BuildFlow is PRIVATE again, API-verified); job
+   reverted cleanly; stays blocked as TODO_LIST T21
 4. T30 (you + me): one scratch-repo upload of the GIF to GitHub's card
    slot; post it once in Discord/Slack. Converts the last doc-grade claims
    to artifact-grade.
@@ -299,10 +303,13 @@ is clean apart from the last report-adjacent edits).
    home-manager) so the advisory gate actually runs everywhere.
 6. `verify-external-claims` §0: add the agent-summarized-fetch class (the
    feedback file is written; the skill edit is 5 lines).
-7. T27: script the release verification (clean-dir `go get` + consumer
-   compile) — becomes a preflight for every future tag.
-8. T28: compile the README's Go snippets in a test (snippet drift guard).
-9. T29: CI-side social-preview guard (render + dimension/size assert).
+7. ~~T27: script the release verification (clean-dir `go get` + consumer
+   compile) — becomes a preflight for every future tag.~~ done at `bcd9302`
+   (`scripts/verify-release.sh`, verified against v0.6.0)
+8. ~~T28: compile the README's Go snippets in a test (snippet drift guard).~~
+   done at `bcd9302` — caught real drift on its first run
+9. ~~T29: CI-side social-preview guard (render + dimension/size assert).~~ done
+   at `522c660` (`scripts/check-social-preview.sh`, wired into CI)
 10. SKILLS T35: annotate the pre-fix status reports (bounded, M).
 11. `lsp_restart` as a standing move when LSP diagnostics contradict a
     fresh CLI run — cheap, removes hours of stale-warning noise.
@@ -311,31 +318,41 @@ is clean apart from the last report-adjacent edits).
 
 **NEXT (high value, bounded):**
 
-13. Cut v0.6.0-consumers wave: after T26, both consumers release their
-    SDK-integration versions (their CHANGELOG `[Unreleased]` sections are
-    already written).
+13. ~~Cut v0.6.0-consumers wave: after T26, both consumers release their
+   SDK-integration versions (their CHANGELOG `[Unreleased]` sections are
+   already written).~~ done — oxlint v0.8.0/v0.9.0/v0.9.1 and golangci
+   v0.9.0/v0.10.0 all shipped 2026-09-23
 14. Extract the release runbook from AGENTS.md prose into a checklist
     script (T27 generalizes to all LarsArtmann Go modules).
 15. `--audit` pagination (Link header) + owner-type org support.
 16. GitHub badge for the SDK's lint status (buildflow's strict mode once
     T21 lands makes this honest).
-17. Dependabot: verify the new groups actually batch minor/patch PRs on
-    the next scheduled run.
+17. ~~Dependabot: verify the new groups actually batch minor/patch PRs on
+   the next scheduled run.~~ done — fleet bumps landed green through the v0.6.0
+   wave
 18. SDK ROADMAP: record the defaulted channels answer and its expiry
     (motion-variant investment pauses unless chat surfaces are confirmed).
-19. Add `docs/status/` archived-report ANNOTATE pass for THIS session's
+19. ~~Add `docs/status/` archived-report ANNOTATE pass for THIS session's
     predecessors (the two 2026-09-11 morning reports now contain
-    superseded claims: "no active consumers", "T23 pending").
+    superseded claims: "no active consumers", "T23 pending").~~ done —
+    2026-09-23 pass (this one) annotated all three 2026-09-11 reports
 20. README comparison-table mobile rendering check (narrow viewport).
 21. Consider `go.work` at the ~/projects level as a replace-free local
     dev alternative (measure the blast radius on unrelated repos first).
-22. oxlint: revisit `FixStrategySuggest` → potential `Direct` once
-    ConfigIssue can carry before/after code (SDK-side field addition).
-23. SDK FEATURES.md: add the new ConfigIssue fields + sentinels (they are
-    in CHANGELOG but not yet in the feature inventory).
-24. Example coverage: `ExampleProviderFromSpec` for pkg.go.dev (the
-    bridge has no runnable example yet).
-25. Error-docs: list the exported sentinels in the README error section.
+22. ~~oxlint: revisit `FixStrategySuggest` → potential `Direct` once
+   ConfigIssue can carry before/after code (SDK-side field addition).~~
+   partially enabled — `ConfigIssue.FixStrategy` exists since v0.2.0
+   (`edb571d`); the before/after-code fields and oxlint's switch remain undone
+   (open)
+23. ~~SDK FEATURES.md: add the new ConfigIssue fields + sentinels (they are
+   in CHANGELOG but not yet in the feature inventory).~~ done — documented
+   publicly: README Types row carries the fields (2026-09-23) + sentinels
+   listed under BuildFlow integration; FEATURES cites symbols
+24. ~~Example coverage: `ExampleProviderFromSpec` for pkg.go.dev (the
+   bridge has no runnable example yet).~~ done — existed since v0.1.0
+   (`example_test.go:84`; renders on every version page)
+25. ~~Error-docs: list the exported sentinels in the README error section.~~
+   done — README BuildFlow section lists all six sentinels (2026-09-23)
 
 **ROADMAP fuel (ideas, not commitments):**
 
@@ -359,7 +376,8 @@ is clean apart from the last report-adjacent edits).
     counter now stands at ONE real launch (linter-autoconfigure-sdk).
 35. Tag-protection rulesets for `v*` tags across repos (tag immutability
     beyond the proxy effect).
-36. CODEOWNERS decision record for the SDK (probably skip; record it).
+36. ~~CODEOWNERS decision record for the SDK (probably skip; record it).~~
+   done — kept (`4e86443`)
 37. SECURITY.md review for the SDK (file exists; verify content freshness
     now that consumers exist).
 38. Convert TODO_LIST tables to a lint-friendly canonical form (decide:
@@ -368,9 +386,11 @@ is clean apart from the last report-adjacent edits).
 40. website-launch phase split (803 → sub-500; flagged four sessions).
 41. oxlint test framework: testify → ginkgo/gomega per how-to-golang
     (banned-list alignment; large, schedule deliberately).
-42. golangci-lint-auto-configure: evaluate `RecommendationsToFindings`
+42. ~~golangci-lint-auto-configure: evaluate `RecommendationsToFindings`
     migration if ConfigIssue ever grows Category/Tags (deliberately
-    rejected today — revisit only with a second consumer needing it).
+    rejected today — revisit only with a second consumer needing it).~~
+    decided — rejected; boundary documented in SDK AGENTS.md (ConfigIssue
+    models config-health only)
 43. Consumer pinning policy: `@vX.Y` vs `@latest` for in-house deps in
     CI (buildflow job in 3 makes this concrete).
 44. Document the doublestar-exclude semantics in buildflow's own docs
@@ -381,8 +401,10 @@ is clean apart from the last report-adjacent edits).
     (verify-external-claims, a future how-to-bash, docs-health's cache
     note) — the file is the inbox, routing is owed.
 47. daemon commit-message quality: propose a convention (user decision).
-48. Explore buildflow `--resume` in CI for the cache-masking class (does
-    CI need result-cache disabled by default?).
+48. ~~Explore buildflow `--resume` in CI for the cache-masking class (does
+   CI need result-cache disabled by default?).~~ moot — CI does not run
+   buildflow (T21 blocked); the cache-masking lesson lives in AGENTS
+   (`BUILDFLOW_NO_RESULT_CACHE=1`)
 49. SDK benchmark: SaveJSON idempotent-skip vs blind-write cost (the
     changed-bool API deserves a number).
 50. Harvest expiry: re-check the defaulted rulings in 30 days
@@ -407,3 +429,20 @@ is clean apart from the last report-adjacent edits).
 ---
 
 **WAITING FOR INSTRUCTIONS.**
+
+---
+
+## Resolution (2026-09-23, docs-health pass)
+
+15 rows resolved inline: T26 answered by the release ladder (v0.2.0 same
+week, v0.6.0-era consumer waves on 2026-09-23), T27/T28/T29 at
+`bcd9302`/`522c660`, the T21 CI job was attempted live on 2026-09-23 and
+reverted (BuildFlow private again), and the doc/example gaps (sentinels in
+README, ConfigIssue fields, ExampleProviderFromSpec) closed by 2026-09-23.
+g1/g2 were answered by execution; g3 (channels) stays defaulted with expiry
+2026-10-11. Still open: 2 (SKILLS audit re-run), 4 (= T30), 5/6/10/11 (SKILLS/
+process items), 12 (golangci version mismatch), 14 (release-create wrapper),
+15 (audit pagination), 16 (lint badge), 18 (channels default expiry), 20
+(mobile rendering), 21 (go.work), 22 (oxlint Direct strategy — field exists,
+switch undone), 26-35 (ROADMAP fuel / their repos), 37 (SECURITY freshness),
+38-41/43-47/49-50 (open as written).

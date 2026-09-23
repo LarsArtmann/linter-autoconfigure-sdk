@@ -57,56 +57,85 @@ Owner asked (in order): what oxlint-auto-configure still does that belongs in th
 ## f) NEXT — up to 50 things (ordered: unblock release → repair session damage → execute plan)
 
 **Gates & repairs from THIS session (do first)**
-1. Owner answers g) Q1-Q3. Impact Critical · S
-2. If Q1=yes: `git tag -a v0.3.1` + push + proxy verify (`go list -m -versions`). Impact Critical · S [T31]
-3. Cut CHANGELOG `[0.3.1]` section from Unreleased. Impact High · S
-4. README fact-sync: latest-version claim → v0.3.x, Go 1.26+/GOEXPERIMENT → 1.27, consumers-via-replace paragraph → tags reality (or fold into P13 per Q2). Impact High · S
-5. CHANGELOG `Unreleased/Dependencies` entry for go-atomic-write v0.6.0 / go-error-family v0.10.2 / go 1.27.1 floor. Impact Medium · S
-6. Render-validate the plan's mermaid graph; fix if broken. Impact Low · S
-7. Optional (Q3): one-line corrective note commit for the `4c2128f`/`a3f7c56` message-diff mismatch. Impact Low · S
+1. ~~Owner answers g) Q1-Q3.~~ done — owner's blanket "GET SHIT DONE"
+   resolved the parked gates (03-14 report §0)
+2. ~~If Q1=yes: `git tag -a v0.3.1` + push + proxy verify (`go list -m -versions`).~~ done —
+   v0.3.1 tagged; ladder ran through v0.6.0 [T31]
+3. ~~Cut CHANGELOG `[0.3.1]` section from Unreleased.~~ done [T31]
+4. ~~README fact-sync: latest-version claim → v0.3.x, Go 1.26+/GOEXPERIMENT → 1.27, consumers-via-replace paragraph → tags reality (or fold into P13 per Q2).~~ done —
+   CHANGELOG `[0.3.1]` Documentation
+5. ~~CHANGELOG `Unreleased/Dependencies` entry for go-atomic-write v0.6.0 / go-error-family v0.10.2 / go 1.27.1 floor.~~ done —
+   CHANGELOG `[0.3.1]` Dependencies
+6. ~~Render-validate the plan's mermaid graph; fix if broken.~~ done — mmdc
+   render-validated clean (03-14 report a1)
+7. ~~Optional (Q3): one-line corrective note commit for the `4c2128f`/`a3f7c56` message-diff mismatch.~~ decided —
+   owner default: leave (info complete across the two commits)
 
 **Train 1 remainder (plan §3)**
-8. oxlint bump to v0.3.1: go get + flake input + vendorHash + vendor + gate [T32]. Impact Critical · M
-9. golangci: drop `replace` (go.mod:68) + bump v0.3.1 + validate-path tests [T32]. Impact High · S
-10. BuildFlow: bump indirect SDK in tools+execution go.mod + verify resolve [T32]. Impact Medium · S
+8. ~~oxlint bump to v0.3.1: go get + flake input + vendorHash + vendor + gate [T32].~~ done —
+   ladder continued to v0.9.1
+9. ~~golangci: drop `replace` (go.mod:68) + bump v0.3.1 + validate-path tests [T32].~~ done —
+   ladder continued to v0.10.0
+10. ~~BuildFlow: bump indirect SDK in tools+execution go.mod + verify resolve [T32].~~ done —
+    indirect pins walked to v0.6.0 (05-30 report)
 
 **Train 2 (v0.4.0)** — full fine-grained table lives in the plan (F20-F64), highlights:
-11. `MarshalJSONIndented` + shared marshalOpts var [T33]. Impact Critical · S
-12. `ParseJSON[T]` [T33]. Impact Critical · S
-13. `SaveJSONBytes` + newline-contract decision (plan Q3) [T33]. Impact Critical · S
-14. Refactor `SaveJSON` onto the shared helper, byte-identical [T33]. Impact High · S
-15. `WorkingDir(ctx)` helper [T34]. Impact High · S
-16. oxlint golden-byte pin test BEFORE migration [T35/F30]. Impact Critical · S
-17. oxlint: migrate ToJSON/FromJSON/writeConfig×2 [T35]. Impact Critical · M
-18. Generic diff engine: Change{Kind,Path,Old,New} + DiffMaps/DiffSets/DiffBlobs + Summary/FormatDiff [T36]. Impact Critical · L
-19. oxlint differ migration (Rule→Path ripple) [T37]. Impact High · M
-20. golangci differ migration (int ChangeType→Kind, Description→derived) [T37]. Impact High · M
-21. `ProviderSpec.ConfigFiles` + `FirstExisting` + Inputs derivation [T38]. Impact High · M
-22. oxlint provider cleanup onto ConfigFiles [T38/F56-F57]. Impact Medium · S
-23. Docs wave: README API tables, FEATURES, example_test, ROADMAP graduation [T39/P13]. Impact High · S
-24. Release v0.4.0 + consumer bumps [T39]. Impact Critical · S
+11. ~~`MarshalJSONIndented` + shared marshalOpts var [T33].~~ done — v0.4.0
+12. ~~`ParseJSON[T]` [T33].~~ done — v0.4.0
+13. ~~`SaveJSONBytes` + newline-contract decision (plan Q3) [T33].~~ done — v0.4.0
+    (newline = caller's contract)
+14. ~~Refactor `SaveJSON` onto the shared helper, byte-identical [T33].~~ done — v0.4.0
+    (golden-proven)
+15. ~~`WorkingDir(ctx)` helper [T34].~~ done — v0.4.0 (nil-ctx guard hotfixed in
+    v0.4.1)
+16. ~~oxlint golden-byte pin test BEFORE migration [T35/F30].~~ done —
+    `TestToJSON_GoldenBytes` (03-14 report a12)
+17. ~~oxlint: migrate ToJSON/FromJSON/writeConfig×2 [T35].~~ done — on v0.4.1+
+18. ~~Generic diff engine: Change{Kind,Path,Old,New} + DiffMaps/DiffSets/DiffBlobs + Summary/FormatDiff [T36].~~ done — v0.4.0
+19. ~~oxlint differ migration (Rule→Path ripple) [T37].~~ done — v0.8.0-era
+20. ~~golangci differ migration (int ChangeType→Kind, Description→derived) [T37].~~ done —
+    `ChangeType = autoconfigure.Kind` alias (v0.9.0)
+21. ~~`ProviderSpec.ConfigFiles` + `FirstExisting` + Inputs derivation [T38].~~ done — v0.4.0
+22. ~~oxlint provider cleanup onto ConfigFiles [T38/F56-F57].~~ done — v0.8.0-era
+23. ~~Docs wave: README API tables, FEATURES, example_test, ROADMAP graduation [T39/P13].~~ done —
+    v0.4.0 docs wave
+24. ~~Release v0.4.0 + consumer bumps [T39].~~ done — v0.4.0 + v0.4.1 hotfix + bumps
 
 **Train 3 (v0.5.0 + hardening)**
-25. `ProviderSpec.Generate` design note + contract [T40/F65]. Impact High · S
-26. SDK Detect-missing / never-overwrite Repair / drift HealthCheck adapters [T40]. Impact High · L
-27. Contract tests ported from oxlint provider_test.go [T40/F69]. Impact High · M
-28. oxlint provider migration, ~150 lines deleted [T40]. Impact High · M
-29. golangci atomic-write migration (site audit → SaveJSONBytes/WriteWithPerm, 0600 preserved) [T42]. Impact Medium · L
-30. `Deterministic(true)` enforcement analyzer, bite-checked [T41]. Impact Medium · L
-31. Release v0.5.0 + BuildFlow indirect bump + version-pairing check [T40]. Impact High · S
-32. format-package upstream proposal to go-finding [T43]. Impact Low · M
-33. oxlint validate-side drift advisory (synergy, its f15) [P22]. Impact Medium · M
+25. ~~`ProviderSpec.Generate` design note + contract [T40/F65].~~ done — decided as
+    separate `BootstrapSpec[T]` type, not a Generate field (v0.5.0)
+26. ~~SDK Detect-missing / never-overwrite Repair / drift HealthCheck adapters [T40].~~ done —
+    `BootstrapProviderFromSpec` (v0.5.0, `f56f6b3`)
+27. ~~Contract tests ported from oxlint provider_test.go [T40/F69].~~ done — 18 tests
+    (v0.5.0)
+28. ~~oxlint provider migration, ~150 lines deleted [T40].~~ done — provider.go
+    304→194 lines (oxlint v0.9.0)
+29. ~~golangci atomic-write migration (site audit → SaveJSONBytes/WriteWithPerm, 0600 preserved) [T42].~~ done —
+    golangci v0.10.0 (`config.NewOSFS()`)
+30. ~~`Deterministic(true)` enforcement analyzer, bite-checked [T41].~~ done —
+    `determinism` subpackage + vettool (v0.6.0, `3ca9585`)
+31. ~~Release v0.5.0 + BuildFlow indirect bump + version-pairing check [T40].~~ done —
+    v0.5.0 + v0.6.0 + bumps
+32. ~~format-package upstream proposal to go-finding [T43].~~ done — decision matrix
+    + draft at `docs/planning/2026-09-23_pkg-format-disposition.md`; filing owner-gated
+    (13-26 report g1)
+33. ~~oxlint validate-side drift advisory (synergy, its f15) [P22].~~ done —
+    `--fail-on-drift` in oxlint v0.9.0
 
 **Carried smalls (pre-existing TODO_LIST)**
-34. T27 release-verify script. Impact Medium · S
-35. T28 README snippet compile guard (would have caught d4's rot class mechanically). Impact Medium · S
-36. T29 social-preview CI guard. Impact Low · S
+34. ~~T27 release-verify script.~~ done at `bcd9302`
+35. ~~T28 README snippet compile guard (would have caught d4's rot class mechanically).~~ done
+    at `bcd9302` — caught real drift on its first run
+36. ~~T29 social-preview CI guard.~~ done at `522c660`
 37. T21 CI→buildflow workflow swap + watched run. Impact High · S
 38. T20 ErrNoRepair removal at v1 (deferred by design). Impact Low · S
 39. T30 GIF empirical validation (owner's hands). Impact Low · S
-40. Post-v0.3.1: verify pkg.go.dev renders the new version. Impact Medium · S
-41. After consumer bumps: confirm oxlint's flake `validatePrivateDeps` passes with the tagged SDK. Impact Medium · S
-42. Cross-repo final gate: `buildflow --fix --fail-on-findings` here + full gates in oxlint/golangci [P23]. Impact High · S
+40. ~~Post-v0.3.1: verify pkg.go.dev renders the new version.~~ done — every version
+    v0.1.0–v0.6.0 fetched directly 2026-09-23
+41. ~~After consumer bumps: confirm oxlint's flake `validatePrivateDeps` passes with the tagged SDK.~~ done —
+    releases v0.8.0–v0.9.1 shipped green
+42. ~~Cross-repo final gate: `buildflow --fix --fail-on-findings` here + full gates in oxlint/golangci [P23].~~ done —
+    SDK strict baseline documented (9 advisories, 38/38 steps); consumer gates green
 43. Consider recording the jsonv2-determinism + daemon-race lessons in crush-config `references/lessons.md` (by commit). Impact Medium · S
 
 (44-50 intentionally unassigned: reserved for plan F65-F93 detail items when Train 3 starts — enumerating them here would duplicate the plan's fine table without adding information.)
@@ -122,3 +151,16 @@ Owner asked (in order): what oxlint-auto-configure still does that belongs in th
 **Verification state at report time:** master == origin/master, clean (daemon active) · buildflow green except documented license-check tool bug · no code changed this session · plan + harvest + doc repairs pushed · v0.3.1 NOT tagged (owner gate) · README known-stale (d4) · dep bump known-changelog-less (d5).
 
 **Format note:** status-report skill canonical output is a styled HTML dashboard; owner explicitly demanded `.md` — honored, override flagged per skill rule.
+
+---
+
+## Resolution (2026-09-23, docs-health pass)
+
+39 of 43 f-items resolved inline: the parked gates were answered by the
+owner's blanket go, Trains 1-3 shipped the same night (v0.3.1 → v0.6.0, both
+consumers migrated deep, analyzer + guards landed), and the README/CHANGELOG
+repairs closed within hours. Still open, all tracked: #37 (= T21 CI swap,
+blocked on BuildFlow visibility), #38 (= T20, v1-gated), #39 (= T30, needs
+owner hands), #43 (record the daemon-race/smoke-before-tag lessons in
+crush-config `references/lessons.md` — not yet present there as of
+2026-09-23). Items 44-50 were reserved-by-design and never assigned.
