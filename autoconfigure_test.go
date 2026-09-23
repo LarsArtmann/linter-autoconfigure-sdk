@@ -1175,6 +1175,17 @@ func TestWorkingDir_FallsBackToDot(t *testing.T) {
 	}
 }
 
+// TestWorkingDir_NilContextFallsBackToDot pins the v0.4.0 bug fix: a nil
+// context must not panic (found by the v0.4.0 post-tag clean-dir smoke;
+// go-finding's WorkingDirFromContext dereferences it directly).
+func TestWorkingDir_NilContextFallsBackToDot(t *testing.T) {
+	t.Parallel()
+
+	if got := WorkingDir(nil); got != "." {
+		t.Errorf("expected \".\" fallback for nil context, got %q", got)
+	}
+}
+
 func TestConfigError_ErrorFormat_EmptyPath(t *testing.T) {
 	t.Parallel()
 

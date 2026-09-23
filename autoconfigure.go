@@ -225,6 +225,10 @@ func SaveJSON(path string, v any) (bool, *ConfigError) {
 // tools. Analyze/Repair closures should resolve config paths through this
 // helper instead of hand-rolling the fallback.
 func WorkingDir(ctx context.Context) string {
+	if ctx == nil {
+		return "."
+	}
+
 	if dir := finding.WorkingDirFromContext(ctx); dir != "" {
 		return dir
 	}

@@ -14,6 +14,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Nothing yet.
 
+## [0.4.1] - 2026-09-23
+
+### Fixed
+
+- `WorkingDir(nil)` no longer panics with a nil-pointer dereference — a nil
+  context now falls back to `"."` like every other absent value. Found by the
+  v0.4.0 post-tag clean-dir smoke test; the hand-rolled
+  `finding.WorkingDirFromContext` call sites this helper replaces carry the
+  same latent bug
+
 ## [0.4.0] - 2026-09-23
 
 ### Added
