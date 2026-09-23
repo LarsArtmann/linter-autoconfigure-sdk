@@ -187,6 +187,11 @@ dead state.
 | `BootstrapProviderFromSpec[T]` | `(toolsdk.Spec, error)` | Convert a `BootstrapSpec[T]` into a full generate-if-missing lifecycle (Detect/Repair/HealthCheck)                    |
 | `(*ProviderSpec).HasRepair()`  | `bool`                  | Whether the spec supports auto-repair                                                                                 |
 
+Validation failures from both converters return exported sentinels
+(`ErrNameRequired`, `ErrDescriptionRequired`, `ErrAnalyzeRequired`, plus
+`ErrConfigFileRequired` / `ErrGenerateRequired` / `ErrCompareRequired` for
+bootstrap specs) — match with `errors.Is`.
+
 ### Types
 
 | Type               | Purpose                                                                                                                                                                                                         |

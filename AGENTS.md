@@ -15,6 +15,13 @@ here (each tool uses a different YAML library). Public repo
 Boundary decision: linter-recommendation findings with per-linter
 categories/tags (golangci's `missing-linter`) stay app-side; ConfigIssue
 models config-health issues only (no Category/Tags fields by design).
+Ecosystem: `go-finding` (finding model + toolsdk contract) and
+`go-atomic-write` (write primitive) are dependencies; `go-linter-sdk` is a
+sibling, NOT a dependency or consumer — it scaffolds authoring linters that
+find code issues, this SDK owns config-file plumbing; orthogonal layers
+(decided 2026-09-10, re-confirmed 2026-09-23). Session orientation:
+`TODO_LIST.md` is the open-work queue, `FEATURES.md` the honest feature
+inventory.
 
 **Exported API inventory (v0.6.0):** I/O — `ReadConfig`, `LoadJSON[T]`,
 `ParseJSON[T]` (path-less), `MarshalJSONIndented` (deterministic + 2-space),
