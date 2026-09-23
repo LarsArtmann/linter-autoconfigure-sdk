@@ -45,8 +45,8 @@ What they reinvent identically is the surrounding plumbing:
 go get github.com/larsartmann/linter-autoconfigure-sdk
 ```
 
-Resolves to the latest tagged release (`v0.3.1` as of 2026-09-23); pin
-`@v0.3.1` explicitly for reproducible builds.
+Resolves to the latest tagged release (`v0.4.1` as of 2026-09-23); pin
+`@v0.4.1` explicitly for reproducible builds.
 
 Requires Go 1.27.1+: go-finding imports `encoding/json/v2`, which is standard
 in Go 1.27 (no `GOEXPERIMENT` needed).

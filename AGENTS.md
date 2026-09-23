@@ -7,31 +7,51 @@ the README; this file captures what is hard to discover from the code alone.
 
 Shared foundation (Go library) for linter auto-configuration tools. Owns the
 plumbing that `golangci-lint-auto-configure` and `oxlint-auto-configure` duplicate:
-config file round-trip, finding emission for config issues, and the BuildFlow
-provider bridge (`ProviderSpec` → `ProviderFromSpec` → go-finding's canonical
-`toolsdk.Spec`). YAML parsing is intentionally NOT here (each tool uses a
-different YAML library). Public repo
-(github.com/LarsArtmann/linter-autoconfigure-sdk), MIT-licensed. First tagged
-release: `v0.1.0` (2026-09-10). First consumers migrated 2026-09-11:
-oxlint-auto-configure (ProviderFromSpec bridge) and golangci-lint-auto-configure
-(FindingFromIssue for validate health findings); both track the repo via local
-`replace` directives until the next version is tagged — see README "Consumers".
+config file round-trip, finding emission for config issues, the config diff
+engine, and the BuildFlow provider bridge (`ProviderSpec` → `ProviderFromSpec`
+→ go-finding's canonical `toolsdk.Spec`). YAML parsing is intentionally NOT
+here (each tool uses a different YAML library). Public repo
+(github.com/LarsArtmann/linter-autoconfigure-sdk), MIT-licensed.
 Boundary decision: linter-recommendation findings with per-linter
 categories/tags (golangci's `missing-linter`) stay app-side; ConfigIssue
 models config-health issues only (no Category/Tags fields by design).
 
-Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.27+
-(`v0.3.0` floor),
+**Exported API inventory (v0.4.1):** I/O — `ReadConfig`, `LoadJSON[T]`,
+`ParseJSON[T]` (path-less), `MarshalJSONIndented` (deterministic + 2-space),
+`SaveJSON` (if-changed, atomic), `SaveJSONBytes` (byte-faithful; trailing
+newline is CALLER's contract), `WorkingDir(ctx)` (nil-ctx safe, "." fallback).
+Diff — `Change{Kind,Path,Old,New}`, `Kind` string enum (KindAdded/
+KindRemoved/KindModified — deliberately NO unchanged kind), `DiffMaps`,
+`DiffSets`, `DiffBlobs` (set semantics), `StringValue`, `Summary` ("Modified:",
+not "Changed:"), `FormatDiff` (+/-/~ lines, "No changes." when empty).
+Discovery — `ProviderSpec.ConfigFiles []finding.FilePath` (Inputs derive from
+it; `ConfigFile` remains the single-file write target), `FirstExisting(root,
+candidates...)` (returns first candidate + false when none exist).
+Provider — `ProviderFromSpec` (+ `HasRepair()`), validation sentinels
+`ErrNameRequired`/`ErrDescriptionRequired`/`ErrAnalyzeRequired`, deprecated
+`ErrNoRepair` (removal at v1 = TODO T20).
+
+**Consumer migration state (2026-09-23):** both consumers build against TAGS
+(no replace directives remain in the fleet). oxlint-auto-configure is fully
+migrated onto v0.4.1 (I/O helpers, diff engine aliases `Change`/`Kind`,
+`ConfigFiles` + `FirstExisting` discovery); golangci-lint-auto-configure uses
+`FindingFromIssue` + the diff engine (`ChangeType = autoconfigure.Kind` alias,
+int enum deleted). BuildFlow pins the SDK as indirect only.
+
+Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.27.1+
+(v0.3.1+ floor; dependency-imposed patch form — see gotcha below),
 `github.com/larsartmann/go-finding` (always latest),
 `github.com/larsartmann/go-finding/toolsdk` (always latest — the canonical
 BuildFlow provider contract, consumed via `ProviderFromSpec`), and
 `github.com/larsartmann/go-atomic-write` (always latest — used by `SaveJSON`
 for idempotent, crash-durable writes).
 
-**go.mod gotcha (resolved at v0.3.0):** the old `go 1.26.7` patch floor was
-dependency-imposed (go-finding declared it); go-finding v1.13.0 ships a
-minor-form go 1.27 floor, and tidy now settles this module at `go 1.27`.
-Patch-form floors re-poison consumers on every tidy — keep floors minor-form.
+**go.mod gotcha (recurring):** patch-form floors are dependency-imposed and
+re-poison on every tidy. History: go-finding declared `go 1.26.7` (pre-v0.3.0);
+v0.3.0 dropped to minor-form `go 1.27`; since v0.3.1 an upstream dep declares
+`go 1.27.1` so tidy settles this module at `go 1.27.1` — do NOT normalize it
+back down, tidy will just re-raise it. Consumers' floors ride along
+(oxlint/golangci both carry `go 1.27.1` for this reason).
 
 **Always stay on the latest go-finding version.** Since Go 1.27,
 `encoding/json/v2` and `encoding/json/jsontext` are standard (no build tag);
@@ -104,13 +124,19 @@ required status check (admins bypass it, PRs must pass it).
 `v0.1.0` tagged 2026-09-10 (annotated tag, first release). Procedure that
 worked: cut CHANGELOG, sync README/FEATURES into the release commit, wait for
 CI green on that exact commit, `git tag -a` + push tag + `gh release create
---prerelease --latest` (v0.x releases are marked pre-release on GitHub per
-convention), then verify proxy (`go list -m -versions`) and a clean-dir
-`go get@vX.Y.Z` + consumer compile. Gotchas seen live: the daemon does not
+--latest` (a PLAIN release marked Latest — GitHub's API rejects
+`--prerelease` combined with Latest with HTTP 422, verified live at v0.3.1;
+drop the `--prerelease` flag entirely even for v0.x), then verify proxy
+(`go list -m -versions`) and a clean-dir `go get@vX.Y.Z` + consumer compile.
+ALWAYS run the adversarial clean-dir smoke BEFORE tagging: the v0.4.0 smoke
+caught a `WorkingDir(nil)` panic after the tag was already immutable, which
+forced the v0.4.1 hotfix. Gotchas seen live: the daemon does not
 always push promptly (manual `git push origin master` of its commit was
 needed once); pkg.go.dev 404s for a fresh tag even after the proxy serves it
 (minutes-to-longer lag; the proxy is the source of truth). Tags are immutable
 once the proxy caches them — never re-tag, always cut a new version.
+Release history: v0.1.0, v0.2.0, v0.3.0 (go 1.27 floor), v0.3.1 (determinism
+fix), v0.4.0 (I/O matrix + diff engine + ConfigFiles), v0.4.1 (nil-ctx fix).
 
 ## `reports/` is buildflow-owned (nothing tracked inside)
 
