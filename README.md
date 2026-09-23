@@ -46,8 +46,8 @@ What they reinvent identically is the surrounding plumbing:
 go get github.com/larsartmann/linter-autoconfigure-sdk
 ```
 
-Resolves to the latest tagged release (`v0.6.0` as of 2026-09-23); pin
-`@v0.6.0` explicitly for reproducible builds.
+Resolves to the latest tagged release (`v0.7.0` as of 2026-09-23); pin
+`@v0.7.0` explicitly for reproducible builds.
 
 Requires Go 1.27+: go-finding imports `encoding/json/v2`, which is standard
 in Go 1.27 (no `GOEXPERIMENT` needed).
@@ -279,7 +279,7 @@ directives remain in the fleet.
 
 ## Status
 
-v0.6.x — config round-trip, finding emission, the BuildFlow provider bridge,
+v0.7.x — config round-trip, finding emission, the BuildFlow provider bridge,
 the config diff engine, and the bootstrap provider lifecycle are stable in
 shape; breaking changes remain acceptable until v1 (pre-1.0).
 BuildFlow wiring is anchored to go-finding's canonical `toolsdk` contract

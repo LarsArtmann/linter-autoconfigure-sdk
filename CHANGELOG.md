@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Changed
+
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [0.7.0] - 2026-09-23
+
+### Added
+
 - **Release verification script** (`scripts/verify-release.sh vX.Y.Z`): one
   command for the post-tag runbook — proxy serves the tag, clean-dir
   `go get` compiles, and an every-exported-API smoke program runs. Codifies
@@ -19,12 +33,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Social-preview asset guard** (`scripts/check-social-preview.sh`): CI
   asserts the committed preview PNG is a well-formed 1280x640 image, so
   rebranding that drops or resizes the card fails fast.
-- **BuildFlow `skip_steps`** for `license-check`: go-licenses cannot load
+- **BuildFlow `skip_steps`**: `license-check` (go-licenses cannot load
   go 1.27 toolchain stdlib packages ("Package log/slog does not have module
-  info"), which kept the local pipeline red through no fault of the code.
-  With the step skipped (documented reason in `.buildflow.yml`) the local
-  pipeline is fully green for the first time; re-enable after a go-licenses
-  release supporting 1.27 toolchains.
+  info"), which kept the local pipeline red through no fault of the code;
+  re-enable after a go-licenses release supporting 1.27 toolchains) and
+  `go-structure-linter` (flat-layout warnings are accepted by design —
+  documented in `.golangci.yml`). With both skipped the local pipeline is
+  fully green for the first time.
 
 ### Changed
 
