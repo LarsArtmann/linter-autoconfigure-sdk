@@ -23,7 +23,7 @@ find code issues, this SDK owns config-file plumbing; orthogonal layers
 `TODO_LIST.md` is the open-work queue, `FEATURES.md` the honest feature
 inventory.
 
-**Exported API inventory (v0.6.0):** I/O — `ReadConfig`, `LoadJSON[T]`,
+**Exported API inventory (v0.7.0; unchanged since v0.6.0):** I/O — `ReadConfig`, `LoadJSON[T]`,
 `ParseJSON[T]` (path-less), `MarshalJSONIndented` (deterministic + 2-space),
 `SaveJSON` (if-changed, atomic), `SaveJSONBytes` (byte-faithful; trailing
 newline is CALLER's contract), `WorkingDir(ctx)` (nil-ctx safe, "." fallback).
@@ -185,7 +185,9 @@ needed once); pkg.go.dev 404s for a fresh tag even after the proxy serves it
 once the proxy caches them — never re-tag, always cut a new version.
 Release history: v0.1.0, v0.2.0, v0.3.0 (go 1.27 floor), v0.3.1 (determinism
 fix), v0.4.0 (I/O matrix + diff engine + ConfigFiles), v0.4.1 (nil-ctx fix),
-v0.5.0 (bootstrap provider), v0.6.0 (determinism analyzer + vettool cmd).
+v0.5.0 (bootstrap provider), v0.6.0 (determinism analyzer + vettool cmd),
+v0.7.0 (release guards + go floor settled to minor-form 1.27; Go API
+unchanged).
 
 ## `reports/` is buildflow-owned (nothing tracked inside)
 
