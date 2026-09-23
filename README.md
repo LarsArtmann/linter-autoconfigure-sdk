@@ -194,13 +194,13 @@ bootstrap specs) — match with `errors.Is`.
 
 ### Types
 
-| Type               | Purpose                                                                                                                                                                                                         |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ConfigError`      | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal                                                                              |
-| `ConfigIssue`      | `{Rule, Message, Severity, File, Line, Suggestion}` plus optional `Confidence` and `FixStrategy *finding.FixStrategy` overrides (zero values keep the defaults); `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                                  |
-| `ProviderSpec`     | `{Name, Description, ConfigFile, ConfigFiles, Analyze, Repair}` — auto-configurer declaration; `ConfigFile` is `finding.FilePath`; `HasRepair()` reports repair support                                         |
-| `BootstrapSpec[T]` | `{Name, Description, ConfigFile, ConfigFiles, MissingRule, FixCommand, CountLabel, Recognizable, Generate, Marshal, Parse, NormalizeExpected, Compare}` — generate-if-missing lifecycle declaration (see below) |
-| `Change`           | `{Kind, Path, Old, New}` — one config difference; `Kind` is `KindAdded`/`KindRemoved`/`KindModified`                                                                                                            |
+| Type               | Purpose                                                                                                                                                                                                                     |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ConfigError`      | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal                                                                                          |
+| `ConfigIssue`      | `{Rule, Message, Severity, File, Line, Suggestion}` plus optional `Confidence` and `FixStrategy *finding.FixStrategy` overrides (zero values keep the defaults); `Rule` is `finding.RuleName`, `File` is `finding.FilePath` |
+| `ProviderSpec`     | `{Name, Description, ConfigFile, ConfigFiles, Analyze, Repair}` — auto-configurer declaration; `ConfigFile` is `finding.FilePath`; `HasRepair()` reports repair support                                                     |
+| `BootstrapSpec[T]` | `{Name, Description, ConfigFile, ConfigFiles, MissingRule, FixCommand, CountLabel, Recognizable, Generate, Marshal, Parse, NormalizeExpected, Compare}` — generate-if-missing lifecycle declaration (see below)             |
+| `Change`           | `{Kind, Path, Old, New}` — one config difference; `Kind` is `KindAdded`/`KindRemoved`/`KindModified`                                                                                                                        |
 
 ### Determinism enforcement (analyzer)
 
