@@ -13,24 +13,19 @@ everything about the abstraction is provisional. The package doc in
 
 ## Candidate directions (raw ideas)
 
-_Graduated 2026-09-23 (v0.4.0): first consumer migration, the `ProviderFromSpec`
-BuildFlow adapter, and `ProviderSpec` validation (exported sentinels) are shipped —
-see FEATURES.md and CHANGELOG. The candidates below are still raw._
+_Graduated 2026-09-23: v0.4.0 shipped the first consumer migration, the
+`ProviderFromSpec` BuildFlow adapter, and `ProviderSpec` validation; v0.5.0
+shipped the bootstrap provider lifecycle (`BootstrapSpec[T]` /
+`BootstrapProviderFromSpec`, TODO_LIST T40) and v0.6.0 the `jsondeterminism`
+analyzer + vettool cmd (T41); T43's format disposition is decided and drafted
+(docs/planning/2026-09-23_pkg-format-disposition.md — upstream proposal
+pending). The candidates below are still raw._
 
-- **`Generate`-hook provider pattern.** SDK-owned Detect-missing /
-  never-overwrite Repair / advisory drift HealthCheck built on the diff engine,
-  extracted from oxlint-auto-configure's ~150-line bootstrap (TODO_LIST T40).
 - **Write variants.** `SaveYAML` counterpart (per-tool YAML libs make this
   tricky), `SaveJSONCompact` for machine-only configs,
   `ReadConfigWithFingerprint` for read-modify-write transactions,
   `WithIndent` option for `SaveJSON`, `LoadJSONWith[T]` accepting
   `jsontext.Options` (e.g. `RejectUnknownMembers`).
-- **`Deterministic(true)` enforcement analyzer.** go/analysis checker flagging
-  `json.Marshal` without the option, wired into the SDK and both consumers'
-  lint configs (TODO_LIST T41; the original `SaveJSON` gap is its bite test).
-- **`pkg/format` disposition.** oxlint's FindingView/PrintSummary/PrintFindingsTable
-  are go-finding-generic; propose upstream + an exported marshal-opts helper
-  (TODO_LIST T43; go-finding's own opts are unexported).
 - **`MustLoadJSON` / `MustSaveJSON`** panic-on-error variants for fixtures.
 - **Extract `configerr` sub-package** (`ConfigError`, `Op`, `Unwrap/Is/As`)
   if non-autoconfigure packages want the error machinery without the domain
