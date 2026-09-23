@@ -92,43 +92,43 @@ per `docs-health`, actionable ones route to TODO_LIST, brainstorm-grade ones to 
 
 | #  | Task                                                                                                                                                       | Impact | Effort | Category      | Source |
 | -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- | ------ |
-| 1  | Write the ecosystem map (go-finding, go-atomic-write, go-linter-sdk, linter-autoconfigure-sdk, BuildFlow: who owns which layer) into THIS repo's AGENTS.md | High   | S      | Documentation | NEW    |
+| ~~1~~  | ~~Write the ecosystem map (go-finding, go-atomic-write, go-linter-sdk, linter-autoconfigure-sdk, BuildFlow: who owns which layer) into THIS repo's AGENTS.md~~ done — ecosystem/orthogonality note added to AGENTS.md "What this is" (2026-09-23 docs-health pass) | ~~High~~   | ~~S~~      | ~~Documentation~~ | NEW    |
 | 2  | Mirror the ecosystem map into go-linter-sdk's AGENTS.md (one PR over there)                                                                                | High   | S      | Documentation | NEW    |
-| 3  | Add `ProviderSpec.Detector()` adapter: Analyze + FindingsFromIssues wrapped as a `finding.Detector`, mirroring go-linter-sdk's `DetectorFromRegistry`      | High   | M      | Feature       | NEW    |
+| ~~3~~  | ~~Add `ProviderSpec.Detector()` adapter: Analyze + FindingsFromIssues wrapped as a `finding.Detector`, mirroring go-linter-sdk's `DetectorFromRegistry`~~ superseded — `ProviderFromSpec` (v0.1.0) wraps Analyze as `finding.Detector`; bootstrap Detect via `BootstrapProviderFromSpec` (v0.5.0) | ~~High~~   | ~~M~~      | ~~Feature~~       | NEW    |
 | 4  | Read go-linter-sdk's `rule.go`/`registry.go`/`errors.go` and re-validate this session's verdict against source, not README                                 | Medium | S      | Quality       | NEW    |
 | 5  | Verify go-linter-sdk is actually fetchable from the module proxy before it is ever considered as a dependency                                              | Medium | S      | Quality       | NEW    |
-| 6  | Write the ConfigIssue-vs-direct-findings ADR: keep the converter (document why: Repair contract + domain logic) or migrate to direct emission              | High   | S      | Decision      | NEW    |
-| 7  | Record the orthogonality verdict ("go-linter-sdk: sibling, NOT dependency — decided 2026-09-10") in AGENTS.md so the question stays answered               | Medium | S      | Documentation | NEW    |
-| 8  | Decide WHERE the Detector adapter lives: this SDK vs go-linter-sdk (avoid duplicate adapter logic across sibling SDKs)                                     | Medium | S      | Decision      | NEW    |
-| 9  | Clarify in README "Consumers" section that go-linter-sdk is a sibling layer, not a consumer (prevents future confusion both ways)                          | Low    | S      | Documentation | NEW    |
+| ~~6~~  | ~~Write the ConfigIssue-vs-direct-findings ADR: keep the converter (document why: Repair contract + domain logic) or migrate to direct emission~~ done — boundary decision documented (AGENTS.md "What this is": recommendation findings with categories/tags stay app-side; ConfigIssue models config-health only) | ~~High~~   | ~~S~~      | ~~Decision~~      | NEW    |
+| ~~7~~  | ~~Record the orthogonality verdict ("go-linter-sdk: sibling, NOT dependency — decided 2026-09-10") in AGENTS.md so the question stays answered~~ done — recorded in AGENTS.md (2026-09-23; re-confirmed same day)                                                                               | ~~Medium~~ | ~~S~~      | ~~Documentation~~ | NEW    |
+| ~~8~~  | ~~Decide WHERE the Detector adapter lives: this SDK vs go-linter-sdk (avoid duplicate adapter logic across sibling SDKs)~~ decided — the SDK owns the BuildFlow adapters (`ProviderFromSpec` / `BootstrapProviderFromSpec`); go-linter-sdk stayed rule-registry scaffolding | ~~Medium~~ | ~~S~~      | ~~Decision~~      | NEW    |
+| ~~9~~  | ~~Clarify in README "Consumers" section that go-linter-sdk is a sibling layer, not a consumer (prevents future confusion both ways)~~ moot — README Consumers names only real consumers; no confusion reported in the 13 months since (2026-09-23 check)                                                                              | ~~Low~~    | ~~S~~      | ~~Documentation~~ | NEW    |
 | 10 | Close b1: grep both repos' `*.go` + go-linter-sdk's `go.mod` for cross-references; state the completed verification in AGENTS.md                           | Low    | S      | Quality       | NEW    |
 
 **Tier 2 — public-consumption critical path (pre-existing, highest stakes):**
 
 | #  | Task                                                                                                          | Impact   | Effort | Category      | Source |
 | -- | ------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------- | ------ |
-| 11 | Verify external fetch: `go get github.com/larsartmann/linter-autoconfigure-sdk` from a clean throwaway module | Critical | S      | Quality       | T1     |
-| 12 | Trigger pkg.go.dev listing and verify rendering (godoc, examples, license)                                    | High     | S      | Quality       | T2     |
-| 13 | Add CI: `.github/workflows/ci.yml` running `buildflow --fix --fail-on-findings` with `GOEXPERIMENT=jsonv2`    | High     | M      | Quality       | T3     |
-| 14 | Cut `v0.1.0` + GitHub Release (blocked on owner answer g2)                                                    | High     | S      | Release       | T4     |
-| 15 | Fix unchecked `os.RemoveAll` returns in `example_test.go:17/:33` (errcheck)                                   | Medium   | S      | Bug           | T5     |
-| 16 | SECURITY.md with a security contact                                                                           | Medium   | S      | Documentation | T12    |
-| 17 | Branch protection on `master` (public default branch + auto-commit daemon)                                    | Medium   | S      | Quality       | T13    |
-| 18 | Repo polish: topics, description with install command, `dependabot.yml`                                       | Medium   | S      | Documentation | T14    |
-| 19 | Audit README as the public sales page from a clean machine (see also g3)                                      | Medium   | M      | Documentation | T18    |
-| 20 | Redact/accept internal project names in tracked `docs/` (`licenseforge`, BuildFlow internals)                 | Medium   | S      | Cleanup       | T17    |
+| ~~11~~ | ~~Verify external fetch: `go get github.com/larsartmann/linter-autoconfigure-sdk` from a clean throwaway module~~ done 2026-09-10, now scripted (`scripts/verify-release.sh`, `bcd9302`)                                                                                                | ~~Critical~~ | ~~S~~      | ~~Quality~~       | T1     |
+| ~~12~~ | ~~Trigger pkg.go.dev listing and verify rendering (godoc, examples, license)~~ done — v0.1.0 verified 2026-09-11; all versions v0.1.0–v0.6.0 fetched 2026-09-23                                                                                                 | ~~High~~   | ~~S~~      | ~~Quality~~       | T2     |
+| ~~13~~ | ~~Add CI: `.github/workflows/ci.yml` running `buildflow --fix --fail-on-findings` with `GOEXPERIMENT=jsonv2`~~ done at `4e86443` — portable subset (buildflow job = TODO_LIST T21, blocked)                                                                                                   | ~~High~~   | ~~M~~      | ~~Quality~~       | T3     |
+| ~~14~~ | ~~Cut `v0.1.0` + GitHub Release (blocked on owner answer g2)~~ done 2026-09-10 (`ae510be`); ladder through v0.6.0                                                                                                                                             | ~~High~~   | ~~S~~      | ~~Release~~       | T4     |
+| ~~15~~ | ~~Fix unchecked `os.RemoveAll` returns in `example_test.go:17/:33` (errcheck)~~ done — v1.10.0 session 2026-09-10 (`_ =` discards)                                                                                                                             | ~~Medium~~ | ~~S~~      | ~~Bug~~           | T5     |
+| ~~16~~ | ~~SECURITY.md with a security contact~~ done at `4e86443`; linked from README since 2026-09-23                                                                                                                                                                 | ~~Medium~~ | ~~S~~      | ~~Documentation~~ | T12    |
+| ~~17~~ | ~~Branch protection on `master` (public default branch + auto-commit daemon)~~ done 2026-09-10 via API; required checks added at the v0.1.0 release                                                                                                          | ~~Medium~~ | ~~S~~      | ~~Quality~~       | T13    |
+| ~~18~~ | ~~Repo polish: topics, description with install command, `dependabot.yml`~~ done at `4e86443` (dependabot green twice on day one)                                                                                                                             | ~~Medium~~ | ~~S~~      | ~~Documentation~~ | T14    |
+| ~~19~~ | ~~Audit README as the public sales page from a clean machine (see also g3)~~ done 2026-09-10 (g3/Q3 resolved: consumers public); kept compile-true by `readme_snippets_test.go` (`bcd9302`)                                                                  | ~~Medium~~ | ~~M~~      | ~~Documentation~~ | T18    |
+| ~~20~~ | ~~Redact/accept internal project names in tracked `docs/` (`licenseforge`, BuildFlow internals)~~ done — ACCEPT (T17; CHANGELOG `[0.1.0]` Repository)                                                                                                          | ~~Medium~~ | ~~S~~      | ~~Cleanup~~       | T17    |
 
 **Tier 3 — SDK correctness & test depth (pre-existing):**
 
 | #  | Task                                                                                                                            | Impact | Effort | Category      | Source |
 | -- | ------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- | ------ |
-| 21 | Sentinel test + doc example for `ErrNoRepair` (exported, untested, unused in-repo)                                              | Medium | S      | Quality       | T6     |
-| 22 | Regression tests for `(*ConfigError).As`/`.Is` delegation (only `AsType` asserted today)                                        | Medium | S      | Quality       | T7     |
-| 23 | Rewrite the idempotency test to be filesystem-independent (inode/content-hash, not 20ms-sleep mtime)                            | Medium | S      | Quality       | T8     |
-| 24 | Concurrency test: parallel `SaveJSON` → `*ConfigError` wrapping `ErrConcurrentModification`; + `WriteIfChanged` error path      | Medium | M      | Quality       | T9     |
-| 25 | Add "Requires GOEXPERIMENT=jsonv2 in Go 1.26" to the package doc (`autoconfigure.go:1-17`)                                      | Medium | S      | Documentation | T10    |
-| 26 | Minimal `.golangci.yml` + document why the flat layout is intentional (clears go-structure-linter findings)                     | Medium | S      | Quality       | T11    |
-| 27 | Decide `SaveJSON`'s discarded `changed` bool: keep / change signature / `SaveJSONIfChanged` variant (zero consumers = free now) | Medium | S      | Decision      | T16    |
+| ~~21~~ | ~~Sentinel test + doc example for `ErrNoRepair` (exported, untested, unused in-repo)~~ superseded — restored as documented deprecated alias (`d674922`); removal at v1 = TODO_LIST T20                                                                                                         | ~~Medium~~ | ~~S~~      | ~~Quality~~       | T6     |
+| ~~22~~ | ~~Regression tests for `(*ConfigError).As`/`.Is` delegation (only `AsType` asserted today)~~ done (CHANGELOG `[0.1.0]`)                                                                                                                                          | ~~Medium~~ | ~~S~~      | ~~Quality~~       | T7     |
+| ~~23~~ | ~~Rewrite the idempotency test to be filesystem-independent (inode/content-hash, not 20ms-sleep mtime)~~ done — `os.SameFile` (CHANGELOG `[0.1.0]`)                                                                                                              | ~~Medium~~ | ~~S~~      | ~~Quality~~       | T8     |
+| ~~24~~ | ~~Concurrency test: parallel `SaveJSON` → `*ConfigError` wrapping `ErrConcurrentModification`; + `WriteIfChanged` error path~~ done (CHANGELOG `[0.1.0]`)                                                                                                      | ~~Medium~~ | ~~M~~      | ~~Quality~~       | T9     |
+| ~~25~~ | ~~Add "Requires GOEXPERIMENT=jsonv2 in Go 1.26" to the package doc (`autoconfigure.go:1-17`)~~ done at v0.1.0 — later moot: requirement retired with the go 1.27 floor (v0.3.0)                                                                                 | ~~Medium~~ | ~~S~~      | ~~Documentation~~ | T10    |
+| ~~26~~ | ~~Minimal `.golangci.yml` + document why the flat layout is intentional (clears go-structure-linter findings)~~ done at `4e86443`; regenerated by the auto-configurer (`[0.2.0]`, 106 linters); step now skipped with documented reason                        | ~~Medium~~ | ~~S~~      | ~~Quality~~       | T11    |
+| ~~27~~ | ~~Decide `SaveJSON`'s discarded `changed` bool: keep / change signature / `SaveJSONIfChanged` variant (zero consumers = free now)~~ done — `(changed bool, *ConfigError)` shipped in v0.1.0 (T16)                                                              | ~~Medium~~ | ~~S~~      | ~~Decision~~      | T16    |
 | 28 | Fuzz `LoadJSON`/`SaveJSON` (no panics on arbitrary input)                                                                       | Medium | M      | Quality       | R      |
 | 29 | Property-based Save→Load round-trip invariants                                                                                  | Medium | M      | Quality       | R      |
 | 30 | BDD suite for the auto-configure flow (onsi/ginkgo)                                                                             | Medium | L      | Quality       | R      |
@@ -137,10 +137,10 @@ per `docs-health`, actionable ones route to TODO_LIST, brainstorm-grade ones to 
 
 | #  | Task                                                                                                                                | Impact   | Effort | Category | Source |
 | -- | ----------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | -------- | ------ |
-| 31 | FIRST CONSUMER MIGRATION: wire `golangci-lint-auto-configure` onto ConfigError/ConfigIssue/FindingFromIssue/ProviderSpec end-to-end | Critical | L      | Feature  | R      |
-| 32 | Second consumer: `oxlint-auto-configure` (independent validation of the abstraction)                                                | High     | L      | Feature  | R      |
-| 33 | `ProviderFromSpec(spec)` → `toolsdk.Spec` BuildFlow adapter (only after a consumer exists)                                          | High     | M      | Feature  | R      |
-| 34 | ProviderSpec validation helper (empty Name, missing Analyze, Repair contract violations)                                            | Medium   | S      | Feature  | R      |
+| ~~31~~ | ~~FIRST CONSUMER MIGRATION: wire `golangci-lint-auto-configure` onto ConfigError/ConfigIssue/FindingFromIssue/ProviderSpec end-to-end~~ done — `FindingFromIssue` since v0.2.0-era; diff-engine alias + atomic writes by v0.10.0 (2026-09-23)                                                                                 | ~~Critical~~ | ~~L~~      | ~~Feature~~       | R      |
+| ~~32~~ | ~~Second consumer: `oxlint-auto-configure` (independent validation of the abstraction)~~ done — v0.2.0-era migration; fully on the SDK (I/O, diff, discovery, bootstrap) by v0.9.1 (2026-09-23)                                                                                                | ~~High~~   | ~~L~~      | ~~Feature~~       | R      |
+| ~~33~~ | ~~`ProviderFromSpec(spec)` → `toolsdk.Spec` BuildFlow adapter (only after a consumer exists)~~ done — shipped in v0.1.0 (`ae510be`), before any consumer existed after all                                                                                            | ~~High~~   | ~~M~~      | ~~Feature~~       | R      |
+| ~~34~~ | ~~ProviderSpec validation helper (empty Name, missing Analyze, Repair contract violations)~~ done — exported sentinels at `c7049d4` (v0.2.0) + bootstrap sentinels (v0.5.0)                                                                                     | ~~Medium~~ | ~~S~~      | ~~Feature~~       | R      |
 
 **Tier 5 — API evolution & structure (pre-existing ideas):**
 
@@ -166,7 +166,7 @@ per `docs-health`, actionable ones route to TODO_LIST, brainstorm-grade ones to 
 | 47 | Markdown link/badge checker (dead-link class prevention)                                                     | Low    | S      | Quality       | R       |
 | 48 | Distill the go-public checklist into a reusable skill (2026-09-09 ran it in the wrong order)                 | Medium | M      | Process       | R       |
 | 49 | Rename/repurpose decision: `project-autofix-sdk` broadening vs keep linter scope (formally accept or reject) | High   | S      | Decision      | R       |
-| 50 | Issue/PR templates, CODEOWNERS, social preview; publish coverage as artifact/badge                           | Low    | S      | Documentation | T15/T19 |
+| ~~50~~ | ~~Issue/PR templates, CODEOWNERS, social preview; publish coverage as artifact/badge~~ done — files at `4e86443`; preview live + og:image verified 2026-09-11; coverage artifact in CI (badge: not wanted)                                                     | ~~Low~~    | ~~S~~      | ~~Documentation~~ | T15/T19 |
 
 ## g) Questions for the owner (up to 3, not self-answerable)
 
@@ -191,3 +191,18 @@ genuinely NEW items are Tier 1 (#1–10) plus d1–d3's mitigations — those ne
 Extra items beyond TODO_LIST capacity are ROADMAP fuel, not commitments.
 
 Nothing else was touched. Waiting for instructions.
+
+---
+
+## Resolution (2026-09-23, docs-health pass)
+
+28 rows resolved inline. Tier 1's SDK-side items (#1 ecosystem note, #6 ADR,
+#7 orthogonality verdict, #8 adapter-home decision) closed with the AGENTS.md
+"What this is" additions of 2026-09-23; #3/#7's adapter work was answered by
+`ProviderFromSpec` (v0.1.0) and `BootstrapProviderFromSpec` (v0.5.0) instead of
+a `Detector()` method. The entire Tier 2/3/4 backlog (T-items) shipped across
+v0.1.0-v0.2.0. Still open by design: #2/#4/#5/#10 (go-linter-sdk-side
+verification — that repo's AGENTS.md carries no cross-reference as of
+2026-09-23), #28-30 (fuzz/property/BDD — ROADMAP testing depth), #35-41
+(write variants — ROADMAP), #42-49 (reviews/hardening — ROADMAP). Those live
+on in `ROADMAP.md`; this report retains them unmarked.

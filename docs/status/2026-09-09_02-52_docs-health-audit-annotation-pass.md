@@ -81,7 +81,7 @@ Impact: Critical/High/Medium/Low. Effort: S <30min, M 30min-2h, L >2h.
 | ~~1~~  | ~~Verify external fetch: `go get github.com/larsartmann/linter-autoconfigure-sdk` from a clean module (T1)~~ done — verified end-to-end 2026-09-10 and now scripted (`scripts/verify-release.sh`, `bcd9302`)                                                       | ~~High~~   | ~~S~~  | ~~Quality~~       |
 | ~~2~~  | ~~Trigger + verify pkg.go.dev listing, examples, license; recheck after 24h (T2)~~ done — v0.1.0 page verified 2026-09-11; every version v0.1.0–v0.6.0 fetched directly 2026-09-23                                                                             | ~~High~~   | ~~S~~  | ~~Quality~~       |
 | ~~3~~  | ~~Add CI workflow running `buildflow --fix --fail-on-findings` with `GOEXPERIMENT=jsonv2` (T3)~~ done at `4e86443` — portable subset (BuildFlow itself stays private; full job = TODO_LIST T21)                                                                   | ~~High~~   | ~~M~~  | ~~Quality~~       |
-| 4  | Decide + cut tag `v0.1.0`, create GitHub Release (T4; blocked on owner Q2)                                                                                     | High   | S      | Release       |
+| ~~4~~  | ~~Decide + cut tag `v0.1.0`, create GitHub Release (T4; blocked on owner Q2)~~ done — tagged `ae510be` 2026-09-10; ladder now runs through v0.6.0                                                                                                         | ~~High~~   | ~~S~~  | ~~Release~~       |
 | ~~5~~  | ~~Fix unchecked `os.RemoveAll` in `example_test.go:17,33` (T5)~~ done — `_ =` discards, v1.10.0-upgrade session 2026-09-10 (CHANGELOG `[0.1.0]`)                                                                                                                 | ~~Medium~~ | ~~S~~  | ~~Bug~~           |
 | ~~6~~  | ~~`ErrNoRepair` sentinel test + doc example (T6)~~ superseded — sentinel deleted 2026-09-10, restored as a documented deprecated alias (`d674922`); removal at v1 is TODO_LIST T20                                                                               | ~~Medium~~ | ~~S~~  | ~~Quality~~       |
 | ~~7~~  | ~~Regression tests for `(*ConfigError).As`/`.Is` delegation (T7)~~ done — `TestConfigError_{Is,As}DelegatesToWrappedCause` (CHANGELOG `[0.1.0]`)                                                                                                                 | ~~Medium~~ | ~~S~~  | ~~Quality~~       |
@@ -135,3 +135,16 @@ motivation. Their roadmap is not discoverable from this repo.
 _Point-in-time snapshot — will go stale. Items 1-18 of section (f) already
 live in TODO_LIST.md (T1-T19); 19-27 need a HARVEST pass. Annotate this file
 non-destructively as items complete._
+
+---
+
+## Resolution (2026-09-23, docs-health pass)
+
+All 27 f-items resolved inline above: the T1-T19 cluster closed across
+2026-09-10/11 (releases v0.1.0/v0.2.0, CI at `4e86443`, GitHub polish, MD013
+policy at `0cc2c2e`, erraudit zeroed at `d674922`), T16 shipped in v0.1.0,
+and the session-born items 19-27 closed by later passes plus this one (the
+AGENTS.md TODO_LIST/FEATURES pointer — e.6 — was finally added in this pass).
+The b/c/d/e sections are this session's own state record and reflections,
+deliberately left unannotated. Every forward-looking item carries a verdict:
+this file is fully resolved.
