@@ -144,7 +144,7 @@ skill rule, one-off, not propagated).
 
 1. **Verify-before-strike for annotations:** any "done" marker on an
    externally-visible claim (uploads, badges, live pages) gets a live check
-   attempt in the same session, or an explicit "last verified <date>" hedge.
+   attempt in the same session, or an explicit "last verified" date hedge.
 2. **Adopt `buildflow --staged-only` as the universal pre-commit gate** — the
    2026-09-10 lesson, still unadopted, bit again via the daemon committing my
    unlinted line.
@@ -255,10 +255,12 @@ session's observations without padding.)
 
 ---
 
--- docs/status/2026-09-23_15-26_docs-health-audit-annotation-sweep.md ·
-buildflow exit 0 · strict exit 69 = exactly the
-9 documented advisories · gofmt/vet/analyzer/race green · markdownlint clean
-on living docs · 1 file archived, 17 annotated, 9 drift fixes landed.
+**Verification state at report time:** working tree carries only the daemon's
+pending sweep of this file and the final AGENTS line-wrap; all session work
+committed (~16 daemon commits, `d3e3ad7..90817cb` + tail) · buildflow exit 0 ·
+strict exit 69 = exactly the 9 documented advisories · gofmt/vet/analyzer/race
+green · markdownlint clean on living docs · 1 file archived, 17 annotated,
+9 drift fixes landed.
 
 Assisted-by: Crush (glm-5.3)
 
