@@ -1005,8 +1005,7 @@ func TestParseJSON_Malformed_ReturnsConfigErrorWithoutPath(t *testing.T) {
 		t.Errorf("expected no Path for byte-level input, got %q", err.Path)
 	}
 
-	var synerr *jsontext.SyntacticError
-	if !errors.As(err, &synerr) {
+	if _, ok := errors.AsType[*jsontext.SyntacticError](err); !ok {
 		t.Errorf("expected chain to reach *jsontext.SyntacticError, got %v", err)
 	}
 }
@@ -1079,13 +1078,13 @@ func TestSaveJSONBytes_WritesExactBytes(t *testing.T) {
 		t.Error("expected changed=true on first write")
 	}
 
-	got, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
+	gotBytes, readErr := os.ReadFile(path)
+	if readErr != nil {
+		t.Fatal(readErr)
 	}
 
-	if !bytes.Equal(got, want) {
-		t.Errorf("expected byte-faithful write %q, got %q", want, got)
+	if !bytes.Equal(gotBytes, want) {
+		t.Errorf("expected byte-faithful write %q, got %q", want, gotBytes)
 	}
 }
 
@@ -1143,9 +1142,9 @@ func TestSaveJSON_OutputsMarshalJSONIndentedBytes(t *testing.T) {
 		t.Fatalf("SaveJSON failed: %v", err)
 	}
 
-	onDisk, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
+	onDisk, readErr := os.ReadFile(path)
+	if readErr != nil {
+		t.Fatal(readErr)
 	}
 
 	want, err := MarshalJSONIndented(cfg)

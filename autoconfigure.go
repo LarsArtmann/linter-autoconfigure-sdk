@@ -132,14 +132,16 @@ func ParseJSON[T any](data []byte) (*T, *ConfigError) {
 	return v, nil
 }
 
-// marshalOpts is the canonical JSON configuration shared by every SDK
-// writer (and reusable via MarshalJSONIndented): deterministic map-key
+// marshalOptions returns the canonical JSON configuration shared by every
+// SDK writer (and reusable via MarshalJSONIndented): deterministic map-key
 // ordering so output bytes are stable across runs, and 2-space indentation
 // because linter configs are typically human-edited.
-var marshalOpts = []json.Option{
-	json.Deterministic(true),
-	jsontext.WithIndentPrefix(""),
-	jsontext.WithIndent("  "),
+func marshalOptions() []json.Options {
+	return []json.Options{
+		json.Deterministic(true),
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("  "),
+	}
 }
 
 // MarshalJSONIndented marshals v with the SDK's canonical options:
@@ -148,7 +150,7 @@ var marshalOpts = []json.Option{
 // need the bytes themselves (for example to append a trailing newline before
 // SaveJSONBytes) use it instead of hand-copying these options.
 func MarshalJSONIndented(v any) ([]byte, *ConfigError) {
-	data, err := json.Marshal(v, marshalOpts...)
+	data, err := json.Marshal(v, marshalOptions()...)
 	if err != nil {
 		return nil, &ConfigError{Op: OpMarshal, Err: err}
 	}

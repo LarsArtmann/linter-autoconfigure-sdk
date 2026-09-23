@@ -8,7 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Nothing yet.
+- `MarshalJSONIndented(v any) ([]byte, *ConfigError)` — the SDK's canonical
+  marshal options (deterministic map keys, 2-space indent) as a reusable
+  helper; `SaveJSON` now builds on it (byte-identical output)
+- `ParseJSON[T any](data []byte) (*T, *ConfigError)` — byte-level JSON parse
+  (the counterpart of `LoadJSON` for callers that already hold the bytes);
+  its errors carry no `Path`
+- `SaveJSONBytes(path string, data []byte) (bool, *ConfigError)` —
+  byte-faithful atomic write (MkdirAll + write-if-changed); the trailing
+  newline is the caller's contract, so tools can reproduce their exact file
+  format via `MarshalJSONIndented` + `'\n'` append
+- `WorkingDir(ctx context.Context) string` —
+  `finding.WorkingDirFromContext` with the `"."` fallback every BuildFlow
+  provider hand-rolls
+- `*ConfigError.Error()` now renders cleanly without a `Path` (byte-level
+  operations): `autoconfigure: marshal: <cause>` instead of a double space
 
 ### Fixed
 

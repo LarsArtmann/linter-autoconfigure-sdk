@@ -169,3 +169,17 @@ func ExampleWorkingDir() {
 	fmt.Println(WorkingDir(ctx), WorkingDir(context.Background()))
 	// Output: /repo .
 }
+
+func ExampleDiffMaps() {
+	before := map[string]string{"no-console": "off", "no-debugger": "off"}
+	after := map[string]string{"no-console": "warn"}
+
+	changes := DiffMaps(before, after, "rules.")
+
+	fmt.Println(Summary(changes))
+	fmt.Print(FormatDiff(changes))
+	// Output:
+	// Added: 0, Modified: 1, Removed: 1
+	// - rules.no-debugger: off
+	// ~ rules.no-console: off → warn
+}
