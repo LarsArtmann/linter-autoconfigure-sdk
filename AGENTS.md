@@ -79,13 +79,21 @@ This project is automated with **BuildFlow** (no Makefile, no flake.nix):
   `--strict`'s treatment of those 2 warnings.
 - `go test -race -count=1 ./...` — just the Go tests (covered by buildflow
   `test-race` and `test-coverage` steps).
-- Known tool bug (2026-09-22): `license-check` (go-licenses) fails on the go
-  1.27 floor — it cannot load go 1.27 toolchain stdlib packages ("Package log/slog
-  does not have module info. Non go modules projects are no longer supported").
-  Unrelated to code state; every other step is green. Re-check after a
-  go-licenses release supporting 1.27 toolchains.
+- Known tool bug (2026-09-22; SKIPPED via config since 2026-09-23):
+  `license-check` (go-licenses) fails on the go 1.27 floor — it cannot load
+  go 1.27 toolchain stdlib packages ("Package log/slog does not have module
+  info. Non go modules projects are no longer supported"). Unrelated to code
+  state; excluded via `.buildflow.yml` `skip_steps: [license-check]` (with
+  reason), so the pipeline is FULLY green. Re-enable after a go-licenses
+  release supporting 1.27 toolchains.
 
-Single step: `buildflow -s <step> -v`. Disable result cache during debugging:
+Single step: `buildflow -s <step> -v`. Release verification is scripted:
+`./scripts/verify-release.sh vX.Y.Z` (proxy check + clean-dir go get +
+compile-every-API smoke — run it after every tag). CI also runs the
+jsondeterminism analyzer, the README snippet compile guard
+(`readme_snippets_test.go` — caught real snippet drift on first run), the
+social-preview guard (`scripts/check-social-preview.sh`), and a BuildFlow
+pipeline job (T21; license-check skipped via config). Disable result cache during debugging:
 `BUILDFLOW_NO_RESULT_CACHE=1 buildflow ...` — the result cache has a 168h TTL
 and can serve stale green results after a tool upgrade changed the verdict
 (this masked a real golangci-lint-auto-configure gate failure on 2026-09-11).

@@ -29,6 +29,21 @@ replace-drop/bump work moved to T31/T32. T31–T43 are harvested from
 full Pareto breakdown, execution graph, verification strategy, and the
 consumer-repo tasks (oxlint/golangci/BuildFlow migration steps).
 
+2026-09-23 (second execution session): T40–T43 CLOSED — v0.5.0 shipped the
+bootstrap provider lifecycle (BootstrapSpec + BootstrapProviderFromSpec, 18
+contract tests ported from oxlint's provider_test.go); oxlint's provider
+migrated onto it (~110 lines deleted, tests semantically unchanged; v0.9.0)
+and validate gained the drift advisory (--fail-on-drift). v0.6.0 shipped the
+jsondeterminism analyzer + cmd vettool (T41), bite-checked against the
+original SaveJSON gap; both consumers wire it into their gates (oxlint v0.9.1,
+golangci next release) and golangci's config/backup writes went atomic with a
+crash-safety test (T42). T27/T28/T29/T21 landed: scripts/verify-release.sh,
+the README snippet compile guard (which caught real snippet drift on its
+first run), the social-preview asset guard, and a BuildFlow CI job (license-
+check now skipped via .buildflow.yml — the local pipeline is FULLY green for
+the first time). T43's disposition matrix + go-finding issue draft live in
+docs/planning/2026-09-23_pkg-format-disposition.md.
+
 2026-09-23 (execution session): T31–T39 CLOSED — v0.3.1 shipped the determinism
 fix to all three consumers; v0.4.0 shipped the I/O matrix (T33), WorkingDir
 (T34), the generic diff engine (T36), and ConfigFiles/FirstExisting (T38), with
@@ -38,15 +53,7 @@ v0.4.1 tag (both consumers' `pkg/diff` now alias the SDK `Change`/`Kind`
 vocabulary; oxlint's I/O and discovery run fully on SDK helpers; verified
 2026-09-23: trees green, pushed). Remaining: the T40–T43 train.
 
-| ID  | Task                                                                                                                                                                                                                                                                     | Impact | Effort | Evidence / Source                                                                            |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------ | -------------------------------------------------------------------------------------------- |
-| T20 | Remove the deprecated `ErrNoRepair` alias at v1 (compile-compat shim; SDK never returns it; canonical signal is nil `toolsdk.Spec.Repair`)                                                                                                                               | Low    | S      | `autoconfigure.go` ErrNoRepair; CHANGELOG `[0.1.0]`                                          |
-| T21 | Switch CI to `buildflow --fix --fail-on-findings` now that BuildFlow is PUBLIC (`go mod download github.com/larsartmann/buildflow@v0.6.0` verified 2026-09-11 — the privacy blocker is LIFTED; remaining work is the ci.yml workflow swap, which needs a watched CI run) | High   | S      | `.github/workflows/ci.yml`; proxy check 2026-09-11                                           |
-| T27 | Script the release verification (clean-dir `go get@vX.Y.Z` + consumer compile) so it is one command, not AGENTS.md prose                                                                                                                                                 | Medium | S      | AGENTS.md Releases section; 0.1.0 runbook                                                    |
-| T28 | Guard README code snippets against drift (compile the README's Go snippets in a test)                                                                                                                                                                                    | Medium | S      | README install/usage blocks; report f18                                                      |
-| T29 | CI guard for social-preview assets (render from svg, assert 1280x640 + < 1 MB before push)                                                                                                                                                                               | Low    | S      | assets/branding/; SKILLS generator machine-checks are the local half (report f19)            |
-| T30 | Empirical GIF validation: one scratch-repo upload (GitHub card slot) + one Discord/Slack post — needs YOUR hands                                                                                                                                                         | Low    | S      | assets/branding/social-preview-animated.gif; platform matrix claims are doc-grade until then |
-| T40 | `ProviderSpec.Generate` hook: SDK-owned Detect-missing / never-overwrite dry-run-aware Repair / advisory drift HealthCheck on the diff engine; oxlint provider migrates (~150 lines deleted); release `v0.5.0`                                                           | High   | L      | plan §3 P15–P16, P19; oxlint provider.go:138–262                                             |
-| T41 | `Deterministic(true)` enforcement analyzer (`json.Marshal` without the option) wired into SDK + both consumers; bite-checked against the original `SaveJSON` gap                                                                                                         | Medium | L      | plan §3 P18; oxlint report f24                                                               |
-| T42 | golangci atomic-write migration: audit `os.WriteFile` sites, migrate config writes to `SaveJSONBytes`/`WriteWithPerm` preserving 0600 perms                                                                                                                              | Medium | L      | plan §3 P17; loader.go:460 writes non-atomically                                             |
-| T43 | `pkg/format` disposition: propose `FindingView`/`PrintSummary`/`PrintFindingsTable` + exported marshal-opts helper upstream to go-finding                                                                                                                                | Low    | M      | plan §3 P20; go-finding json.go opts are unexported                                          |
+| ID  | Task                                                                                                                                       | Impact | Effort | Evidence / Source                                                                            |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------ | -------------------------------------------------------------------------------------------- |
+| T20 | Remove the deprecated `ErrNoRepair` alias at v1 (compile-compat shim; SDK never returns it; canonical signal is nil `toolsdk.Spec.Repair`) | Low    | S      | `autoconfigure.go` ErrNoRepair; CHANGELOG `[0.1.0]`                                          |
+| T30 | Empirical GIF validation: one scratch-repo upload (GitHub card slot) + one Discord/Slack post — needs YOUR hands                           | Low    | S      | assets/branding/social-preview-animated.gif; platform matrix claims are doc-grade until then |

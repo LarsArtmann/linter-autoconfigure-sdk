@@ -8,7 +8,10 @@ set -euo pipefail
 png="assets/branding/social-preview.png"
 svg="assets/branding/social-preview.svg"
 
-fail() { echo "ERROR: $1" >&2; exit 1; }
+fail() {
+	echo "ERROR: $1" >&2
+	exit 1
+}
 
 [ -f "$png" ] || fail "missing $png"
 [ -f "$svg" ] || fail "missing $svg"

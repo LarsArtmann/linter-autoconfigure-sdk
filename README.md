@@ -25,14 +25,14 @@ presets). Those differences are legitimate and stay in each tool.
 
 What they reinvent identically is the surrounding plumbing:
 
-| Concern                                    | Before (per tool)                                             | After (this SDK)                                                              |
-| ------------------------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Read/write config files                    | Each tool hand-wraps `os.ReadFile` + parse + error handling   | `ReadConfig(path)` / `LoadJSON[T](path)` / `SaveJSON(path, v)`                |
-| Marshal/parse/write raw config bytes       | Marshal options copied per tool; atomic writes hand-rolled    | `MarshalJSONIndented(v)` / `ParseJSON[T](data)` / `SaveJSONBytes(path, data)` |
-| Diff two config versions                   | Two incompatible Change types (string vs int kinds)           | `DiffMaps` / `DiffSets` / `DiffBlobs` + `Summary` / `FormatDiff`              |
-| Discover the config file                   | Per-tool candidate lists and exists-checks                    | `ProviderSpec.ConfigFiles` + `FirstExisting(root, candidates...)`             |
-| Emit findings for config issues            | Each tool maps priority → Severity, fix → Suggestion, by hand | `FindingFromIssue(tool, ConfigIssue{...})`                                    |
-| Wire into BuildFlow as Detector + Repairer | Each tool writes its own adapter                              | `ProviderFromSpec` → canonical `toolsdk.Spec` (go-finding)                    |
+| Concern                                    | Before (per tool)                                                                                  | After (this SDK)                                                              |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Read/write config files                    | Each tool hand-wraps `os.ReadFile` + parse + error handling                                        | `ReadConfig(path)` / `LoadJSON[T](path)` / `SaveJSON(path, v)`                |
+| Marshal/parse/write raw config bytes       | Marshal options copied per tool; atomic writes hand-rolled                                         | `MarshalJSONIndented(v)` / `ParseJSON[T](data)` / `SaveJSONBytes(path, data)` |
+| Diff two config versions                   | Two incompatible Change types (string vs int kinds)                                                | `DiffMaps` / `DiffSets` / `DiffBlobs` + `Summary` / `FormatDiff`              |
+| Discover the config file                   | Per-tool candidate lists and exists-checks                                                         | `ProviderSpec.ConfigFiles` + `FirstExisting(root, candidates...)`             |
+| Emit findings for config issues            | Each tool maps priority → Severity, fix → Suggestion, by hand                                      | `FindingFromIssue(tool, ConfigIssue{...})`                                    |
+| Wire into BuildFlow as Detector + Repairer | Each tool writes its own adapter                                                                   | `ProviderFromSpec` → canonical `toolsdk.Spec` (go-finding)                    |
 | Generate a missing config (bootstrap)      | Hand-rolled ~150-line provider: missing-only Detect, never-overwrite Repair, advisory drift health | `BootstrapProviderFromSpec[T]` derives the whole lifecycle                    |
 
 `linter-autoconfigure-sdk` owns that plumbing once. Adding a third auto-configurer (e.g.
@@ -181,21 +181,21 @@ dead state.
 
 ### BuildFlow integration
 
-| Function                        | Signature               | Purpose                                                                                                               |
-| ------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `ProviderFromSpec(spec)`        | `(toolsdk.Spec, error)` | Convert a `ProviderSpec` into go-finding's canonical `toolsdk.Spec` for `toolsdk.Register`; validates required fields |
-| `BootstrapProviderFromSpec[T]`  | `(toolsdk.Spec, error)` | Convert a `BootstrapSpec[T]` into a full generate-if-missing lifecycle (Detect/Repair/HealthCheck)                    |
-| `(*ProviderSpec).HasRepair()`   | `bool`                  | Whether the spec supports auto-repair                                                                                 |
+| Function                       | Signature               | Purpose                                                                                                               |
+| ------------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `ProviderFromSpec(spec)`       | `(toolsdk.Spec, error)` | Convert a `ProviderSpec` into go-finding's canonical `toolsdk.Spec` for `toolsdk.Register`; validates required fields |
+| `BootstrapProviderFromSpec[T]` | `(toolsdk.Spec, error)` | Convert a `BootstrapSpec[T]` into a full generate-if-missing lifecycle (Detect/Repair/HealthCheck)                    |
+| `(*ProviderSpec).HasRepair()`  | `bool`                  | Whether the spec supports auto-repair                                                                                 |
 
 ### Types
 
-| Type           | Purpose                                                                                                                                                                 |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ConfigError`  | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal                                      |
-| `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                                                        |
-| `ProviderSpec` | `{Name, Description, ConfigFile, ConfigFiles, Analyze, Repair}` — auto-configurer declaration; `ConfigFile` is `finding.FilePath`; `HasRepair()` reports repair support |
+| Type               | Purpose                                                                                                                                                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ConfigError`      | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal                                                                              |
+| `ConfigIssue`      | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                                                                                                |
+| `ProviderSpec`     | `{Name, Description, ConfigFile, ConfigFiles, Analyze, Repair}` — auto-configurer declaration; `ConfigFile` is `finding.FilePath`; `HasRepair()` reports repair support                                         |
 | `BootstrapSpec[T]` | `{Name, Description, ConfigFile, ConfigFiles, MissingRule, FixCommand, CountLabel, Recognizable, Generate, Marshal, Parse, NormalizeExpected, Compare}` — generate-if-missing lifecycle declaration (see below) |
-| `Change`       | `{Kind, Path, Old, New}` — one config difference; `Kind` is `KindAdded`/`KindRemoved`/`KindModified`                                                                    |
+| `Change`           | `{Kind, Path, Old, New}` — one config difference; `Kind` is `KindAdded`/`KindRemoved`/`KindModified`                                                                                                            |
 
 ### Determinism enforcement (analyzer)
 
