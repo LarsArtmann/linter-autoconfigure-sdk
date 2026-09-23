@@ -353,8 +353,18 @@ func FindingsFromIssues(toolName finding.ToolName, issues []ConfigIssue) ([]find
 type ProviderSpec struct {
 	Name        string
 	Description string
-	// ConfigFile is the config file path the tool manages (e.g. ".golangci.yml").
+	// ConfigFile is the canonical config file the tool writes (e.g.
+	// ".golangci.yml", ".oxlintrc.json"). When ConfigFiles is empty it is
+	// also the only discovery candidate.
 	ConfigFile finding.FilePath
+	// ConfigFiles lists every config filename the tool recognizes, in
+	// priority order (e.g. ".oxlintrc.json", ".oxlintrc.jsonc",
+	// "oxlint.config.json"). An existing file under ANY of these names means
+	// the project already carries a config, including user-curated formats
+	// the tool must not stomp. ProviderFromSpec derives Inputs from
+	// ConfigFiles when set, falling back to [ConfigFile]. Both fields stay:
+	// ConfigFile names the write target, ConfigFiles the discovery set.
+	ConfigFiles []finding.FilePath
 	// Analyze inspects the config and returns issues. The working directory
 	// is available via finding.WorkingDirFromContext(ctx).
 	Analyze func(ctx context.Context) ([]ConfigIssue, error)
@@ -397,7 +407,8 @@ var (
 // Field mapping:
 //   - Name, Description pass through verbatim; Name also becomes the tool name
 //     stamped onto every finding the Detect adapter emits.
-//   - ConfigFile becomes Inputs (the config file is what the tool reads).
+//   - ConfigFiles (falling back to ConfigFile alone) becomes Inputs: the
+//     config files are what the tool reads.
 //   - Analyze is wrapped as a finding.Detector that converts each ConfigIssue
 //     via FindingFromIssue.
 //   - A non-nil Repair is wrapped as a toolsdk.Repairer; a nil Repair stays nil,
@@ -423,8 +434,8 @@ func ProviderFromSpec(spec ProviderSpec) (toolsdk.Spec, error) {
 		Description: spec.Description,
 		Detect:      issueDetector{spec: spec},
 	}
-	if spec.ConfigFile != "" {
-		converted.Inputs = []string{string(spec.ConfigFile)}
+	if inputs := spec.discoveryCandidates(); len(inputs) > 0 {
+		converted.Inputs = inputs
 	}
 
 	if spec.Repair != nil {
@@ -439,6 +450,45 @@ func ProviderFromSpec(spec ProviderSpec) (toolsdk.Spec, error) {
 	}
 
 	return converted, nil
+}
+
+// discoveryCandidates returns the config filenames a run should watch:
+// ConfigFiles when set, otherwise the single ConfigFile.
+func (s ProviderSpec) discoveryCandidates() []string {
+	if len(s.ConfigFiles) > 0 {
+		candidates := make([]string, 0, len(s.ConfigFiles))
+		for _, candidate := range s.ConfigFiles {
+			candidates = append(candidates, string(candidate))
+		}
+
+		return candidates
+	}
+
+	if s.ConfigFile != "" {
+		return []string{string(s.ConfigFile)}
+	}
+
+	return nil
+}
+
+// FirstExisting joins each candidate with root, in order, and returns the
+// first that exists. When none exists it returns the FIRST candidate joined
+// with root and false, so callers always hold a usable canonical path (the
+// default write target). Returns "", false when no candidate is given.
+func FirstExisting(root string, candidates ...string) (string, bool) {
+	if len(candidates) == 0 {
+		return "", false
+	}
+
+	first := filepath.Join(root, candidates[0])
+	for _, candidate := range candidates {
+		path := filepath.Join(root, candidate)
+		if _, err := os.Stat(path); err == nil {
+			return path, true
+		}
+	}
+
+	return first, false
 }
 
 // issueDetector adapts a ProviderSpec's Analyze closure to the finding.Detector

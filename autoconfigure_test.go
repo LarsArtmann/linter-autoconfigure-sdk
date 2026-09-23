@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -1182,5 +1183,119 @@ func TestConfigError_ErrorFormat_EmptyPath(t *testing.T) {
 	want := "autoconfigure: marshal: root cause"
 	if got := err.Error(); got != want {
 		t.Errorf("expected %q, got %q", want, got)
+	}
+}
+
+// --- ConfigFiles discovery / FirstExisting ---
+
+func TestProviderFromSpec_ConfigFilesDeriveAllInputs(t *testing.T) {
+	t.Parallel()
+
+	spec := ProviderSpec{
+		Name:        "oxlint-autoconfigure",
+		Description: "desc",
+		ConfigFile:  ".oxlintrc.json",
+		ConfigFiles: []finding.FilePath{".oxlintrc.json", ".oxlintrc.jsonc", "oxlint.config.json"},
+		Analyze:     func(ctx context.Context) ([]ConfigIssue, error) { return nil, nil },
+	}
+
+	converted, err := ProviderFromSpec(spec)
+	if err != nil {
+		t.Fatalf("ProviderFromSpec failed: %v", err)
+	}
+
+	want := []string{".oxlintrc.json", ".oxlintrc.jsonc", "oxlint.config.json"}
+	if !reflect.DeepEqual(converted.Inputs, want) {
+		t.Errorf("expected Inputs %v, got %v", want, converted.Inputs)
+	}
+}
+
+func TestProviderFromSpec_ConfigFileAloneDerivesSingleInput(t *testing.T) {
+	t.Parallel()
+
+	spec := ProviderSpec{
+		Name:        "golangci-autoconfigure",
+		Description: "desc",
+		ConfigFile:  ".golangci.yml",
+		Analyze:     func(ctx context.Context) ([]ConfigIssue, error) { return nil, nil },
+	}
+
+	converted, err := ProviderFromSpec(spec)
+	if err != nil {
+		t.Fatalf("ProviderFromSpec failed: %v", err)
+	}
+
+	if !reflect.DeepEqual(converted.Inputs, []string{".golangci.yml"}) {
+		t.Errorf("expected Inputs [.golangci.yml], got %v", converted.Inputs)
+	}
+}
+
+func TestProviderFromSpec_NoConfigFieldsNoInputs(t *testing.T) {
+	t.Parallel()
+
+	spec := ProviderSpec{
+		Name:        "configless",
+		Description: "desc",
+		Analyze:     func(ctx context.Context) ([]ConfigIssue, error) { return nil, nil },
+	}
+
+	converted, err := ProviderFromSpec(spec)
+	if err != nil {
+		t.Fatalf("ProviderFromSpec failed: %v", err)
+	}
+
+	if converted.Inputs != nil {
+		t.Errorf("expected nil Inputs, got %v", converted.Inputs)
+	}
+}
+
+func TestFirstExisting(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, ".oxlintrc.jsonc"), []byte("{}"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name       string
+		root       string
+		candidates []string
+		wantPath   string
+		wantFound  bool
+	}{
+		{
+			name:       "existing candidate wins over earlier missing ones",
+			root:       dir,
+			candidates: []string{".oxlintrc.json", ".oxlintrc.jsonc"},
+			wantPath:   filepath.Join(dir, ".oxlintrc.jsonc"),
+			wantFound:  true,
+		},
+		{
+			name:       "none exists returns first and false",
+			root:       dir,
+			candidates: []string{".oxlintrc.json", "oxlint.config.json"},
+			wantPath:   filepath.Join(dir, ".oxlintrc.json"),
+			wantFound:  false,
+		},
+		{
+			name:       "no candidates",
+			root:       dir,
+			candidates: nil,
+			wantPath:   "",
+			wantFound:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			gotPath, gotFound := FirstExisting(tt.root, tt.candidates...)
+			if gotPath != tt.wantPath || gotFound != tt.wantFound {
+				t.Errorf("FirstExisting(%q, %v) = (%q, %v), want (%q, %v)",
+					tt.root, tt.candidates, gotPath, gotFound, tt.wantPath, tt.wantFound)
+			}
+		})
 	}
 }
