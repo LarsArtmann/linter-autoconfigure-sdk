@@ -33,6 +33,7 @@ What they reinvent identically is the surrounding plumbing:
 | Discover the config file                   | Per-tool candidate lists and exists-checks                    | `ProviderSpec.ConfigFiles` + `FirstExisting(root, candidates...)`             |
 | Emit findings for config issues            | Each tool maps priority → Severity, fix → Suggestion, by hand | `FindingFromIssue(tool, ConfigIssue{...})`                                    |
 | Wire into BuildFlow as Detector + Repairer | Each tool writes its own adapter                              | `ProviderFromSpec` → canonical `toolsdk.Spec` (go-finding)                    |
+| Generate a missing config (bootstrap)      | Hand-rolled ~150-line provider: missing-only Detect, never-overwrite Repair, advisory drift health | `BootstrapProviderFromSpec[T]` derives the whole lifecycle                    |
 
 `linter-autoconfigure-sdk` owns that plumbing once. Adding a third auto-configurer (e.g.
 `biome-auto-configure`) becomes a config-schema exercise, not a from-scratch build.
@@ -178,10 +179,11 @@ dead state.
 
 ### BuildFlow integration
 
-| Function                      | Signature               | Purpose                                                                                                               |
-| ----------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `ProviderFromSpec(spec)`      | `(toolsdk.Spec, error)` | Convert a `ProviderSpec` into go-finding's canonical `toolsdk.Spec` for `toolsdk.Register`; validates required fields |
-| `(*ProviderSpec).HasRepair()` | `bool`                  | Whether the spec supports auto-repair                                                                                 |
+| Function                        | Signature               | Purpose                                                                                                               |
+| ------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `ProviderFromSpec(spec)`        | `(toolsdk.Spec, error)` | Convert a `ProviderSpec` into go-finding's canonical `toolsdk.Spec` for `toolsdk.Register`; validates required fields |
+| `BootstrapProviderFromSpec[T]`  | `(toolsdk.Spec, error)` | Convert a `BootstrapSpec[T]` into a full generate-if-missing lifecycle (Detect/Repair/HealthCheck)                    |
+| `(*ProviderSpec).HasRepair()`   | `bool`                  | Whether the spec supports auto-repair                                                                                 |
 
 ### Types
 
@@ -190,6 +192,7 @@ dead state.
 | `ConfigError`  | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal                                      |
 | `ConfigIssue`  | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                                                        |
 | `ProviderSpec` | `{Name, Description, ConfigFile, ConfigFiles, Analyze, Repair}` — auto-configurer declaration; `ConfigFile` is `finding.FilePath`; `HasRepair()` reports repair support |
+| `BootstrapSpec[T]` | `{Name, Description, ConfigFile, ConfigFiles, MissingRule, FixCommand, CountLabel, Recognizable, Generate, Marshal, Parse, NormalizeExpected, Compare}` — generate-if-missing lifecycle declaration (see below) |
 | `Change`       | `{Kind, Path, Old, New}` — one config difference; `Kind` is `KindAdded`/`KindRemoved`/`KindModified`                                                                    |
 
 ---
@@ -214,6 +217,16 @@ dead state.
 - **`SaveJSONBytes` is byte-faithful.** The trailing-newline decision is the caller's contract: tools that
   end configs with a newline combine `MarshalJSONIndented` + `append(data, '\n')`; `SaveJSON` itself never
   appends one (its contract since v0.1.0).
+- **Bootstrap is a separate spec type, not a `Generate` field on `ProviderSpec`.** Bootstrap tools
+  (generate-if-missing) and auditing tools (analyze/repair) have different lifecycles; one struct offering
+  both modes would make the chosen mode ambiguous. `BootstrapSpec[T]` makes the safety invariants
+  structural: Detect only flags missing configs (any discovery name counts, so curated alternative-format
+  configs are never shadowed), Repair never overwrites and honors dry-run, and the HealthCheck is
+  report-only — a consumer cannot express a config-stomping flow through the API.
+- **The bootstrap drift sentinel stays unexported.** The advisory health-check error wraps
+  an unexported sentinel by design (owner decision 2026-09-22): matching on the message is fine for
+  advisory output, and exporting invites consumers to branch on drift as if it were actionable. Export on
+  concrete demand.
 
 ---
 
@@ -237,8 +250,9 @@ directives remain in the fleet.
 
 ## Status
 
-v0.3.x — config round-trip, finding emission, and the BuildFlow provider bridge
-are stable in shape; breaking changes remain acceptable until v1 (pre-1.0).
+v0.5.x — config round-trip, finding emission, the BuildFlow provider bridge,
+the config diff engine, and the bootstrap provider lifecycle are stable in
+shape; breaking changes remain acceptable until v1 (pre-1.0).
 BuildFlow wiring is anchored to go-finding's canonical `toolsdk` contract
 (v1.13.0+). Requires Go 1.27.1+ (`encoding/json/v2` is standard).
 

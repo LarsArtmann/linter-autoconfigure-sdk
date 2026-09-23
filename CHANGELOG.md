@@ -8,7 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Nothing yet.
+- **Bootstrap-mode providers** (`BootstrapSpec[T]` + `BootstrapProviderFromSpec`):
+  the generate-if-missing lifecycle oxlint-auto-configure hand-rolled — a
+  Detect that flags only a MISSING config (existing configs under ANY
+  discovery name, including user-curated alternative formats, are never
+  flagged), a never-overwrite dry-run-aware Repair, and an advisory drift
+  HealthCheck built on the diff engine (`NormalizeExpected` honors preserved
+  user policy; `Compare` projects the domain onto `[]Change`; the error wraps
+  the unexported drift sentinel and names the fix command). The safety
+  invariants hold by construction: a consumer cannot express a config-stomping
+  repair through this API. Deliberately a separate type from `ProviderSpec`
+  (not a `Generate` field): bootstrap and analyze/repair are two different
+  lifecycles, and one struct offering both would invite ambiguous specs.
+  Validation sentinels: `ErrConfigFileRequired`, `ErrGenerateRequired`,
+  `ErrCompareRequired` (plus the existing name/description ones).
 
 ### Fixed
 

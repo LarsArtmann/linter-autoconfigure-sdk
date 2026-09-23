@@ -183,3 +183,34 @@ func ExampleDiffMaps() {
 	// ~ rules.no-console: off → warn
 	// - rules.no-debugger: off
 }
+
+func ExampleBootstrapProviderFromSpec() {
+	spec := BootstrapSpec[map[string]string]{
+		Name:        "fake-auto-configure",
+		Description: "generates .fakerc.json for recognizable projects",
+		ConfigFile:  ".fakerc.json",
+		ConfigFiles: []finding.FilePath{".fakerc.json", ".fakerc.jsonc"},
+		MissingRule: "FAKE_CONFIG_MISSING",
+		FixCommand:  "fake-auto-configure configure",
+		CountLabel:  "rules",
+		Generate: func(ctx context.Context) (map[string]string, int, error) {
+			return map[string]string{"plugins": "react"}, 3, nil
+		},
+		Compare: func(existing, expected map[string]string) []Change {
+			return DiffMaps(existing, expected, "")
+		},
+	}
+
+	provider, err := BootstrapProviderFromSpec(spec)
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	fmt.Println(provider.Name, provider.Inputs)
+	fmt.Println(provider.Detect != nil, provider.Repair != nil, provider.HealthCheck != nil)
+	// Output:
+	// fake-auto-configure [.fakerc.json .fakerc.jsonc]
+	// true true true
+}
