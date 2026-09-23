@@ -93,7 +93,7 @@ issues := []autoconfigure.ConfigIssue{
         Suggestion: "add errcheck to enabled linters",
     },
 }
-findings := autoconfigure.FindingsFromIssues("golangci-autoconfigure", issues)
+findings, err := autoconfigure.FindingsFromIssues("golangci-autoconfigure", issues)
 // → []finding.Finding with FixStrategySuggest attached where Suggestion != ""
 ```
 
@@ -106,9 +106,11 @@ spec := autoconfigure.ProviderSpec{
     ConfigFile:  ".golangci.yml",
     Analyze: func(ctx context.Context) ([]autoconfigure.ConfigIssue, error) {
         // inspect config, return issues
+        return nil, nil
     },
     Repair: func(ctx context.Context) (string, error) {
         // rewrite config, return description of changes
+        return "enabled errcheck", nil
     },
 }
 ```

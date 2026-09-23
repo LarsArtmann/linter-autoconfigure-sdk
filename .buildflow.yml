@@ -35,6 +35,13 @@ exclude:
 # Auto-fix settings
 auto_fix: false
 
+# Skipped tools with reasons (each entry MUST carry its why):
+# - license-check: go-licenses cannot parse the go 1.27 toolchain stdlib
+#   ("Package os/exec does not have module info"); documented SDK AGENTS.md.
+#   Re-enable when the tool learns go 1.27.
+skip_steps:
+  - license-check
+
 # Logging
 verbose: false
 log_level: info

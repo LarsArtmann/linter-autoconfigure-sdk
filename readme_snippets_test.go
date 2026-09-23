@@ -3,6 +3,7 @@ package autoconfigure
 import (
 	"os"
 	"os/exec"
+	"strconv"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -10,6 +11,10 @@ import (
 )
 
 var goFence = regexp.MustCompile("(?s)```go\n(.*?)```")
+
+// snippetErrName matches the conventional `err` identifier in a := line or
+// as a bare continuation argument, scoped to whole words.
+var snippetErrName = regexp.MustCompile(`\berr\b`)
 
 var snippetDecl = regexp.MustCompile(`^([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:,\s*([a-zA-Z_][a-zA-Z0-9_]*))?\s*:=`)
 
@@ -38,26 +43,54 @@ func TestREADMESnippetsCompile(t *testing.T) {
 		statements []string
 		declared   []string
 	)
-	for _, block := range blocks {
+	inTypeBlock := false
+	typeDepth := 0
+	for blockIndex, block := range blocks {
+		// Per-block error-variable isolation: independent README snippets
+		// each declare `err`, but concatenated their inferred types can
+		// collide (e.g. *ConfigError vs error). Rewrite the conventional
+		// name per block so every snippet compiles standalone-true.
+		errName := "err" + strconv.Itoa(blockIndex)
 		for _, line := range strings.Split(block[1], "\n") {
 			trimmed := strings.TrimSpace(line)
 			if trimmed == "" || strings.HasPrefix(trimmed, "//") {
 				continue
 			}
 
-			if strings.HasPrefix(trimmed, "type ") {
+			// A hoisted type declaration consumes its own body lines up to
+			// the balanced closing brace.
+			if inTypeBlock {
 				typeDecls = append(typeDecls, line)
+				typeDepth += strings.Count(trimmed, "{") - strings.Count(trimmed, "}")
+				if typeDepth == 0 {
+					inTypeBlock = false
+				}
 
 				continue
 			}
 
-			statements = append(statements, line)
+			if strings.HasPrefix(trimmed, "type ") {
+				typeDecls = append(typeDecls, line)
+				typeDepth = strings.Count(trimmed, "{") - strings.Count(trimmed, "}")
+				if typeDepth > 0 {
+					inTypeBlock = true
+				}
+
+				continue
+			}
+
+			statements = append(statements, snippetErrName.ReplaceAllString(line, errName))
 
 			if names := snippetDecl.FindStringSubmatch(trimmed); names != nil {
 				for _, name := range names[1:] {
-					if name != "" {
-						declared = append(declared, name)
+					if name == "" {
+						continue
 					}
+
+					if name == "err" {
+						name = errName
+					}
+					declared = append(declared, name)
 				}
 			}
 		}
