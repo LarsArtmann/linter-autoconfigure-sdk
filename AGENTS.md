@@ -67,8 +67,11 @@ back down, tidy will just re-raise it. Consumers' floors ride along
 
 **Always stay on the latest go-finding version.** Since Go 1.27,
 `encoding/json/v2` and `encoding/json/jsontext` are standard (no build tag);
-the old `GOEXPERIMENT=jsonv2` requirement is gone. The repo's `.envrc` still
-exports it via direnv — harmless on 1.27, required if anyone builds on 1.26.
+the old `GOEXPERIMENT=jsonv2` requirement is gone. The repo carries no
+GOEXPERIMENT anywhere as of 2026-09-23 (retired from CI; the `.envrc` never
+exported it directly — the direnv `use_go_env` helper auto-detects jsonv2
+imports outside the repo, which is moot here because the go 1.27.1 floor
+makes 1.26 builds impossible for this module).
 
 ## Build, test, lint
 
@@ -132,8 +135,8 @@ and can serve stale green results after a tool upgrade changed the verdict
 ## CI (GitHub Actions)
 
 `.github/workflows/ci.yml` runs the portable subset on push/PR: gofmt check,
-`go vet`, race tests with the coverage artifact uploaded (`GOEXPERIMENT=jsonv2`
-is set at the workflow env level). BuildFlow itself is a private module and
+`go vet`, race tests with the coverage artifact uploaded. BuildFlow itself is
+a private module and
 cannot be installed on runners, so it is NOT in CI; swap the workflow for a
 buildflow job if/when BuildFlow goes public (TODO_LIST T21). Branch protection
 on `master` blocks force pushes and deletions but does not enforce on admins,
@@ -167,16 +170,25 @@ it is missing (verified empirically 2026-09-09: the step passes green on a tree
 with no `reports/` dir). No tracked placeholder file is needed — do not
 force-add files into `reports/`.
 
-## GOEXPERIMENT=jsonv2 (historical; not required on go 1.27)
+## GOEXPERIMENT=jsonv2 (historical; fully retired 2026-09-23)
 
 `encoding/json/v2` was gated behind `//go:build goexperiment.jsonv2` in Go
-1.26.x; the repo's `.envrc` exported `GOEXPERIMENT=jsonv2` via direnv for
-that era. On the go 1.27 floor (v0.3.0) jsonv2 is standard and the variable is
-inert; it only matters when building this module with a Go 1.26 toolchain.
+1.26.x; for that era CI set `GOEXPERIMENT=jsonv2` and the direnv
+`use_go_env` helper auto-exported it (not the `.envrc` itself). Since the
+go 1.27 floor (v0.3.0) jsonv2 is standard, and since the go 1.27.1
+dependency-imposed floor a 1.26 build of this module is impossible anyway,
+so the repo carries no GOEXPERIMENT anywhere.
 
-`go env -w GOEXPERIMENT=jsonv2` does NOT work on this NixOS host (read-only
-`~/.config/go/env`). The `.envrc` is the durable mechanism. Do not rely on
-`go env -w`.
+`go env -w` does NOT work on this NixOS host (read-only
+`~/.config/go/env`). Do not rely on `go env -w`.
+
+**Non-interactive shell gotcha:** bash shells that skip direnv resolve `go`
+to the system 1.26.7, which fails the go.mod floor with "go.mod requires
+go >= 1.27 (running go 1.26.7; GOTOOLCHAIN=local)". Prefix commands with a
+nix-store Go 1.27, e.g.
+`PATH=/nix/store/dvp2lzfa22nnpqfl5dbi680a93chdsjv-go-1.27.1/bin:$PATH go test ./...`
+(store path may churn after nixos rebuilds; re-derive with
+`ls -d /nix/store/*-go-1.27*/bin`).
 
 ## Design decisions
 
