@@ -26,6 +26,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   pipeline is fully green for the first time; re-enable after a go-licenses
   release supporting 1.27 toolchains.
 
+### Changed
+
+- Go directive floor settled `1.27.1` → `1.27`: with
+  `golang.org/x/tools` v0.50.0 as a direct dependency (the analyzer),
+  `go mod tidy` resolves a minor-form floor; verified stable under a fresh
+  tidy. The minimum Go version for consumers drops to 1.27
+
 ### Fixed
 
 - Nothing yet.

@@ -16,7 +16,7 @@ Boundary decision: linter-recommendation findings with per-linter
 categories/tags (golangci's `missing-linter`) stay app-side; ConfigIssue
 models config-health issues only (no Category/Tags fields by design).
 
-**Exported API inventory (v0.4.1):** I/O — `ReadConfig`, `LoadJSON[T]`,
+**Exported API inventory (v0.6.0):** I/O — `ReadConfig`, `LoadJSON[T]`,
 `ParseJSON[T]` (path-less), `MarshalJSONIndented` (deterministic + 2-space),
 `SaveJSON` (if-changed, atomic), `SaveJSONBytes` (byte-faithful; trailing
 newline is CALLER's contract), `WorkingDir(ctx)` (nil-ctx safe, "." fallback).
@@ -50,8 +50,8 @@ go-atomic-write behind `config.NewOSFS()`, and `json.Deterministic(true)` on
 every marshal (enforced by the same analyzer in its gate + CI). BuildFlow
 pins the SDK v0.6.0 as indirect only.
 
-Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.27.1+
-(v0.3.1+ floor; dependency-imposed patch form — see gotcha below),
+Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.27+
+(floor re-settled from `1.27.1` to minor-form `1.27` on 2026-09-23, see gotcha),
 `github.com/larsartmann/go-finding` (always latest),
 `github.com/larsartmann/go-finding/toolsdk` (always latest — the canonical
 BuildFlow provider contract, consumed via `ProviderFromSpec`), and
@@ -59,18 +59,20 @@ BuildFlow provider contract, consumed via `ProviderFromSpec`), and
 for idempotent, crash-durable writes).
 
 **go.mod gotcha (recurring):** patch-form floors are dependency-imposed and
-re-poison on every tidy. History: go-finding declared `go 1.26.7` (pre-v0.3.0);
-v0.3.0 dropped to minor-form `go 1.27`; since v0.3.1 an upstream dep declares
-`go 1.27.1` so tidy settles this module at `go 1.27.1` — do NOT normalize it
-back down, tidy will just re-raise it. Consumers' floors ride along
-(oxlint/golangci both carry `go 1.27.1` for this reason).
+move with the dep graph — never hand-normalize the `go` directive, run
+`go mod tidy` and accept the result. History: go-finding declared `go 1.26.7`
+(pre-v0.3.0); v0.3.0 dropped to minor-form `go 1.27`; v0.3.1 through v0.6.0
+sat at `go 1.27.1` (an upstream dep's patch floor); since 2026-09-23
+(`golang.org/x/tools` v0.50.0 joined as a direct dep for the analyzer) tidy
+settles this module at `go 1.27` — verified stable under a fresh tidy
+2026-09-23. Consumers' floors ride along.
 
 **Always stay on the latest go-finding version.** Since Go 1.27,
 `encoding/json/v2` and `encoding/json/jsontext` are standard (no build tag);
 the old `GOEXPERIMENT=jsonv2` requirement is gone. The repo carries no
 GOEXPERIMENT anywhere as of 2026-09-23 (retired from CI; the `.envrc` never
 exported it directly — the direnv `use_go_env` helper auto-detects jsonv2
-imports outside the repo, which is moot here because the go 1.27.1 floor
+imports outside the repo, which is moot here because the go 1.27 floor
 makes 1.26 builds impossible for this module).
 
 ## Build, test, lint

@@ -49,7 +49,7 @@ go get github.com/larsartmann/linter-autoconfigure-sdk
 Resolves to the latest tagged release (`v0.6.0` as of 2026-09-23); pin
 `@v0.6.0` explicitly for reproducible builds.
 
-Requires Go 1.27.1+: go-finding imports `encoding/json/v2`, which is standard
+Requires Go 1.27+: go-finding imports `encoding/json/v2`, which is standard
 in Go 1.27 (no `GOEXPERIMENT` needed).
 
 Peer dependencies: the latest
@@ -192,7 +192,7 @@ dead state.
 | Type               | Purpose                                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ConfigError`      | `{Op, Path, Err}` — typed failure for config I/O; `Op` is a typed enum; supports `Unwrap`/`Is`/`As` for full error-chain traversal                                                                              |
-| `ConfigIssue`      | `{Rule, Message, Severity, File, Line, Suggestion}` — `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                                                                                                |
+| `ConfigIssue`      | `{Rule, Message, Severity, File, Line, Suggestion}` plus optional `Confidence` and `FixStrategy *finding.FixStrategy` overrides (zero values keep the defaults); `Rule` is `finding.RuleName`, `File` is `finding.FilePath`                                  |
 | `ProviderSpec`     | `{Name, Description, ConfigFile, ConfigFiles, Analyze, Repair}` — auto-configurer declaration; `ConfigFile` is `finding.FilePath`; `HasRepair()` reports repair support                                         |
 | `BootstrapSpec[T]` | `{Name, Description, ConfigFile, ConfigFiles, MissingRule, FixCommand, CountLabel, Recognizable, Generate, Marshal, Parse, NormalizeExpected, Compare}` — generate-if-missing lifecycle declaration (see below) |
 | `Change`           | `{Kind, Path, Old, New}` — one config difference; `Kind` is `KindAdded`/`KindRemoved`/`KindModified`                                                                                                            |
@@ -278,7 +278,11 @@ v0.6.x — config round-trip, finding emission, the BuildFlow provider bridge,
 the config diff engine, and the bootstrap provider lifecycle are stable in
 shape; breaking changes remain acceptable until v1 (pre-1.0).
 BuildFlow wiring is anchored to go-finding's canonical `toolsdk` contract
-(v1.13.0+). Requires Go 1.27.1+ (`encoding/json/v2` is standard).
+(v1.13.0+). Requires Go 1.27+ (`encoding/json/v2` is standard).
+
+## Security
+
+Report vulnerabilities privately via [SECURITY.md](SECURITY.md).
 
 ## License
 

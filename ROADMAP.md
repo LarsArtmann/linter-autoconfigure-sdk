@@ -13,9 +13,10 @@ everything about the abstraction is provisional. The package doc in
 
 ## Candidate directions (raw ideas)
 
-_Graduated 2026-09-23: v0.4.0 shipped the first consumer migration, the
-`ProviderFromSpec` BuildFlow adapter, and `ProviderSpec` validation; v0.5.0
-shipped the bootstrap provider lifecycle (`BootstrapSpec[T]` /
+_Graduated 2026-09-23: the first consumers migrated at v0.2.0
+(`ProviderFromSpec` itself shipped in v0.1.0); v0.4.0 shipped the I/O matrix,
+diff engine, and `ConfigFiles` discovery with both consumers migrating onto
+them; v0.5.0 shipped the bootstrap provider lifecycle (`BootstrapSpec[T]` /
 `BootstrapProviderFromSpec`, TODO_LIST T40) and v0.6.0 the `jsondeterminism`
 analyzer + vettool cmd (T41); T43's format disposition is decided and drafted
 (docs/planning/2026-09-23_pkg-format-disposition.md — upstream proposal
@@ -49,8 +50,9 @@ pending). The candidates below are still raw._
   `docs/planning/license-domain-fit-analysis.md`): broaden the SDK to a
   general "project file autofix" SDK (`SaveText`, `ApplyTemplate`,
   `UpdateCopyrightYear`) with a rename (`project-autofix-sdk` or
-  `autoconfigure-sdk`). Evaluate against the first-consumer milestone, or
-  formally reject and keep the linter scope.
+  `autoconfigure-sdk`). The evaluation gate (first-consumer milestone)
+  passed 2026-09-11 with two consumers live; the accept-or-reject decision
+  is still open.
 
 ## Open questions (owner decisions)
 
