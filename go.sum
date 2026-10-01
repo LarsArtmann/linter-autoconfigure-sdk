@@ -18,8 +18,8 @@ github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb
 github.com/larsartmann/go-error-family v0.11.0/go.mod h1:CAzjAVWjAFDUXEaaRqIgjW28i/NrQ07OsE9Dffhx29c=
 github.com/larsartmann/go-finding v1.13.0 h1:JTLKvlNb6C9Yldwu1Iojyte7c6ng8frzGTdq5DNEvcc=
 github.com/larsartmann/go-finding v1.13.0/go.mod h1:0ebJF4MSuJDqO1+u2SK/QVJF+vJfwxJDuzTSjc39eIs=
-github.com/larsartmann/go-finding/toolsdk v1.13.1 h1:CHwOfUGb/xZXYt/5L7bruORcKV6I/XuwSChmvdjsTxE=
-github.com/larsartmann/go-finding/toolsdk v1.13.1/go.mod h1:Ic6n6qgRLxjFvju1cDveWYryGdBjAgUDT7Macoj5gpk=
+github.com/larsartmann/go-finding/toolsdk v1.14.0 h1:s1wjnsO8t2Zb2tUuUZ0sp2G6nQCIjO7x5PI5ilizchc=
+github.com/larsartmann/go-finding/toolsdk v1.14.0/go.mod h1:RMK+HdgF++/e6HpVJfReGJwb8QlScbbeZ9mcGjcyggQ=
 github.com/onsi/ginkgo/v2 v2.32.2 h1:2o6vyFvR6snrJWgRVztC+OwuqqPEMI1UzYl2s2iU7Cg=
 github.com/onsi/ginkgo/v2 v2.32.2/go.mod h1:+aXOY+vzZ5mu2iI2HpTZUPmM//oQfsNFX6gU9kNcA44=
 github.com/onsi/gomega v1.43.0 h1:VlG/1FxqNxhSO+lq/OHBNaaqwiBK/mO8JbVkX9Y+FeU=
