@@ -898,18 +898,25 @@ func TestProviderFromSpec_RepairAdapter_WrapsRepairClosure(t *testing.T) {
 func TestProviderFromSpec_NilContext_NormalizedBeforeClosures(t *testing.T) {
 	t.Parallel()
 
-	var analyzeCtx, repairCtx context.Context
+	// nilCtx is a typed nil: identical at runtime to a literal nil argument.
+	var nilCtx context.Context
 
 	converted, err := ProviderFromSpec(ProviderSpec{
 		Name:        "nil-ctx-tool",
 		Description: "desc",
 		ConfigFile:  ".nilrc",
 		Analyze: func(ctx context.Context) ([]ConfigIssue, error) {
-			analyzeCtx := ctx
+			if ctx == nil {
+				t.Error("Analyze closure received a nil context")
+			}
+
 			return nil, nil
 		},
 		Repair: func(ctx context.Context) (string, error) {
-			repairCtx := ctx
+			if ctx == nil {
+				t.Error("Repair closure received a nil context")
+			}
+
 			return "done", nil
 		},
 	})
@@ -917,24 +924,12 @@ func TestProviderFromSpec_NilContext_NormalizedBeforeClosures(t *testing.T) {
 		t.Fatalf("ProviderFromSpec failed: %v", err)
 	}
 
-	if _, err := converted.Detect.Detect(
-		nil,
-	); err != nil {
+	if _, err := converted.Detect.Detect(nilCtx); err != nil {
 		t.Fatalf("Detect(nil) failed: %v", err)
 	}
 
-	if _, err := converted.Repair.Repair(
-		nil,
-	); err != nil {
+	if _, err := converted.Repair.Repair(nilCtx); err != nil {
 		t.Fatalf("Repair(nil) failed: %v", err)
-	}
-
-	if analyzeCtx == nil {
-		t.Error("Analyze closure received a nil context")
-	}
-
-	if repairCtx == nil {
-		t.Error("Repair closure received a nil context")
 	}
 }
 

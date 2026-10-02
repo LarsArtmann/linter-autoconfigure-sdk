@@ -1,0 +1,1526 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Title</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Full-bleed top bar -->
+    <div class="top-bar">
+      <span>LIBRARY DEEP DIVE</span>
+      <span>2026-10-03</span>
+      <span>linter-autoconfigure-sdk</span>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar TOC -->
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#strengths">Current usage</a>
+          <a href="#findings">Findings</a>
+          <a href="#proposal">Target state</a>
+          <a href="#versions">Version currency</a>
+          <a href="#appendix">Priority matrix</a>
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main">
+        <!-- Hero -->
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">LIBRARY DEEP DIVE &middot; 2026-10-03</div>
+          <h1>go-finding/toolsdk &mdash; Adoption &amp; Utilization Audit</h1>
+          <p class="subtitle">
+            How fully does linter-autoconfigure-sdk leverage the BuildFlow
+            provider contract it exists to bridge? Answer: the lifecycle core
+            is exemplary, one context-handling bug was found and fixed during
+            this audit, and the declarative surface (Trigger, DependsOn,
+            ModuleFanOut, Options, extra Inputs) is left for consumers to wire
+            by hand &mdash; every live consumer already does.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Installed: toolsdk v1.14.0</span>
+            <span class="tag">Latest: v1.14.0 (2026-10-01)</span>
+            <span class="tag teal">Adoption Score: 80/100</span>
+          </div>
+        </header>
+
+        <!-- Scorecard -->
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">80</div>
+            <div class="label">Adoption score (post-fix)</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">7/10</div>
+            <div class="label">Capabilities fully leveraged</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">4</div>
+            <div class="label">Partially used</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">1</div>
+            <div class="label">Fixed during audit</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label">Versions behind</div>
+          </div>
+        </section>
+
+        <!-- Summary -->
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            linter-autoconfigure-sdk is a thin, deliberate bridge: it converts
+            its own <code>ProviderSpec</code> / <code>BootstrapSpec</code>
+            into a <code>toolsdk.Spec</code> that BuildFlow discovers. It
+            touches 5 of the 10 <code>Spec</code> fields plus
+            <code>RepairerFunc</code>, <code>RepairResult</code>, and
+            <code>DryRunFromContext</code> &mdash; and everything it touches,
+            it touches correctly, including the anti-lie
+            <code>RepairResult{Description}</code> contract and the dry-run
+            channel. The audit found one real defect (a nil-context panic in
+            the bootstrap repair path, empirically reproduced against released
+            v0.7.0 and fixed in this working tree by adopting
+            <code>toolsdk.EnsureContext</code>) and a cluster of design gaps
+            concentrated in one place: the bridge does not carry the
+            declarative DAG surface (<code>Trigger</code>,
+            <code>DependsOn</code>, <code>ModuleFanOut</code>,
+            <code>Options</code>, non-config <code>Inputs</code>), so all
+            three live consumers mutate the returned <code>Spec</code>
+            after the fact.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            The lifecycle core is fully and correctly leveraged; version
+            currency is perfect. The highest-leverage gap is Inputs modeling:
+            the bridge derives <code>Spec.Inputs</code> only from config
+            filenames, so tools that read more (package.json for project
+            detection, go.work/nix/CI pins for version-surface analysis)
+            under-declare their read contract &mdash; which quietly weakens
+            BuildFlow's data-flow edges and result-cache invalidation.
+          </div>
+        </section>
+
+        <!-- Strengths -->
+        <section id="strengths">
+          <h2><span class="num">&#9670;</span>What's already excellent</h2>
+          <p>
+            Baseline established from the two bridge files and the test suite;
+            consumer behavior verified against oxlint-auto-configure v0.9.1
+            and go-version-auto-configure (both on SDK v0.7.0).
+          </p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Anti-lie repair contract honored</strong>
+                <span
+                  >Every repair returns only
+                  <code>RepairResult{Description}</code>; counts ride the
+                  description string ("wrote .oxlintrc.json (870 rules)"),
+                  never a self-reported fix count &mdash; exactly what the
+                  toolsdk doc prescribes ("fix counts are measured by
+                  re-detection"). bootstrap.go:141-148, autoconfigure.go
+                  ProviderFromSpec repair adapter.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Dry-run channel adopted correctly</strong>
+                <span
+                  >Bootstrap repair reads
+                  <code>toolsdk.DryRunFromContext</code> before writing
+                  (bootstrap.go repair path) and the test suite drives it via
+                  the canonical <code>toolsdk.WithDryRun</code>
+                  (bootstrap_test.go:273), not a hand-rolled context key.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Registry boundary respected</strong>
+                <span
+                  >The SDK never calls <code>Register</code>/<code>All</code>
+                  &mdash; registration is documented as consumer-side
+                  (provider.go files in both consumers do
+                  <code>toolsdk.Register(spec)</code>). Correct layering: the
+                  SDK produces a plain value, the consumer publishes it.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Suggest-only signal is structural</strong>
+                <span
+                  >Nil <code>ProviderSpec.Repair</code> leaves
+                  <code>Spec.Repair</code> nil &mdash; the canonical
+                  BuildFlow signal &mdash; instead of a sentinel error; the
+                  legacy <code>ErrNoRepair</code> is deprecated with a removal
+                  date. This predates the audit and matches toolsdk's intent
+                  precisely.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Drift-as-HealthCheck is semantically sound</strong>
+                <span
+                  >Verified against BuildFlow source:
+                  <code>RunHealthChecks</code> failures are warn-only
+                  (execution/pipeline.go:88-90) and surface in the workflow
+                  summary; a drifted config implies Detect is idle (Detect
+                  only fires when the config is missing), so the advisory
+                  channel never masks a real finding.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Version currency perfect</strong>
+                <span
+                  >go.mod pins toolsdk v1.14.0, released 2026-10-01 &mdash;
+                  two days old at audit time. The v1.13&rarr;v1.14 floor bump
+                  landed in this working tree's go.mod (unreleased; rides the
+                  next tag).</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Findings -->
+        <section id="findings">
+          <h2><span class="num">01</span>Findings</h2>
+          <p>Ordered by impact. Evidence cites SDK code, toolsdk source/docs, consumer code, and BuildFlow internals.</p>
+
+          <!-- Finding 1: fixed nil-ctx -->
+          <div class="issue issue-critical" id="finding-nilctx">
+            <span class="severity severity-critical"
+              >Anti-pattern &middot; Fixed during this audit</span
+            >
+            <h3>
+              Nil-context panic: EnsureContext existed for exactly this and was
+              never used
+            </h3>
+            <div class="where">
+              bootstrap.go:219 (pre-fix) &middot; reproduced against released
+              v0.7.0
+            </div>
+            <p>
+              <code>toolsdk.DryRunFromContext(ctx)</code> dereferences ctx
+              (<code>ctx.Value</code> on a nil interface panics). The SDK's
+              own <code>WorkingDir</code> has been nil-safe since the v0.4.1
+              hotfix &mdash; same bug class &mdash; but the bootstrap repair
+              closure called DryRunFromContext before any guard. A standalone
+              caller passing nil ctx (legal per the SDK's "closures usable
+              standalone" contract) crashed. toolsdk ships
+              <code>EnsureContext</code> precisely for Detect/Repair
+              implementations; the SDK ignored it.
+            </p>
+            <pre><code><span class="tok-comment">// Reproduced against v0.7.0 (clean module, toolsdk v1.13.0):</span>
+provider.Repair.Repair(<span class="tok-keyword">nil</span>)
+<span class="tok-comment">// panic: nil pointer dereference</span>
+<span class="tok-comment">//   toolsdk.DryRunFromContext  dryrun.go:17</span>
+<span class="tok-comment">//   BootstrapSpec.repair       bootstrap.go:219</span>
+
+<span class="tok-comment">// Fix applied in this working tree (all five derived entry points):</span>
+Repair: toolsdk.RepairerFunc(<span class="tok-keyword">func</span>(ctx context.Context) (toolsdk.RepairResult, <span class="tok-keyword">error</span>) {
+    description, err := spec.repair(<span class="tok-function">toolsdk.EnsureContext</span>(ctx))  <span class="tok-comment">// was: spec.repair(ctx)</span>
+    ...
+})</code></pre>
+            <div class="callout callout-teal">
+              <strong>Fix: shipped in this working tree</strong>
+              All five derived capabilities (both Detect adapters, both repair
+              closures, the drift HealthCheck) now normalize with
+              <code>toolsdk.EnsureContext</code> before running, so consumer
+              closures never observe a nil ctx. Regression tests added:
+              TestBootstrapNilContext, TestProviderFromSpec_NilContext_NormalizedBeforeClosures.
+              golangci step green, full race suite green.
+            </div>
+          </div>
+
+          <!-- Finding 2: Inputs -->
+          <div class="issue issue-important" id="finding-inputs">
+            <span class="severity severity-important"
+              >Partially used &middot; Data-flow correctness</span
+            >
+            <h3>
+              Inputs derive only from config filenames &mdash; tools that read
+              more must under-declare
+            </h3>
+            <div class="where">
+              autoconfigure.go discoveryCandidateStrings &middot;
+              oxlint-auto-configure/pkg/provider/provider.go:119 &middot;
+              go-version-auto-configure/pkg/provider/provider.go:40-46
+            </div>
+            <p>
+              toolsdk doc: <code>Inputs</code> are "the file patterns this
+              tool reads. Used to derive data-flow edges and to gate the tool
+              on file presence." The bridge derives Inputs exclusively from
+              <code>ConfigFiles</code> &mdash; there is no field for anything
+              else a tool reads. oxlint-auto-configure works around it by
+              prepending to bridge-derived state:
+              <code>spec.Inputs = append([]string{"package.json"}, spec.Inputs...)</code>
+              (provider.go:119). go-version-auto-configure does not work
+              around it: its spec declares ConfigFile <code>go.mod</code>
+              only, yet <code>surface.Discover</code> also reads go.work,
+              .github/workflows, and nix pins &mdash; none of which are
+              Inputs, so edits there cannot invalidate this tool's cached
+              results in BuildFlow's result cache.
+            </p>
+            <pre><code><span class="tok-comment">// Today (consumer reaches into bridge-derived state):</span>
+spec.Inputs = append([]<span class="tok-type">string</span>{<span class="tok-string">"package.json"</span>}, spec.Inputs...)
+
+<span class="tok-comment">// Target (bridge owns the full read contract):</span>
+<span class="tok-keyword">type</span> <span class="tok-type">BootstrapSpec</span>[T <span class="tok-keyword">any</span>] <span class="tok-keyword">struct</span> {
+    ...
+    <span class="tok-comment">// ExtraInputs lists non-config read patterns (prepended to</span>
+    <span class="tok-comment">// the derived Inputs, e.g. "package.json").</span>
+    ExtraInputs []<span class="tok-type">string</span>
+}</code></pre>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Add an <code>ExtraInputs []string</code> field to both spec
+              types; the bridge prepends them to the derived candidates. Additive,
+              zero breakage, removes the only sanctioned reason to mutate the
+              returned Spec. Then fix go-version-auto-configure to declare its
+              full read surface (go.work, workflows, nix pins).
+            </div>
+          </div>
+
+          <!-- Finding 3: Trigger/DependsOn/ModuleFanOut -->
+          <div class="issue issue-important" id="finding-dag-surface">
+            <span class="severity severity-important"
+              >Partially used &middot; Declaration locality</span
+            >
+            <h3>
+              Trigger, DependsOn, ModuleFanOut have no bridge fields &mdash;
+              2/2 live consumers mutate post-hoc
+            </h3>
+            <div class="where">
+              oxlint provider.go:106-114 &middot; go-version provider.go:51
+              &middot; toolsdk Spec docs &middot; BuildFlow sdk_registry.go
+              ToolFromSpec
+            </div>
+            <p>
+              BuildFlow's <code>ToolFromSpec</code> converts every Spec field
+              &mdash; Trigger to file-contract triggers, DependsOn to DAG
+              policy, ModuleFanOut to per-module topology. The bridge zeroes
+              all three and its docs bless post-hoc mutation ("set them on
+              the returned Spec when needed"). Both consumers do exactly
+              that: oxlint sets a 9-pattern JS Trigger and an empty DependsOn
+              with a four-line comment explaining a DAG-flip decision;
+              go-version sets <code>OnFiles("go", "go.mod", "go.work")</code>.
+              The mutation is legal (plain value) but it splits one tool's
+              declaration across two files, and toolsdk's own changelog warns
+              the parity fields are easy to lose ("a spec that omits the
+              field silently loses per-module fan-out at conversion time").
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Add optional <code>Trigger toolsdk.Trigger</code> and
+              <code>DependsOn []string</code> (and
+              <code>ModuleFanOut bool</code> for completeness) pass-through
+              fields to both spec types. Zero when unset &mdash; identical
+              behavior &mdash; but the whole tool declaration lives in one
+              struct literal. Cheap API growth now, before v1 freezes it out.
+            </div>
+          </div>
+
+          <!-- Finding 4: HealthCheck asymmetry -->
+          <div class="issue issue-important" id="finding-healthcheck">
+            <span class="severity severity-important"
+              >Partially used &middot; Bridge asymmetry</span
+            >
+            <h3>ProviderSpec cannot declare a HealthCheck; BootstrapSpec can</h3>
+            <div class="where">
+              autoconfigure.go ProviderSpec fields &middot; go-version
+              provider.go:52
+            </div>
+            <p>
+              The bootstrap bridge derives a HealthCheck (the drift advisor);
+              <code>ProviderSpec</code> has no HealthCheck field at all, so
+              go-version-auto-configure bolts one on after conversion:
+              <code>spec.HealthCheck = fix.SelfCheck</code> (provider.go:52)
+              &mdash; a real external-dependency check (the exact use case
+              toolsdk documents) forced through post-hoc mutation.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Add <code>HealthCheck func(ctx context.Context) error</code> to
+              ProviderSpec (nil = none, matching toolsdk). Restores symmetry
+              between the two bridges with one additive field.
+            </div>
+          </div>
+
+          <!-- Finding 5: Options -->
+          <div class="issue issue-nice" id="finding-options">
+            <span class="severity severity-nice"
+              >Missed opportunity &middot; Low urgency</span
+            >
+            <h3>
+              v1.14.0 Options not bridged &mdash; oxlint profiles are the
+              natural first knob
+            </h3>
+            <div class="where">toolsdk v1.14.0 CHANGELOG &middot; not used anywhere in the SDK</div>
+            <p>
+              toolsdk v1.14.0 added declarative per-run knobs
+              (<code>Spec.Options</code>, <code>WithOptions</code>,
+              <code>OptionsFromContext</code>, <code>ValidateOptions</code>).
+              Neither bridge type carries Options. oxlint-auto-configure
+              already has the shape of a knob &mdash; "custom profiles remain
+              a CLI concern" (provider.go comment) &mdash; a
+              <code>profile: strict | recommended | ...</code> option would
+              let BuildFlow runs tune it without the CLI. But no consumer has
+              asked, and the SDK's v1 freeze is approaching: adding
+              pass-through <code>Options []toolsdk.Option</code> is a one-line
+              field when demand materializes. Defer.
+            </p>
+          </div>
+
+          <!-- Finding 6: drift sentinel -->
+          <div class="issue issue-nice" id="finding-drift-sentinel">
+            <span class="severity severity-nice"
+              >Nice to have &middot; Standing decision reaffirmed</span
+            >
+            <h3>errConfigDrift stays unexported &mdash; still no consumer demand</h3>
+            <div class="where">bootstrap.go errConfigDrift &middot; owner decision 2026-09-22</div>
+            <p>
+              Consumers cannot <code>errors.Is</code>-match the drift
+              sentinel; both current consumers surface the error text without
+              branching on it. Searched both consumer repos: no sentinel or
+              string matching anywhere. The export-on-demand decision stands;
+              revisit when a consumer needs programmatic drift branching.
+            </p>
+          </div>
+
+          <!-- Finding 7: consumer hand-roll -->
+          <div class="issue issue-nice" id="finding-workingdir-handroll">
+            <span class="severity severity-nice"
+              >Consumer debt surfaced by the audit</span
+            >
+            <h3>
+              go-version-auto-configure hand-rolls a nil-unsafe copy of the
+              SDK's exported WorkingDir
+            </h3>
+            <div class="where">go-version provider.go:135-144 vs autoconfigure.WorkingDir</div>
+            <p>
+              The SDK exports <code>WorkingDir(ctx)</code> precisely so
+              Analyze/Repair closures stop hand-rolling the fallback
+              ("instead of hand-rolling the fallback", its doc comment).
+              go-version-auto-configure duplicates it verbatim &mdash; and
+              its copy omits the nil-ctx guard, so a nil ctx panics there
+              too. Consumer-side fix: delete the local helper, call
+              <code>autoconfigure.WorkingDir(ctx)</code>. Noted here because
+              the SDK's discoverability (README example for closure authors)
+              could have prevented it.
+            </p>
+          </div>
+        </section>
+
+        <!-- Proposal -->
+        <section id="proposal">
+          <h2><span class="num">02</span>What the solution could look like</h2>
+          <p>
+            The target bridge: same lifecycle core, plus pass-through fields
+            so a tool's entire BuildFlow declaration is one struct literal.
+            Additive only &mdash; every field zero-value preserves today's
+            behavior exactly.
+          </p>
+          <pre><code><span class="tok-keyword">type</span> <span class="tok-type">ProviderSpec</span> <span class="tok-keyword">struct</span> {
+    Name, Description, ConfigFile, ConfigFiles  <span class="tok-comment">// unchanged</span>
+    Analyze <span class="tok-keyword">func</span>(context.Context) ([]ConfigIssue, <span class="tok-keyword">error</span>)
+    Repair  <span class="tok-keyword">func</span>(context.Context) (<span class="tok-type">string</span>, <span class="tok-keyword">error</span>)
+
+    <span class="tok-comment">// New, all optional, forwarded verbatim to toolsdk.Spec:</span>
+    Trigger      toolsdk.Trigger   <span class="tok-comment">// zero = unset, consumer may still set</span>
+    DependsOn    []<span class="tok-type">string</span>
+    ModuleFanOut <span class="tok-keyword">bool</span>
+    ExtraInputs  []<span class="tok-type">string</span>       <span class="tok-comment">// prepended to derived Inputs</span>
+    HealthCheck  <span class="tok-keyword">func</span>(context.Context) <span class="tok-keyword">error</span>
+}
+
+<span class="tok-comment">// BootstrapSpec[T] gains the same five pass-through fields;</span>
+<span class="tok-comment">// its drift HealthCheck stays unless overridden.</span></code></pre>
+          <div class="callout callout-teal">
+            <strong>This is the target</strong>
+            Post-hoc mutation remains legal for exotic cases, but the three
+            live consumers' mutations all collapse into spec literals &mdash;
+            and the Inputs under-declaration in go-version-auto-configure
+            becomes expressible (and lintable) in one place.
+          </div>
+        </section>
+
+        <!-- Version currency -->
+        <section id="versions">
+          <h2><span class="num">03</span>Version currency</h2>
+          <div class="callout callout-teal">
+            <strong>On the latest version</strong>
+            go.mod pins toolsdk v1.14.0 (latest tag, released 2026-10-01).
+            Recent additions and the SDK's adoption status:
+          </div>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Version</th>
+                <th>Addition (toolsdk/CHANGELOG.md)</th>
+                <th>SDK adoption</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>v1.14.0</td>
+                <td>
+                  Spec.Options + WithOptions/OptionsFromContext/ValidateOptions
+                  (per-run knobs)
+                </td>
+                <td class="no">Not bridged &mdash; deferred to demand</td>
+              </tr>
+              <tr>
+                <td>v1.13.1</td>
+                <td>Spec.ModuleFanOut (per-module workspace topology)</td>
+                <td class="no">Not bridged</td>
+              </tr>
+              <tr>
+                <td>v1.13.0</td>
+                <td>Trigger.NotRequires (ownership deference)</td>
+                <td class="no">Not bridged</td>
+              </tr>
+              <tr>
+                <td>v1.12.0</td>
+                <td>Module hygiene (doc comments)</td>
+                <td class="yes">N/A &mdash; no API change</td>
+              </tr>
+              <tr>
+                <td>v1.13.x core</td>
+                <td>
+                  Trigger/DependsOn/Inputs/Detect/Repair/HealthCheck surface
+                </td>
+                <td class="yes">
+                  Core conversion + dry-run + HealthCheck fully adopted
+                </td>
+              </tr>
+              <tr>
+                <td>EnsureContext</td>
+                <td>Nil-ctx guard for Detect/Repair implementations</td>
+                <td class="yes">
+                  Adopted in this audit (all five entry points)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Appendix -->
+        <section id="appendix">
+          <h2><span class="num">04</span>Priority matrix &amp; method</h2>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Opportunity</th>
+                <th>Impact</th>
+                <th>Ease</th>
+                <th>Priority</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Adopt EnsureContext at all bridge entry points</td>
+                <td class="yes">5</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">25</span></td>
+                <td class="yes">Done (this audit)</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>ExtraInputs field on both spec types</td>
+                <td class="yes">4</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">20</span></td>
+                <td class="no">Proposed (TODO T22)</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>HealthCheck field on ProviderSpec</td>
+                <td>3</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">15</span></td>
+                <td class="no">Proposed (TODO T22)</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Trigger/DependsOn/ModuleFanOut pass-through</td>
+                <td>3</td>
+                <td>4</td>
+                <td><span class="highlight">12</span></td>
+                <td class="no">Proposed (TODO T22)</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>go-version: use SDK WorkingDir (nil-unsafe copy)</td>
+                <td>2</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">10</span></td>
+                <td class="no">Consumer-side</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>go-version: declare full Inputs read surface</td>
+                <td>3</td>
+                <td>4</td>
+                <td><span class="highlight">12</span></td>
+                <td class="no">Consumer-side</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Options pass-through</td>
+                <td>2</td>
+                <td>3</td>
+                <td><span class="highlight">6</span></td>
+                <td class="no">Deferred to demand</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Export errConfigDrift</td>
+                <td>1</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">5</span></td>
+                <td class="no">Deferred to demand</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            <strong>Method.</strong> Usage cataloged by grepping the SDK for
+            toolsdk references (2 production files, 2 test files); capability
+            surface taken from <code>go doc -all</code> of the pinned module
+            (v1.14.0 module cache) cross-checked against
+            toolsdk/CHANGELOG.md; consumption semantics verified in BuildFlow
+            source (execution/pipeline.go, pipeline_builder.go,
+            tools/providers/sdk_registry.go); consumer behavior verified in
+            oxlint-auto-configure and go-version-auto-configure checkouts
+            (both SDK v0.7.0); the nil-ctx panic reproduced empirically in a
+            clean module against released v0.7.0 before fixing.
+          </p>
+          <p>
+            <strong>Consumers at audit time.</strong> oxlint-auto-configure
+            v0.9.1 (BootstrapProviderFromSpec + post-hoc Trigger/DependsOn/
+            Inputs), go-version-auto-configure (ProviderFromSpec + post-hoc
+            Trigger/HealthCheck), golangci-lint-auto-configure v0.10.0
+            (finding emission + diff engine only &mdash; no provider bridge).
+          </p>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p>
+            Generated 2026-10-03 &middot; Reviewed against go-finding/toolsdk
+            v1.14.0 &middot; SDK working tree (v0.7.0 + EnsureContext fix)
+            &middot; All claims verified against source code where noted
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

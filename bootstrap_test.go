@@ -286,20 +286,21 @@ func TestBootstrapRepair_DryRunHoldsBackWrite(t *testing.T) {
 	}
 }
 
-// TestBootstrapNilContextCapabilitiesDoNotPanic pins the nil-context contract
-// (the same class as the v0.4.1 WorkingDir(nil) hotfix): every derived
-// capability normalizes ctx via toolsdk.EnsureContext, so standalone callers
-// may pass nil without panicking inside toolsdk.DryRunFromContext. t.Chdir
-// redirects the "." fallback to a temp dir, hence no t.Parallel.
-func TestBootstrapNilContextCapabilitiesDoNotPanic(
-	t *testing.T,
-) {
+// TestBootstrapNilContext pins the nil-context contract (the same class as
+// the v0.4.1 WorkingDir(nil) hotfix): every derived capability normalizes ctx
+// via toolsdk.EnsureContext, so standalone callers may pass nil without
+// panicking inside toolsdk.DryRunFromContext. t.Chdir redirects the "."
+// fallback to a temp dir, hence no t.Parallel.
+func TestBootstrapNilContext(t *testing.T) { //nolint:paralleltest // t.Chdir forbids parallel
 	t.Chdir(t.TempDir())
 	writeBootstrapFile(t, ".", "package.json", `{"name":"app"}`)
 
+	// nilCtx is a typed nil: identical at runtime to a literal nil argument.
+	var nilCtx context.Context
+
 	provider := mustBootstrapSpec(t)
 
-	findings, err := provider.Detect.Detect(nil) //nolint:staticcheck // nil ctx is the exact regression under test
+	findings, err := provider.Detect.Detect(nilCtx)
 	if err != nil {
 		t.Fatalf("Detect(nil): %v", err)
 	}
@@ -308,7 +309,7 @@ func TestBootstrapNilContextCapabilitiesDoNotPanic(
 		t.Fatalf("Detect(nil) findings = %d, want 1 (missing config)", len(findings))
 	}
 
-	result, err := provider.Repair.Repair(nil) //nolint:staticcheck // nil ctx is the exact regression under test
+	result, err := provider.Repair.Repair(nilCtx)
 	if err != nil {
 		t.Fatalf("Repair(nil): %v", err)
 	}
@@ -317,7 +318,7 @@ func TestBootstrapNilContextCapabilitiesDoNotPanic(
 		t.Errorf("Repair(nil) description = %q, want it to mention wrote", result.Description)
 	}
 
-	if err := provider.HealthCheck(nil); err != nil {
+	if err := provider.HealthCheck(nilCtx); err != nil {
 		t.Fatalf("HealthCheck(nil): %v", err)
 	}
 }
