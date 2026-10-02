@@ -109,15 +109,19 @@ This project is automated with **BuildFlow** (no Makefile, no flake.nix):
 - `buildflow` — full quality pipeline (detect mode). Exits 0 when healthy.
 - `buildflow --fix` — detect + auto-fix. Exits 0 when healthy.
 - `buildflow --fix --fail-on-findings` — strict; exits non-zero if ANY finding
-  remains. As of 2026-09-23 the strict baseline is 9 known advisories (all
-  steps green, 38/38; plain mode exits 0):
-  branching-flow 5 (the nil-deref warning at `bootstrap.go` `return *parsed`
-  is a proven false positive — `ParseJSON` returns `new(T)`-backed non-nil on
-  success; the rest are phantom-type style suggestions for the plain-string
-  `Change.Old/New` and `FixCommand`/`CountLabel` fields, which are plain by
-  design), cqrs-lint 2 (false positives — this repo imports no go-cqrs-lite),
-  and go-auto-upgrade 2 (samber/lo adoption nudges; the SDK keeps third-party
-  deps to the larsartmann family). Revisit only if the advisories start
+  remains. As of 2026-10-03 the strict baseline is 17 known advisories (all
+  steps green; plain mode exits 0): branching-flow 5 (the nil-deref warning at
+  `bootstrap.go` `return *parsed` is a proven false positive — `ParseJSON`
+  returns `new(T)`-backed non-nil on success; the rest are phantom-type style
+  suggestions for the plain-string `Change.Old/New` and
+  `FixCommand`/`CountLabel` fields, which are plain by design), cqrs-lint 2
+  (false positives — this repo imports no go-cqrs-lite), stdlib2lo 2
+  (samber/lo adoption nudges, previously reported under the go-auto-upgrade
+  name before the 2026-10 buildflow upgrade; the SDK keeps third-party deps
+  to the larsartmann family), and art-dupl 8 (10-14 token clones in
+  `*_test.go` table-test setup; verified 2026-10-03 they pre-date the
+  nil-ctx fix — present identically on commit 68cc3d7, first surfaced by the
+  buildflow upgrade, not by new code). Revisit only if the advisories start
   flagging real code.
 - `go test -race -count=1 ./...` — just the Go tests (covered by buildflow
   `test-race` and `test-coverage` steps).

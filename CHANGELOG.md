@@ -16,7 +16,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- Nothing yet.
+- **Nil-context panic in derived provider capabilities**: `Repair(nil)` (and
+  Detect/HealthCheck) on specs built by `BootstrapProviderFromSpec` or
+  `ProviderFromSpec` panicked inside `toolsdk.DryRunFromContext` — the same
+  bug class as the v0.4.1 `WorkingDir(nil)` hotfix. Every derived capability
+  now normalizes the context via `toolsdk.EnsureContext`, so standalone
+  callers may pass a nil ctx and Analyze/Generate/Recognizable/Repair
+  closures never observe one. Found by the 2026-10-03 toolsdk utilization
+  audit (`docs/research/2026-10-03_go-finding-toolsdk-deep-dive.html`),
+  reproduced against released v0.7.0.
 
 ## [0.7.0] - 2026-09-23
 
