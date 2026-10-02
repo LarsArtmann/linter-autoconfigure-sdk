@@ -911,11 +911,11 @@ func TestProviderFromSpec_NilContext_NormalizedBeforeClosures(t *testing.T) {
 		t.Fatalf("ProviderFromSpec failed: %v", err)
 	}
 
-	if _, err := converted.Detect.Detect(nil); err != nil {
+	if _, err := converted.Detect.Detect(nil); err != nil { //nolint:staticcheck // nil ctx is the exact regression under test
 		t.Fatalf("Detect(nil) failed: %v", err)
 	}
 
-	if _, err := converted.Repair.Repair(nil); err != nil {
+	if _, err := converted.Repair.Repair(nil); err != nil { //nolint:staticcheck // nil ctx is the exact regression under test
 		t.Fatalf("Repair(nil) failed: %v", err)
 	}
 

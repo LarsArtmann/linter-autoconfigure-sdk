@@ -291,13 +291,13 @@ func TestBootstrapRepair_DryRunHoldsBackWrite(t *testing.T) {
 // capability normalizes ctx via toolsdk.EnsureContext, so standalone callers
 // may pass nil without panicking inside toolsdk.DryRunFromContext. t.Chdir
 // redirects the "." fallback to a temp dir, hence no t.Parallel.
-func TestBootstrapNilContextCapabilitiesDoNotPanic(t *testing.T) {
+func TestBootstrapNilContextCapabilitiesDoNotPanic(t *testing.T) { //nolint:paralleltest // t.Chdir redirects the "." fallback and forbids parallel
 	t.Chdir(t.TempDir())
 	writeBootstrapFile(t, ".", "package.json", `{"name":"app"}`)
 
 	provider := mustBootstrapSpec(t)
 
-	findings, err := provider.Detect.Detect(nil)
+	findings, err := provider.Detect.Detect(nil) //nolint:staticcheck // nil ctx is the exact regression under test
 	if err != nil {
 		t.Fatalf("Detect(nil): %v", err)
 	}
@@ -306,7 +306,7 @@ func TestBootstrapNilContextCapabilitiesDoNotPanic(t *testing.T) {
 		t.Fatalf("Detect(nil) findings = %d, want 1 (missing config)", len(findings))
 	}
 
-	result, err := provider.Repair.Repair(nil)
+	result, err := provider.Repair.Repair(nil) //nolint:staticcheck // nil ctx is the exact regression under test
 	if err != nil {
 		t.Fatalf("Repair(nil): %v", err)
 	}
@@ -315,7 +315,7 @@ func TestBootstrapNilContextCapabilitiesDoNotPanic(t *testing.T) {
 		t.Errorf("Repair(nil) description = %q, want it to mention wrote", result.Description)
 	}
 
-	if err := provider.HealthCheck(nil); err != nil {
+	if err := provider.HealthCheck(nil); err != nil { //nolint:staticcheck // nil ctx is the exact regression under test
 		t.Fatalf("HealthCheck(nil): %v", err)
 	}
 }
