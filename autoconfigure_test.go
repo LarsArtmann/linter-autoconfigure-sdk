@@ -890,6 +890,44 @@ func TestProviderFromSpec_RepairAdapter_WrapsRepairClosure(t *testing.T) {
 	}
 }
 
+// TestProviderFromSpec_NilContext_NormalizedBeforeClosures pins the
+// nil-context contract: both wrapped capabilities normalize ctx via
+// toolsdk.EnsureContext, so standalone callers may pass nil and the Analyze /
+// Repair closures never observe one (the guarantee WorkingDir has carried
+// since the v0.4.1 hotfix).
+func TestProviderFromSpec_NilContext_NormalizedBeforeClosures(t *testing.T) {
+	t.Parallel()
+
+	var analyzeCtx, repairCtx context.Context
+
+	converted, err := ProviderFromSpec(ProviderSpec{
+		Name:        "nil-ctx-tool",
+		Description: "desc",
+		ConfigFile:  ".nilrc",
+		Analyze:     func(ctx context.Context) ([]ConfigIssue, error) { analyzeCtx = ctx; return nil, nil },
+		Repair:      func(ctx context.Context) (string, error) { repairCtx = ctx; return "done", nil },
+	})
+	if err != nil {
+		t.Fatalf("ProviderFromSpec failed: %v", err)
+	}
+
+	if _, err := converted.Detect.Detect(nil); err != nil {
+		t.Fatalf("Detect(nil) failed: %v", err)
+	}
+
+	if _, err := converted.Repair.Repair(nil); err != nil {
+		t.Fatalf("Repair(nil) failed: %v", err)
+	}
+
+	if analyzeCtx == nil {
+		t.Error("Analyze closure received a nil context")
+	}
+
+	if repairCtx == nil {
+		t.Error("Repair closure received a nil context")
+	}
+}
+
 func TestProviderFromSpec_SuggestOnly_LeavesRepairNil(t *testing.T) {
 	t.Parallel()
 
