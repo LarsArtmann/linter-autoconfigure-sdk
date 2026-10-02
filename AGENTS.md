@@ -55,7 +55,27 @@ golangci-lint-auto-configure (v0.10.0) uses `FindingFromIssue`, the diff
 engine (`ChangeType = autoconfigure.Kind`), atomic config/backup writes via
 go-atomic-write behind `config.NewOSFS()`, and `json.Deterministic(true)` on
 every marshal (enforced by the same analyzer in its gate + CI). BuildFlow
-pins the SDK v0.6.0 as indirect only.
+pins the SDK v0.6.0 as indirect only. A third consumer exists:
+go-version-auto-configure (vendored by BuildFlow) is the second live
+`ProviderFromSpec` user — surfaced by the 2026-10-03 toolsdk audit.
+
+**toolsdk utilization audit (2026-10-03,**
+**`docs/research/2026-10-03_go-finding-toolsdk-deep-dive.html`):** adoption
+80/100 post-fix. Core conversion, dry-run channel, anti-lie RepairResult,
+and the registry boundary are fully leveraged. Findings: (1) FIXED in-tree
+— nil-ctx panic in bootstrap repair (`toolsdk.DryRunFromContext` on a nil
+ctx, the v0.4.1 bug class, reproduced against released v0.7.0): every
+derived capability now normalizes via `toolsdk.EnsureContext`, so consumer
+closures never observe a nil ctx; regression tests `TestBootstrapNilContext`
+and `TestProviderFromSpec_NilContext_NormalizedBeforeClosures`. (2) TODO
+T22 — the declarative surface is unbridged (Trigger / DependsOn /
+ModuleFanOut / Options / extra Inputs, HealthCheck on ProviderSpec): both
+live provider consumers mutate the returned Spec post-hoc; go-version also
+under-declares Inputs (reads go.work/.github/nix but declares go.mod only,
+weakening BuildFlow result-cache invalidation) and hand-rolls a nil-unsafe
+copy of the SDK's exported `WorkingDir`. Drift-as-HealthCheck verified
+sound against BuildFlow source (failures are warn-only, surfaced in the
+workflow summary).
 
 Module: `github.com/larsartmann/linter-autoconfigure-sdk`. Requires Go 1.27+
 (floor re-settled from `1.27.1` to minor-form `1.27` on 2026-09-23, see gotcha),
