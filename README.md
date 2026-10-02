@@ -117,7 +117,9 @@ spec := autoconfigure.ProviderSpec{
 
 `ProviderFromSpec(spec)` wraps this as the canonical BuildFlow provider contract — go-finding's `toolsdk.Spec`
 — ready for `toolsdk.Register` (adjust its `Trigger` / `DependsOn` on the returned value first if needed). The
-underlying analyze/repair closures also work standalone with no BuildFlow wiring.
+underlying analyze/repair closures also work standalone with no BuildFlow wiring. Every derived capability
+(Detect, Repair, HealthCheck) accepts a nil context too: it is normalized via `toolsdk.EnsureContext` before
+your closures run, so standalone callers may safely pass `nil`.
 
 ```go
 provider, err := autoconfigure.ProviderFromSpec(spec)

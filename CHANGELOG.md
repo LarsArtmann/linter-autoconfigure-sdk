@@ -16,6 +16,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- Nothing yet.
+
+## [0.8.0] - 2026-10-03
+
+### Changed
+
+- Dependency floors: `github.com/larsartmann/go-finding/toolsdk` v1.13.0 →
+  v1.14.0 (brings `go-error-family` v0.10.2 → v0.11.0 as an indirect floor).
+
+### Fixed
+
 - **Nil-context panic in derived provider capabilities**: `Repair(nil)` (and
   Detect/HealthCheck) on specs built by `BootstrapProviderFromSpec` or
   `ProviderFromSpec` panicked inside `toolsdk.DryRunFromContext` — the same
