@@ -291,7 +291,9 @@ func TestBootstrapRepair_DryRunHoldsBackWrite(t *testing.T) {
 // capability normalizes ctx via toolsdk.EnsureContext, so standalone callers
 // may pass nil without panicking inside toolsdk.DryRunFromContext. t.Chdir
 // redirects the "." fallback to a temp dir, hence no t.Parallel.
-func TestBootstrapNilContextCapabilitiesDoNotPanic(t *testing.T) { //nolint:paralleltest // t.Chdir redirects the "." fallback and forbids parallel
+func TestBootstrapNilContextCapabilitiesDoNotPanic(
+	t *testing.T,
+) {
 	t.Chdir(t.TempDir())
 	writeBootstrapFile(t, ".", "package.json", `{"name":"app"}`)
 
@@ -315,7 +317,7 @@ func TestBootstrapNilContextCapabilitiesDoNotPanic(t *testing.T) { //nolint:para
 		t.Errorf("Repair(nil) description = %q, want it to mention wrote", result.Description)
 	}
 
-	if err := provider.HealthCheck(nil); err != nil { //nolint:staticcheck // nil ctx is the exact regression under test
+	if err := provider.HealthCheck(nil); err != nil {
 		t.Fatalf("HealthCheck(nil): %v", err)
 	}
 }
