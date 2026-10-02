@@ -120,6 +120,11 @@ var (
 // Trigger and DependsOn stay zero; set them on the returned Spec when needed.
 // Inputs derive from ConfigFiles (falling back to ConfigFile), matching
 // ProviderFromSpec.
+//
+// Every derived capability normalizes a nil context via toolsdk.EnsureContext
+// before running, so standalone callers may pass nil ctx (the same contract
+// WorkingDir has carried since v0.4.1) and the Analyze/Generate/Compare
+// closures never observe one.
 func BootstrapProviderFromSpec[T any](spec BootstrapSpec[T]) (toolsdk.Spec, error) {
 	switch {
 	case spec.Name == "":
@@ -139,14 +144,14 @@ func BootstrapProviderFromSpec[T any](spec BootstrapSpec[T]) (toolsdk.Spec, erro
 		Description: spec.Description,
 		Detect:      bootstrapDetector[T]{spec: spec},
 		Repair: toolsdk.RepairerFunc(func(ctx context.Context) (toolsdk.RepairResult, error) {
-			description, err := spec.repair(ctx)
+			description, err := spec.repair(toolsdk.EnsureContext(ctx))
 			if err != nil {
 				return toolsdk.RepairResult{}, err
 			}
 
 			return toolsdk.RepairResult{Description: description}, nil
 		}),
-		HealthCheck: spec.healthCheck,
+		HealthCheck: func(ctx context.Context) error { return spec.healthCheck(toolsdk.EnsureContext(ctx)) },
 	}
 	if inputs := discoveryCandidateStrings(spec.ConfigFile, spec.ConfigFiles); len(inputs) > 0 {
 		converted.Inputs = inputs
@@ -164,7 +169,7 @@ type bootstrapDetector[T any] struct {
 func (d bootstrapDetector[T]) Name() string { return d.spec.Name }
 
 func (d bootstrapDetector[T]) Detect(ctx context.Context) ([]finding.Finding, error) {
-	issues, err := d.spec.detectIssues(ctx)
+	issues, err := d.spec.detectIssues(toolsdk.EnsureContext(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("analyze config: %w", err)
 	}

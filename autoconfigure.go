@@ -427,6 +427,11 @@ var (
 //   - Trigger and DependsOn have no ProviderSpec equivalent and stay zero;
 //     set them on the returned Spec when needed.
 //
+// Both wrapped capabilities normalize a nil context via toolsdk.EnsureContext
+// before calling Analyze / Repair, so standalone callers may pass nil ctx
+// (the contract WorkingDir has carried since v0.4.1) and the closures never
+// observe one.
+//
 // Validation errors name the offending field: Name, Description, and Analyze
 // are all required.
 func ProviderFromSpec(spec ProviderSpec) (toolsdk.Spec, error) {
@@ -450,7 +455,7 @@ func ProviderFromSpec(spec ProviderSpec) (toolsdk.Spec, error) {
 
 	if spec.Repair != nil {
 		converted.Repair = toolsdk.RepairerFunc(func(ctx context.Context) (toolsdk.RepairResult, error) {
-			description, err := spec.Repair(ctx)
+			description, err := spec.Repair(toolsdk.EnsureContext(ctx))
 			if err != nil {
 				return toolsdk.RepairResult{}, err
 			}
@@ -518,7 +523,7 @@ type issueDetector struct {
 func (d issueDetector) Name() string { return d.spec.Name }
 
 func (d issueDetector) Detect(ctx context.Context) ([]finding.Finding, error) {
-	issues, err := d.spec.Analyze(ctx)
+	issues, err := d.spec.Analyze(toolsdk.EnsureContext(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("analyze config: %w", err)
 	}

@@ -286,6 +286,40 @@ func TestBootstrapRepair_DryRunHoldsBackWrite(t *testing.T) {
 	}
 }
 
+// TestBootstrapNilContextCapabilitiesDoNotPanic pins the nil-context contract
+// (the same class as the v0.4.1 WorkingDir(nil) hotfix): every derived
+// capability normalizes ctx via toolsdk.EnsureContext, so standalone callers
+// may pass nil without panicking inside toolsdk.DryRunFromContext. t.Chdir
+// redirects the "." fallback to a temp dir, hence no t.Parallel.
+func TestBootstrapNilContextCapabilitiesDoNotPanic(t *testing.T) {
+	t.Chdir(t.TempDir())
+	writeBootstrapFile(t, ".", "package.json", `{"name":"app"}`)
+
+	provider := mustBootstrapSpec(t)
+
+	findings, err := provider.Detect.Detect(nil)
+	if err != nil {
+		t.Fatalf("Detect(nil): %v", err)
+	}
+
+	if len(findings) != 1 {
+		t.Fatalf("Detect(nil) findings = %d, want 1 (missing config)", len(findings))
+	}
+
+	result, err := provider.Repair.Repair(nil)
+	if err != nil {
+		t.Fatalf("Repair(nil): %v", err)
+	}
+
+	if !strings.Contains(result.Description, "wrote") {
+		t.Errorf("Repair(nil) description = %q, want it to mention wrote", result.Description)
+	}
+
+	if err := provider.HealthCheck(nil); err != nil {
+		t.Fatalf("HealthCheck(nil): %v", err)
+	}
+}
+
 func TestBootstrapRepair_WritesConfig(t *testing.T) {
 	t.Parallel()
 
