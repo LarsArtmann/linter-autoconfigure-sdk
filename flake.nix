@@ -47,7 +47,7 @@
 
       go-standard = {
         pname = "linter-autoconfigure-sdk";
-        vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # nix build to compute
+        vendorHash = "sha256-3w3bnc+bCHqsqHQuiR9cq5BQuCBPzb/gNyiyI30CxDk="; # nix build to compute
         description = "Shared foundation for linter auto-configuration tools";
 
         # go.mod floor is `go 1.27`; the module default (go_1_26 = 1.26.7)
