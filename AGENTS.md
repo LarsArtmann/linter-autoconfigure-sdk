@@ -104,8 +104,23 @@ makes 1.26 builds impossible for this module).
 
 ## Build, test, lint
 
-This project is automated with **BuildFlow** (no Makefile, no flake.nix):
+This project is automated with **BuildFlow** (no Makefile) and ships a
+**flake.nix** (2026-10-04, go-standard template from go-nix-helpers):
+`use flake` in `.envrc` provides the devShell (Go 1.27.1, GOTOOLCHAIN=local),
+`nix build` produces the package, `nix flake check` passes. All larsartmann
+deps in go.mod are public-on-proxy but are wired via `deps` + local flake
+inputs anyway: go-standard always marks `larsartmann/*` private, so a
+deps-less FOD bypasses the proxy into sandbox-blocked direct VCS.
+Gotchas:
 
+- `.direnv/` MUST stay untracked — the heuristic auto-commit daemon once
+  committed its /nix/store GC-root symlinks (untracked 2026-10-04); tracked
+  store symlinks break `nix build` under `noBrokenSymlinks` (sandbox cannot
+  resolve foreign store paths).
+- `enableCheck = false` in flake.nix: `TestREADMESnippetsCompile` builds
+  README snippets in a temp module that cannot resolve deps under the
+  sandbox's GOPROXY=off. Tests run in the devShell (`go test ./...`), not the
+  hermetic build — same class as project-discovery-daemon's check disable.
 - `buildflow` — full quality pipeline (detect mode). Exits 0 when healthy.
 - `buildflow --fix` — detect + auto-fix. Exits 0 when healthy.
 - `buildflow --fix --fail-on-findings` — strict; exits non-zero if ANY finding

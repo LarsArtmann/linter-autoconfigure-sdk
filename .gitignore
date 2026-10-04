@@ -54,3 +54,6 @@ go.work
 go.work.sum
 /linter-autoconfigure-sdk
 # <<< buildflow-managed (.gitignore) <<<
+
+# nix-direnv cache (GC-root symlinks into /nix/store)
+.direnv/
