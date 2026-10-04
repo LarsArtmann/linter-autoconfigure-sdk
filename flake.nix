@@ -54,6 +54,12 @@
         # fails under the devShell's GOTOOLCHAIN=local.
         goPkgAttr = "go_1_27";
 
+        # TestREADMESnippetsCompile compiles README snippets in a temp module
+        # that cannot resolve private deps under the sandbox's GOPROXY=off
+        # (locally they resolve via direct VCS fetch). Same class as pdd's
+        # check disablement: tests run in the devShell, not the hermetic build.
+        enableCheck = false;
+
         deps = {
           "github.com/larsartmann/go-atomic-write" = inputs.go-atomic-write;
           "github.com/larsartmann/go-finding" = inputs.go-finding;
