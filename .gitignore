@@ -57,3 +57,7 @@ go.work.sum
 
 # nix-direnv cache (GC-root symlinks into /nix/store)
 .direnv/
+
+# Nix build output symlinks (repo has flake.nix)
+/result
+result-*
