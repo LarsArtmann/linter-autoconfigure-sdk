@@ -140,13 +140,13 @@ Gotchas:
   flagging real code.
 - `go test -race -count=1 ./...` — just the Go tests (covered by buildflow
   `test-race` and `test-coverage` steps).
-- Known tool bug (2026-09-22; SKIPPED via config since 2026-09-23):
+- Known tool bug (2026-09-22; auto-deferred since 2026-10-07):
   `license-check` (go-licenses) fails on the go 1.27 floor — it cannot load
   go 1.27 toolchain stdlib packages ("Package log/slog does not have module
   info. Non go modules projects are no longer supported"). Unrelated to code
-  state; excluded via `.buildflow.yml` `skip_steps: [license-check]` (with
-  reason), so the pipeline is FULLY green. Re-enable after a go-licenses
-  release supporting 1.27 toolchains.
+  state. The `.buildflow.yml` skip was REMOVED 2026-10-07: BuildFlow
+  auto-defers this failure class (visible no-op + INFO finding), so the
+  pipeline is FULLY green without config.
 
 Single step: `buildflow -s <step> -v`. Release verification is scripted:
 `./scripts/verify-release.sh vX.Y.Z` (proxy check + clean-dir go get +
