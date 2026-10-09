@@ -44,7 +44,8 @@
     inputs@{
       flake-parts,
       nixpkgs,
-      ... }:
+      ...
+    }:
     let
       # Tracked files only: the `result` build-output symlink (and .direnv
       # GC roots) must never enter the source; their /nix/store targets are
@@ -61,7 +62,7 @@
       go-standard = {
         pname = "linter-autoconfigure-sdk";
         src = trackedSrc;
-        vendorHash = "sha256-3w3bnc+bCHqsqHQuiR9cq5BQuCBPzb/gNyiyI30CxDk=";
+        vendorHash = "sha256-QoV9Q1iJ+RR/Uksm2xE6zT9vBJ47DnMaF6CQSI+B3fA=";
         description = "Shared foundation for linter auto-configuration tools";
 
         # go.mod floor is `go 1.27`; the module default (go_1_26 = 1.26.7)
