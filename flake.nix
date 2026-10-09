@@ -41,12 +41,26 @@
   };
 
   outputs =
-    inputs@{ flake-parts, ... }:
+    inputs@{
+      flake-parts,
+      nixpkgs,
+      ... }:
+    let
+      # Tracked files only: the `result` build-output symlink (and .direnv
+      # GC roots) must never enter the source; their /nix/store targets are
+      # invisible in the sandbox, which fails noBrokenSymlinks.
+      fs = nixpkgs.lib.fileset;
+      trackedSrc = fs.toSource {
+        root = ./.;
+        fileset = fs.gitTracked ./.;
+      };
+    in
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [ inputs.go-nix-helpers.flakeModules.go-standard ];
 
       go-standard = {
         pname = "linter-autoconfigure-sdk";
+        src = trackedSrc;
         vendorHash = "sha256-3w3bnc+bCHqsqHQuiR9cq5BQuCBPzb/gNyiyI30CxDk=";
         description = "Shared foundation for linter auto-configuration tools";
 
