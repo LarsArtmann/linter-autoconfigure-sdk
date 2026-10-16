@@ -35,7 +35,7 @@
     };
     go-error-family = {
       # indirect in go.mod, but the FOD `go mod tidy` needs it resolvable.
-      url = "github:LarsArtmann/go-error-family?ref=refs/tags/v0.11.0";
+      url = "github:LarsArtmann/go-error-family?ref=refs/tags/v0.12.0";
       flake = false;
     };
   };
@@ -62,7 +62,7 @@
       go-standard = {
         pname = "linter-autoconfigure-sdk";
         src = trackedSrc;
-        vendorHash = "sha256-QoV9Q1iJ+RR/Uksm2xE6zT9vBJ47DnMaF6CQSI+B3fA=";
+        vendorHash = "sha256-qouId4cVMq7grc7UpmlAKqYEq/ydEIGZx/BvLElpNgs=";
         description = "Shared foundation for linter auto-configuration tools";
 
         # go.mod floor is `go 1.27`; the module default (go_1_26 = 1.26.7)
