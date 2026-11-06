@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/larsartmann/go-atomic-write v0.6.2
-	github.com/larsartmann/go-finding v1.15.0
+	github.com/larsartmann/go-finding v1.15.1
 	github.com/larsartmann/go-finding/toolsdk v1.16.0
 	golang.org/x/tools v0.52.0
 )
