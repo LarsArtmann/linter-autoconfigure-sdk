@@ -24,7 +24,7 @@
     };
 
     go-atomic-write = {
-      url = "github:LarsArtmann/go-atomic-write?ref=refs/tags/v0.6.0";
+      url = "github:LarsArtmann/go-atomic-write?ref=refs/tags/v0.6.2";
       flake = false;
     };
     go-finding = {
@@ -62,7 +62,7 @@
       go-standard = {
         pname = "linter-autoconfigure-sdk";
         src = trackedSrc;
-        vendorHash = "sha256-qouId4cVMq7grc7UpmlAKqYEq/ydEIGZx/BvLElpNgs=";
+        vendorHash = "sha256-PywfaHOh2jSussaF4fMD1wol9pISNt7l479Zi9mfsPs=";
         description = "Shared foundation for linter auto-configuration tools";
 
         # go.mod floor is `go 1.27`; the module default (go_1_26 = 1.26.7)

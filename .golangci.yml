@@ -231,6 +231,7 @@ linters:
         - filepath\.
         - compress/gzip
         - \(context\.Context\)\.Err
+        - github\.com/larsartmann/([^/]+/pkg/errors|go-error-family)\.
       ignore-sigs:
         - .Errorf(
         - errors.New(

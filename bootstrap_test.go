@@ -291,7 +291,7 @@ func TestBootstrapRepair_DryRunHoldsBackWrite(t *testing.T) {
 // via toolsdk.EnsureContext, so standalone callers may pass nil without
 // panicking inside toolsdk.DryRunFromContext. t.Chdir redirects the "."
 // fallback to a temp dir, hence no t.Parallel.
-func TestBootstrapNilContext(t *testing.T) { //nolint:paralleltest // t.Chdir forbids parallel
+func TestBootstrapNilContext(t *testing.T) {
 	t.Chdir(t.TempDir())
 	writeBootstrapFile(t, ".", "package.json", `{"name":"app"}`)
 
