@@ -1,0 +1,78 @@
+{
+  "Enabled": [
+    {
+      "name": "errcheck",
+      "description": "fixture",
+      "groups": ["all", "standard"],
+      "fast": false,
+      "autoFix": false,
+      "deprecated": false,
+      "since": "v1.0.0"
+    },
+    {
+      "name": "govet",
+      "description": "fixture",
+      "groups": ["all", "standard"],
+      "fast": false,
+      "autoFix": true,
+      "deprecated": false,
+      "since": "v1.0.0"
+    },
+    {
+      "name": "ineffassign",
+      "description": "fixture",
+      "groups": ["all", "fast", "standard"],
+      "fast": true,
+      "autoFix": false,
+      "deprecated": false,
+      "since": "v1.0.0"
+    },
+    {
+      "name": "staticcheck",
+      "description": "fixture",
+      "groups": ["all", "standard"],
+      "fast": false,
+      "autoFix": true,
+      "deprecated": false,
+      "since": "v1.0.0"
+    },
+    {
+      "name": "unused",
+      "description": "fixture",
+      "groups": ["all", "standard"],
+      "fast": true,
+      "autoFix": false,
+      "deprecated": false,
+      "since": "v1.0.0"
+    },
+    {
+      "name": "gosec",
+      "description": "fixture: opt-in, not default",
+      "groups": ["all"],
+      "fast": true,
+      "autoFix": false,
+      "deprecated": false,
+      "since": "v1.0.0"
+    }
+  ],
+  "Disabled": [
+    {
+      "name": "exhaustruct",
+      "description": "fixture: renamed to exhaustruct_v5",
+      "groups": ["all"],
+      "fast": true,
+      "autoFix": false,
+      "deprecated": false,
+      "since": "v1.40.0"
+    },
+    {
+      "name": "depguard",
+      "description": "fixture",
+      "groups": ["all"],
+      "fast": false,
+      "autoFix": false,
+      "deprecated": false,
+      "since": "v1.0.0"
+    }
+  ]
+}

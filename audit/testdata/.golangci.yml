@@ -1,0 +1,30 @@
+version: "2"
+linters:
+  enable:
+    - gosec
+  disable:
+    - depguard
+  settings:
+    gosec:
+      excludes:
+        - G304
+    exhaustruct:
+      include:
+        - .*Options$
+  exclusions:
+    rules:
+      - path: pkg/
+        linters:
+          - gosec
+          - depguard
+          - staticcheck
+          - exhaustruct
+formatters:
+  enable:
+    - gci
+  settings:
+    gci:
+      sections:
+        - standard
+    golines:
+      max-len: 120

@@ -8,7 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Nothing yet.
+- **golangci-lint config drift audit** (`audit` subpackage + `cmd/audit`):
+  generalizes the repo-local lintconfig drift tests (exclusion rules,
+  settings blocks, and nolint directives referencing dead linters) so any
+  golangci-lint-consuming repo can run them. `Checker.Audit` emits one
+  `ConfigIssue` per dead reference. The default-linter set is derived from
+  the live binary (`linters --no-config --json` standard group plus the
+  `typecheck` pseudo linter) instead of the original hard-coded list, so a
+  golangci-lint upgrade can no longer rot the audit itself; tests inject
+  the list and stay hermetic. `cmd/audit` wraps it as a CLI (exit 1 on
+  findings, 2 on audit failure).
+- Dependency: `github.com/go-faster/yaml` v0.4.6 (first non-larsartmann
+  direct dependency; carried by the `audit` subpackage only, which must
+  parse `.golangci.yml` - the core SDK still stops at byte-level reads).
 
 ### Changed
 
