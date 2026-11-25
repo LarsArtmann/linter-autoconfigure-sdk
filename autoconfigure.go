@@ -275,6 +275,24 @@ type ConfigIssue struct {
 	// FixStrategyNone otherwise. Set it for issues whose repair is directly
 	// applicable (FixStrategyDirect) rather than suggestion-only.
 	FixStrategy *finding.FixStrategy
+
+	// Category classifies the issue in go-finding's Category vocabulary
+	// (v0.9.0). Zero value ("") means unset: the finding keeps the builder
+	// default (CategoryConfiguration), matching pre-extension behavior —
+	// the field is a per-issue override, not a required classification.
+	Category finding.Category
+
+	// Tags carries the tool's multi-label classification (v0.9.0) — e.g. a
+	// domain taxonomy class riding beside go-finding's predefined tags.
+	// Nil keeps the builder default (no tags).
+	Tags []finding.Tag
+
+	// Metadata carries tool-specific key-value pairs a message cannot hold
+	// (v0.9.0) — e.g. WHICH dependencies hold the floor behind a withheld
+	// rewrite. Namespaced keys ("dep-forced.floor") keep cross-tool
+	// collisions impossible. Copied onto the finding verbatim via
+	// Builder.WithMetadata; nil leaves the finding's metadata empty.
+	Metadata map[string]string
 }
 
 // FindingFromIssue converts a ConfigIssue to a finding.Finding with the given
@@ -316,6 +334,18 @@ func FindingFromIssue(toolName finding.ToolName, issue ConfigIssue) (finding.Fin
 		builder = builder.WithFixStrategy(finding.FixStrategySuggest)
 	default:
 		builder = builder.WithFixStrategy(finding.FixStrategyNone)
+	}
+
+	if issue.Category != "" {
+		builder = builder.WithCategory(issue.Category)
+	}
+
+	if len(issue.Tags) > 0 {
+		builder = builder.WithTags(issue.Tags...)
+	}
+
+	if len(issue.Metadata) > 0 {
+		builder = builder.WithMetadata(issue.Metadata)
 	}
 
 	built, err := builder.Build()
@@ -380,10 +410,25 @@ type ProviderSpec struct {
 	// suggest-only: ProviderFromSpec leaves toolsdk.Spec.Repair nil, the
 	// canonical signal that BuildFlow should not attempt repairs.
 	Repair func(ctx context.Context) (string, error)
+	// RepairStructured, if non-nil, replaces Repair (v0.9.0): it returns the
+	// full toolsdk.RepairResult — the description PLUS the structured
+	// provenance channel (ModifiedFiles, Facts) — so hosts can surface what
+	// was rewritten and what was learned without string-matching the
+	// description. Repair stays the simple contract for tools that only
+	// have prose; either field works, RepairStructured wins when both are
+	// set, and HasRepair reports true for either.
+	RepairStructured func(ctx context.Context) (toolsdk.RepairResult, error)
+	// Coverage, if non-nil, reports what the Analyze pass examined (v0.9.0,
+	// go-finding's DetectorV2 evidence shape): how many files it actually
+	// read and which module roots it deliberately skipped, so a host can
+	// prove a "clean" answer against what was scanned. Wired through
+	// DetectV2 on the registered detector; hosts still on the plain
+	// Detector contract ignore it (RunDetect falls back to Detect).
+	Coverage func(ctx context.Context) (filesScanned int, skippedModules []string)
 }
 
 // HasRepair reports whether this spec supports auto-repair.
-func (s ProviderSpec) HasRepair() bool { return s.Repair != nil }
+func (s ProviderSpec) HasRepair() bool { return s.Repair != nil || s.RepairStructured != nil }
 
 // ErrNoRepair is the pre-bridge sentinel for "this tool does not support
 // auto-repair", kept so pre-v1 code referencing it keeps compiling.
@@ -453,7 +498,12 @@ func ProviderFromSpec(spec ProviderSpec) (toolsdk.Spec, error) {
 		converted.Inputs = inputs
 	}
 
-	if spec.Repair != nil {
+	switch {
+	case spec.RepairStructured != nil:
+		converted.Repair = toolsdk.RepairerFunc(func(ctx context.Context) (toolsdk.RepairResult, error) {
+			return spec.RepairStructured(toolsdk.EnsureContext(ctx))
+		})
+	case spec.Repair != nil:
 		converted.Repair = toolsdk.RepairerFunc(func(ctx context.Context) (toolsdk.RepairResult, error) {
 			description, err := spec.Repair(toolsdk.EnsureContext(ctx))
 			if err != nil {
@@ -529,4 +579,23 @@ func (d issueDetector) Detect(ctx context.Context) ([]finding.Finding, error) {
 	}
 
 	return FindingsFromIssues(finding.ToolName(d.spec.Name), issues)
+}
+
+// DetectV2 implements finding.DetectorV2 when the spec supplies Coverage:
+// the same findings as Detect, plus the run's coverage evidence. A spec
+// without Coverage still satisfies DetectorV2 structurally — the evidence
+// fields stay zeroed, which is the documented v1-fallback contract, not an
+// error.
+func (d issueDetector) DetectV2(ctx context.Context) (finding.DetectResult, error) {
+	findings, err := d.Detect(ctx)
+	if err != nil {
+		return finding.DetectResult{}, err
+	}
+
+	result := finding.DetectResult{Findings: findings}
+	if d.spec.Coverage != nil {
+		result.FilesScanned, result.SkippedModules = d.spec.Coverage(toolsdk.EnsureContext(ctx))
+	}
+
+	return result, nil
 }
