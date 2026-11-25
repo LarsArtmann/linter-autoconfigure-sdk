@@ -4,10 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [0.9.0] - 2026-11-25
 
 ### Added
 
+- **Bridge passthroughs for the fleet's upstream asks** (the go-version-auto-configure library-utilization run's top push, plan M7): `ConfigIssue` grows `Category`, `Tags`, and `Metadata` — all additive, all zero-value-safe (unset keeps the pre-v0.9 finding shape: the `CategoryConfiguration` default, no tags, empty metadata) — wired through the builder so tools can classify in go-finding's vocabulary and carry structured facts (e.g. WHICH dependencies hold a floor behind a withheld rewrite) instead of prose-concatenating them into the message. `ProviderSpec` grows `RepairStructured` (returns the full `toolsdk.RepairResult` — `ModifiedFiles`/`Facts` provenance instead of a string; wins over `Repair` when both are set, `HasRepair` covers either) and `Coverage` (feeds `DetectV2`'s `FilesScanned`/`SkippedModules`, so hosts can prove a clean answer against what was scanned; hosts still on the plain `Detector` contract fall back untouched). Locked by `v09_passthrough_test.go`.
 - **golangci-lint config drift audit** (`audit` subpackage + `cmd/audit`):
   generalizes the repo-local lintconfig drift tests (exclusion rules,
   settings blocks, and nolint directives referencing dead linters) so any
